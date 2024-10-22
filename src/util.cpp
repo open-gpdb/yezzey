@@ -11,6 +11,8 @@
 #include <vector>
 
 #include "virtual_index.h"
+#include "storage_lister.h"
+#include "yproxy.h"
 
 #include "io.h"
 #include "io_adv.h"
@@ -149,12 +151,12 @@ std::string make_yezzey_url(const std::string &prefix, int64_t modcount,
 int64_t yezzey_virtual_relation_size(std::shared_ptr<IOadv> adv,
                                      int32_t segid) {
   try {
-    // auto lister = StorageLister(adv, GpIdentity.segindex);
+    auto lister = YProxyLister(adv, segid);
     int64_t sz = 0;
-    // for (auto key : lister.reader_->getKeyList().contents) {
-    //   sz +=
-    //       lister.reader_->bucketReader.constructReaderParams(key).getKeySize();
-    // }
+    auto chunks = lister.list_relation_chunks();
+    for (auto chunk : chunks) {
+      sz += chunk.chunkSize;
+    }
     /* external reader destruct */
     return sz;
   } catch (...) {
