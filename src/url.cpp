@@ -34,7 +34,7 @@ std::string yezzey_fqrelname_md5(const std::string &nspname,
 
 /* creates yezzey xternal storage namespace prefix path */
 std::string yezzey_block_namespace_path(int32_t segid) {
-  return "/segments_005/seg" + std::to_string(segid) + baseYezzeyPath;
+  return "segments_005/seg" + std::to_string(segid) + baseYezzeyPath;
 }
 /* creates yezzey xternal storage prefix path */
 std::string yezzey_block_file_path(const std::string &nspname,
