@@ -53,7 +53,16 @@ std::string yezzey_block_file_path(const std::string &nspname,
 
   return url;
 }
+std::string yezzey_block_db_file_path(const std::string &nspname,
+                                   const std::string &relname,
+                                   relnodeCoord coords, int32_t segid){
+  std::string url = yezzey_block_namespace_path(segid);
+  url += std::to_string(coords.spcNode) + "_" + std::to_string(coords.dboid) + "_";
 
+  auto md = yezzey_fqrelname_md5(nspname, relname);
+  url += md;
+  return url;
+}
 /* prefix-independent WAL-G compatable path */
 std::string craftStorageUnPrefixedPath(const std::shared_ptr<IOadv> &adv,
                                        ssize_t segindx, ssize_t modcount,
