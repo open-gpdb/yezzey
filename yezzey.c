@@ -114,6 +114,7 @@ PG_FUNCTION_INFO_V1(yezzey_check_part_exr);
 
 PG_FUNCTION_INFO_V1(yezzey_delete_chunk);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage);
+PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 
 
 /* Create yezzey metadata tables */
@@ -131,7 +132,7 @@ int yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
 
 int yezzey_delete_chunk_internal(const char *external_chunk_path);
 int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop);
-
+int yezzey_vacuum_garbage_relation_internal(Oid reloid,int segindx, bool confirm, bool crazyDrop);
 /*
  * yezzey_define_relation_offload_policy_internal:
  * do all the work with initial relation offloading
@@ -438,6 +439,26 @@ Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
   PG_RETURN_VOID();
 }
 
+Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
+  Oid reloid = PG_GETARG_OID(0);
+  bool confirm;
+  bool crazyDrop;
+  int rc;
+  confirm = PG_GETARG_BOOL(1);
+  crazyDrop = PG_GETARG_BOOL(2);
+  if (GpIdentity.segindex == -1) {
+    elog(ERROR, "yezzey_vacuum_garbage_internal should be executed on SEGMENT");
+  }
+
+  if (crazyDrop && !superuser()) {
+    elog(ERROR, "crazyDrop forbidden for non-superuser");
+  }
+
+  rc = yezzey_vacuum_garbage_relation_internal(reloid,GpIdentity.segindex,confirm,crazyDrop);
+
+  PG_RETURN_VOID();
+
+}
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   Relation aorel;
