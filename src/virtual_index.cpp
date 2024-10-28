@@ -213,6 +213,58 @@ void emptyYezzeyIndexBlkno(Oid yezzey_index_oid, Oid reloid /* not used */,
   CommandCounterIncrement();
 } /* end emptyYezzeyIndexBlkno */
 
+
+void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
+  
+  HeapTuple tuple;
+  ScanKeyData skey[1];
+  bool nulls[Natts_yezzey_virtual_index];
+  Datum values[Natts_yezzey_virtual_index];
+
+  memset(nulls, 0, sizeof(nulls));
+  memset(values, 0, sizeof(values));
+
+  auto rel = heap_open(yezzey_index_oid, RowExclusiveLock);
+
+  auto snap = RegisterSnapshot(GetTransactionSnapshot());
+
+  ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_filenode,
+              BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(relation->rd_node.relNode));
+
+  auto desc = yezzey_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
+
+  while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
+        // update
+    auto meta = (Form_yezzey_virtual_index)GETSTRUCT(tuple);
+
+    // Assert(meta->yrelfileoid == relfileoid);
+
+    values[Anum_yezzey_virtual_index_filenode - 1] =
+        ObjectIdGetDatum(relation->rd_node.relNode);
+
+    auto yandxtuple = heap_form_tuple(RelationGetDescr(relation), values, nulls);
+
+#if IsGreenplum6
+    simple_heap_update(relation, &tuple->t_self, yandxtuple);
+    CatalogUpdateIndexes(relation, yandxtuple);
+#else
+    CatalogTupleUpdate(relation, &tuple->t_self, yandxtuple);
+#endif
+  }
+
+  yezzey_endscan(desc);
+  heap_close(rel, RowExclusiveLock);
+
+  UnregisterSnapshot(snap);
+
+  /* make changes visible*/
+  CommandCounterIncrement();
+} 
+
+void YezzeyFixupVirtualIndex(Relation relation) {
+  (void) YezzeyFixupVirtualIndex_internal(YezzeyFindAuxIndex(RelationGetRelid(relation)), relation);
+} /* end YezzeyFixupVirtualIndex */
+
 void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,
                               Oid reloid, Oid relfilenodeOid, int64_t blkno,
                               int64_t offset_start, int64_t offset_finish,

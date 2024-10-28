@@ -58,22 +58,35 @@
 #include "offload.h"
 #include "offload_policy.h"
 
-#include "virtual_tablespace.h"
 #include "partition.h"
-#include "xvacuum.h"
-#include "yezzey_expire.h"
+
+#include "virtual_tablespace.h"
 #include "init.h"
+
+#include "storage.h"
+#include "yezzey.h"
+
+#include "offload_tablespace_map.h"
+
+#include "tcop/utility.h"
+#include "xvacuum.h"
+#include "cdb/cdbvars.h"
+
+// options for yezzey logging
+static const struct config_enum_entry loglevel_options[] = {
+    {"debug5", DEBUG5, false},   {"debug4", DEBUG4, false},
+    {"debug3", DEBUG3, false},   {"debug2", DEBUG2, false},
+    {"debug1", DEBUG1, false},   {"debug", DEBUG2, true},
+    {"info", INFO, false},       {"notice", NOTICE, false},
+    {"warning", WARNING, false}, {"error", ERROR, false},
+    {"log", LOG, false},         {"fatal", FATAL, false},
+    {"panic", PANIC, false},     {NULL, 0, false}};
 
 
 #define GET_STR(textp)                                                         \
   DatumGetCString(DirectFunctionCall1(textout, PointerGetDatum(textp)))
 
 /* STORAGE */
-char *storage_prefix = NULL;
-char *storage_bucket = NULL;
-char *backup_bucket = NULL;
-char *storage_config = NULL;
-char *storage_host = NULL;
 char *storage_class = NULL;
 int multipart_threshold = 0;
 int multipart_chunksize = 0;
@@ -267,7 +280,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   }
 
   /* record that relation on its current reloid is expired */
-  YezzeyRecordRelationExpireLsn(aorel);
+  YezzeyFixupVirtualIndex(aorel);
 
   /*
   * Update relation status row in yezzet.offload_metadat
@@ -481,8 +494,7 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   }
 
   (void)getYezzeyExternalStoragePathByCoords(
-      nspname, aorel->rd_rel->relname.data, storage_host /*host*/,
-      storage_bucket /*bucket*/, storage_prefix /*prefix*/, rnode.spcNode, rnode.dbNode,
+      nspname, aorel->rd_rel->relname.data, rnode.spcNode, rnode.dbNode,
       rnode.relNode, segno, GpIdentity.segindex, &ptr);
 
   pgptr = pstrdup(ptr);
@@ -1241,6 +1253,27 @@ Datum yezzey_check_part_exr(PG_FUNCTION_ARGS) {
 }
 
 
+/* Plugin provides a hook function matching this signature. */
+void yezzey_object_access_hook (ObjectAccessType access,
+													 Oid classId,
+													 Oid objectId,
+													 int subId,
+													 void *arg) {
+  Relation offRel;
+  if (classId != RelationRelationId) {
+    return;  
+  }
+
+  offRel = relation_open(objectId, AccessShareLock);
+  if (offRel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
+    relation_close(offRel, AccessShareLock);
+    return;
+  }
+
+  (void)YezzeyFixupVirtualIndex(offRel);
+  relation_close(offRel, AccessShareLock);
+}
+
 
 /*
  * Hook ProcessUtility to do external storage vacuum
@@ -1329,29 +1362,6 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
 static bool yezzey_autooffload = true; /* start yezzey worker? */
 
 static void yezzey_define_gucs() {
-
-  DefineCustomStringVariable("yezzey.storage_prefix", "segment name prefix",
-                             NULL, &storage_prefix, "", PGC_SUSET, 0, NULL,
-                             NULL, NULL);
-
-  DefineCustomStringVariable("yezzey.storage_bucket", "external storage bucket",
-                             NULL, &storage_bucket, "", PGC_SUSET, 0, NULL,
-                             NULL, NULL);
-
-  DefineCustomStringVariable("yezzey.backup_bucket", "external storage backup bucket",
-                             NULL, &backup_bucket, "", PGC_SUSET, 0, NULL,
-                             NULL, NULL);
-
-  DefineCustomStringVariable("yezzey.storage_config",
-                             "Storage config path for yezzey external storage.",
-                             NULL, &storage_config, "", PGC_SUSET, 0, NULL,
-                             NULL, NULL);
-
-  DefineCustomStringVariable("yezzey.storage_host", "external storage host",
-                             NULL, &storage_host, "", PGC_SUSET, 0, NULL, NULL,
-                             NULL);
-
-
   DefineCustomStringVariable("yezzey.storage_class", "external storage default storage class",
                              NULL, &storage_class, "STANDARD", PGC_SUSET, 0, NULL, NULL,
                              NULL);
@@ -1380,10 +1390,6 @@ static void yezzey_define_gucs() {
                            &yezzey_ao_log_level, DEBUG1, loglevel_options,
                            PGC_SUSET, 0, NULL, NULL, NULL);
 
-  DefineCustomIntVariable(
-      "yezzey.oflload_worker_naptime", "Auto-offloading worker naptime", NULL,
-      &yezzey_naptime, 10000, 500, INT_MAX, PGC_SUSET, 0, NULL, NULL, NULL);
-
   DefineCustomStringVariable("yezzey.yproxy_socket", "wal-g config path",
                           NULL, &yproxy_socket, "/tmp/yproxy.sock",
                           PGC_SUSET, 0, NULL, NULL, NULL);
@@ -1395,15 +1401,6 @@ void _PG_init(void) {
   /* Yezzey GUCS define */
   (void)yezzey_define_gucs();
 
-  RequestAddinShmemSpace(MAXALIGN(sizeof(YezzeySharedState)));
-
-  elog(yezzey_log_level, "[YEZZEY_SMGR] setting up bgworker");
-
-  if (yezzey_autooffload && false /*temp disable*/) {
-    /* dispatch yezzey worker */
-    yezzey_start_launcher_worker();
-  }
-
   elog(yezzey_log_level, "[YEZZEY_SMGR] set hook");
 
   smgr_hook = smgr_yezzey;
@@ -1414,6 +1411,7 @@ void _PG_init(void) {
 
   /* set drop hook  */
   ProcessUtility_hook = yezzey_ProcessUtility_hook;
+  object_access_hook = yezzey_object_access_hook;
 
   ExecutorStart_hook = yezzey_ExecuterStartHook;
   ExecutorEnd_hook = yezzey_ExecuterEndHook;

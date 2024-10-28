@@ -3,7 +3,6 @@
 #include "pg.h"
 #include "url.h"
 #include "virtual_index.h"
-#include "yezzey_expire.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"

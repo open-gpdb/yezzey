@@ -8,5 +8,5 @@ void YezzeyUpdateMetadataRelations(
   YezzeyVirtualIndexInsert(yandexoid, reloid, relfilenodeOid, blkno,
                            offset_start, offset_finish, encrypted, reused,
                            modcount, lsn, x_path);
-  YezzeyUpsertLastUseLsn(reloid, relfilenodeOid, md5, lsn);
+  /* TODO: update yezzey relfilemap */
 }

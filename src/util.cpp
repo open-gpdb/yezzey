@@ -23,23 +23,6 @@
 
 const char *baseYezzeyPath = "/basebackups_005/yezzey/";
 
-std::string getYezzeyExtrenalStorageBucket(const char *host,
-                                           const char *bucket) {
-  std::string url = "s3://";
-  std::string toErase = "https://";
-  std::string hostStr = host;
-  size_t pos = hostStr.find(toErase);
-  if (pos != std::string::npos) {
-    hostStr.erase(pos, toErase.length());
-  }
-  url += hostStr;
-  url += "/";
-  url += bucket;
-  url += "/";
-
-  return url;
-}
-
 std::string storage_url_add_options(const std::string &s3path,
                                     const char *config_path) {
   auto ret = s3path;
@@ -87,18 +70,16 @@ relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
 }
 
 void getYezzeyExternalStoragePathByCoords(const char *nspname,
-                                          const char *relname, const char *host,
-                                          const char *bucket,
-                                          const char *storage_prefix,
+                                          const char *relname,
                                           Oid spcNode, Oid dbNode, Oid relNode,
                                           int32_t segblockno /* segment no*/,
                                           int32_t segid, char **dest) {
 
   /* FIXME: Support for non-default table space? */
   auto coords = relnodeCoord(spcNode, dbNode, relNode, segblockno);
-  auto prefix = getYezzeyRelationUrl_internal(nspname, relname, storage_prefix,
+  auto prefix = getYezzeyRelationUrl_internal(nspname, relname,
                                               coords, segid);
-  auto path = getYezzeyExtrenalStorageBucket(host, bucket) + prefix;
+  auto path = prefix;
 
   *dest = (char *)malloc(sizeof(char) * path.size());
   strcpy(*dest, path.c_str());

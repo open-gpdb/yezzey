@@ -37,6 +37,8 @@ typedef struct {
   text x_path;           /* external path */
 } FormData_yezzey_virtual_index;
 
+typedef FormData_yezzey_virtual_index* Form_yezzey_virtual_index;
+
 #define Natts_yezzey_virtual_index 10
 #define Anum_yezzey_virtual_index_reloid 1
 #define Anum_yezzey_virtual_index_filenode 2
@@ -56,6 +58,9 @@ EXTERNC void emptyYezzeyIndex(Oid yezzey_index_oid, Oid relfilenode);
 
 EXTERNC void emptyYezzeyIndexBlkno(Oid yezzey_index_oid, Oid relation,
                                    Oid relfilenode, int blkno);
+
+/* fixup virtual index entry for relation's relfilenode. */
+EXTERNC void YezzeyFixupVirtualIndex(Relation rel);
 
 #ifdef __cplusplus
 void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,

@@ -12,12 +12,6 @@ struct IOadv {
   const std::string nspname;
   // relation name itself
   const std::string relname;
-  // s3 host
-  const std::string host;
-  // s3 bucked
-  const std::string bucket;
-  // wal-g specific prefix
-  const std::string external_storage_prefix;
 
   // s3 storage class
   const std::string storage_class;
@@ -39,16 +33,14 @@ struct IOadv {
   const std::string yproxy_socket;
 
   IOadv(const std::string &nspname,
-        const std::string &relname, const std::string &host,
-        const std::string &bucket, const std::string &external_storage_prefix,
+        const std::string &relname,
         const std::string &storage_class, const int &multipart_chunksize,
         /*unparse coords*/ Oid spcNode, const std::string &fileName,
         const Oid reloid, bool use_gpg_crypto,
         const std::string &yproxy_socket);
 
   IOadv(const std::string &nspname,
-        const std::string &relname, const std::string &host,
-        const std::string &bucket, const std::string &external_storage_prefix,
+        const std::string &relname,
         const std::string &storage_class, const int &multipart_chunksize,
         const relnodeCoord &coords, const Oid reloid,
         bool use_gpg_crypto, const std::string &yproxy_socket);

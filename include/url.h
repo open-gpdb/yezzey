@@ -31,5 +31,4 @@ std::string craftStorageUnPrefixedPath(const std::shared_ptr<IOadv> &adv,
 std::string
 getYezzeyRelationUrl_internal(const std::string &nspname,
                               const std::string &relname,
-                              const std::string &external_storage_prefix,
                               relnodeCoord coords, int32_t segid);
