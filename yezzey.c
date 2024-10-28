@@ -1239,3 +1239,182 @@ Datum yezzey_check_part_exr(PG_FUNCTION_ARGS) {
   text *expr = PG_GETARG_TEXT_P(0);
   PG_RETURN_TEXT_P(yezzey_get_expr_worker(expr));
 }
+
+
+
+/*
+ * Hook ProcessUtility to do external storage vacuum
+ */
+static void
+yezzey_ProcessUtility_hook(Node *parsetree,
+                            const char *queryString,
+                            ProcessUtilityContext context,
+                            ParamListInfo params,
+                            DestReceiver *dest,
+                            char *completionTag) {
+
+	switch (nodeTag(parsetree))
+	{
+			/*
+			 * ******************** yezzey vacuum ********************
+			 */
+      break;
+		case T_VacuumStmt:
+#if IsGreenplum6
+			{
+				VacuumStmt *stmt = (VacuumStmt *) parsetree;
+        if(!stmt->relation){
+          break;
+        }
+        Relation rel = relation_openrv(stmt->relation,NoLock);
+        if (stmt->options & VACOPT_YEZZEY & (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID)) {
+          if (Gp_role == GP_ROLE_EXECUTE) {
+            Assert(GpIdentity.segindex != -1);
+            yezzey_vacuum_garbage_relation_internal(rel, GpIdentity.segindex,true,false);
+          }
+        }
+        relation_close(rel,NoLock);
+			}
+#endif
+			break;
+    default:
+      break;
+    }
+    return standard_ProcessUtility(parsetree, queryString, context, params, dest, completionTag);  
+}
+
+static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
+  (void) standard_ExecutorEnd(queryDesc);
+
+  YezzeyTruncateOTMHint();
+}
+
+
+static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
+    (void) standard_ExecutorStart(queryDesc, eflags);
+
+    typedef struct
+    {
+      DestReceiver pub;			/* publicly-known function pointers */
+      IntoClause *into;			/* target relation specification */
+      /* These fields are filled by intorel_startup: */
+      Relation	rel;			/* relation to write to */
+      CommandId	output_cid;		/* cmin to insert in output tuples */
+      int			hi_options;		/* heap_insert performance options */
+      BulkInsertState bistate;	/* bulk insert state */
+
+      struct AppendOnlyInsertDescData *ao_insertDesc; /* descriptor to AO tables */
+      struct AOCSInsertDescData *aocs_insertDes;      /* descriptor for aocs */
+    } DR_intorel;
+
+
+    IntoClause *iclause;
+    Oid sourceOid;
+
+    if (queryDesc->plannedstmt->intoClause != NULL) {
+      iclause = queryDesc->plannedstmt->intoClause;
+      if (strcmp(iclause->tableSpaceName, "yezzey(cloud-storage)") == 0) {
+        if (queryDesc->plannedstmt->relationOids->length != 1) {
+          elog(ERROR, "unexpected plan relation size for yezzey alter: %d", queryDesc->plannedstmt->relationOids->length);
+        }
+        sourceOid = lfirst(queryDesc->plannedstmt->relationOids->head);
+        /* so, target relation is yezzey. This should be expand or alter table reorg; */
+        YezzeyCopyOTM(iclause->rel, sourceOid);
+      }
+    }
+}
+
+
+/* GUC variables. */
+static bool yezzey_autooffload = true; /* start yezzey worker? */
+
+static void yezzey_define_gucs() {
+
+  DefineCustomStringVariable("yezzey.storage_prefix", "segment name prefix",
+                             NULL, &storage_prefix, "", PGC_SUSET, 0, NULL,
+                             NULL, NULL);
+
+  DefineCustomStringVariable("yezzey.storage_bucket", "external storage bucket",
+                             NULL, &storage_bucket, "", PGC_SUSET, 0, NULL,
+                             NULL, NULL);
+
+  DefineCustomStringVariable("yezzey.backup_bucket", "external storage backup bucket",
+                             NULL, &backup_bucket, "", PGC_SUSET, 0, NULL,
+                             NULL, NULL);
+
+  DefineCustomStringVariable("yezzey.storage_config",
+                             "Storage config path for yezzey external storage.",
+                             NULL, &storage_config, "", PGC_SUSET, 0, NULL,
+                             NULL, NULL);
+
+  DefineCustomStringVariable("yezzey.storage_host", "external storage host",
+                             NULL, &storage_host, "", PGC_SUSET, 0, NULL, NULL,
+                             NULL);
+
+
+  DefineCustomStringVariable("yezzey.storage_class", "external storage default storage class",
+                             NULL, &storage_class, "STANDARD", PGC_SUSET, 0, NULL, NULL,
+                             NULL);
+
+  DefineCustomIntVariable("yezzey.multipart_chunksize", "external storage default multipart chunksize",
+                             NULL, &multipart_chunksize, 16*1024*1024, 0, INT_MAX, PGC_SUSET, 0, NULL, NULL, NULL);
+
+  DefineCustomIntVariable("yezzey.multipart_threshold", "external storage default multipart threshold",
+                             NULL, &multipart_threshold, 64*1024*1024, 0, INT_MAX, PGC_SUSET, 0, NULL, NULL, NULL);
+
+  DefineCustomBoolVariable("yezzey.use_gpg_crypto", "use gpg crypto", NULL,
+                           &use_gpg_crypto, true, PGC_SUSET, 0, NULL, NULL,
+                           NULL);
+
+  DefineCustomBoolVariable(
+      "yezzey.autooffload", "enable auto-offloading worker", NULL,
+      &yezzey_autooffload, false, PGC_USERSET, 0, NULL, NULL, NULL);
+
+  DefineCustomEnumVariable("yezzey.log_level",
+                           "Log level for yezzey functions.", NULL,
+                           &yezzey_log_level, DEBUG1, loglevel_options,
+                           PGC_SUSET, 0, NULL, NULL, NULL);
+
+  DefineCustomEnumVariable("yezzey.ao_log_level",
+                           "Log level for yezzey functions.", NULL,
+                           &yezzey_ao_log_level, DEBUG1, loglevel_options,
+                           PGC_SUSET, 0, NULL, NULL, NULL);
+
+  DefineCustomIntVariable(
+      "yezzey.oflload_worker_naptime", "Auto-offloading worker naptime", NULL,
+      &yezzey_naptime, 10000, 500, INT_MAX, PGC_SUSET, 0, NULL, NULL, NULL);
+
+  DefineCustomStringVariable("yezzey.yproxy_socket", "wal-g config path",
+                          NULL, &yproxy_socket, "/tmp/yproxy.sock",
+                          PGC_SUSET, 0, NULL, NULL, NULL);
+}
+
+void _PG_init(void) {
+  /* Allocate shared memory for yezzey workers */
+
+  /* Yezzey GUCS define */
+  (void)yezzey_define_gucs();
+
+  RequestAddinShmemSpace(MAXALIGN(sizeof(YezzeySharedState)));
+
+  elog(yezzey_log_level, "[YEZZEY_SMGR] setting up bgworker");
+
+  if (yezzey_autooffload && false /*temp disable*/) {
+    /* dispatch yezzey worker */
+    yezzey_start_launcher_worker();
+  }
+
+  elog(yezzey_log_level, "[YEZZEY_SMGR] set hook");
+
+  smgr_hook = smgr_yezzey;
+#if IsGreenplum6
+  smgrao_hook = smgrao_yezzey;
+#endif
+  smgr_init_hook = smgr_init_yezzey;
+
+  /* set drop hook  */
+  ProcessUtility_hook = yezzey_ProcessUtility_hook;
+
+  ExecutorStart_hook = yezzey_ExecuterStartHook;
+  ExecutorEnd_hook = yezzey_ExecuterEndHook;
+}
