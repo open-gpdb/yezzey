@@ -19,6 +19,9 @@ std::string yezzey_block_file_path(const std::string &nspname,
                                    relnodeCoord coords, int32_t segid);
 
 std::string yezzey_block_namespace_path(int32_t segid);
+std::string yezzey_block_db_file_path(const std::string &nspname,
+                                   const std::string &relname,
+                                   relnodeCoord coords, int32_t segid);
 
 /* un-prefixed version of `craftStoragePrefixedPath` */
 std::string craftStorageUnPrefixedPath(const std::shared_ptr<IOadv> &adv,
