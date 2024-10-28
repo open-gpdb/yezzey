@@ -38,9 +38,6 @@ int64_t yezzey_calc_virtual_relation_size(std::shared_ptr<IOadv> adv,
 std::string storage_url_add_options(const std::string &s3path,
                                     const char *config_path);
 
-std::string getYezzeyExtrenalStorageBucket(const char *host,
-                                           const char *bucket);
-
 std::string make_yezzey_url(const std::string &prefix, int64_t modcounts,
                             XLogRecPtr current_recptr);
 
@@ -49,8 +46,7 @@ std::vector<int64_t> parseModcounts(const std::string &prefix,
 #endif
 
 EXTERNC void getYezzeyExternalStoragePathByCoords(
-    const char *nspname, const char *relname, const char *host,
-    const char *bucket, const char *storage_prefix, Oid spcNode, Oid dbNode,
+    const char *nspname, const char *relname, Oid spcNode, Oid dbNode,
     Oid relNode, int32_t segblockno /* segment no*/, int32_t segid,
     char **dest);
 

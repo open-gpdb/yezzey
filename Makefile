@@ -24,18 +24,16 @@ OBJS = \
 	src/url.o \
 	src/io.o \
 	src/io_adv.o \
-	src/worker.o \
 	src/offload_tablespace_map.o \
 	src/offload_policy.o \
 	src/offload.o \
 	src/virtual_tablespace.o \
 	src/partition.o \
 	src/xvacuum.o \
-	src/yezzey_expire.o \
 	src/yproxy.o \
 	src/init.o \
 	src/meta.o \
-	smgr.o worker.o yezzey.o
+	smgr.o yezzey.o
 
 EXTENSION = yezzey
 DATA = yezzey--1.0.sql yezzey--1.0--1.8.sql yezzey--1.8--1.8.1.sql

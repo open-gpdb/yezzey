@@ -57,3 +57,6 @@ BEGIN
 END;
 $$
 LANGUAGE PLPGSQL;
+
+DROP IF EXISTS yezzey.yezzey_expire_index;
+

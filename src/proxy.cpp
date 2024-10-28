@@ -229,9 +229,6 @@ EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
         if (!RecoveryInProgress()) {
           auto ioadv = std::make_shared<IOadv>(
               yfd.nspname, yfd.relname,
-              std::string(storage_host /*host*/),
-              std::string(storage_bucket /*bucket*/),
-              std::string(storage_prefix /*prefix*/),
               std::string(storage_class /* storage_class */),
               multipart_chunksize, DEFAULTTABLESPACE_OID,
               yfd.filepath /* coords */, reloid /* reloid */,

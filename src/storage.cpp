@@ -196,9 +196,7 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   /* FIXME */
 
   auto ioadv = std::make_shared<IOadv>(
-      nspname, relname,
-      storage_host /* host */, storage_bucket /*bucket*/,
-      storage_prefix /*prefix*/, storage_class /* storage_class */,
+      nspname, relname, storage_class /* storage_class */,
       multipart_chunksize, coords /* filename */, rel->rd_id /* reloid */,
       use_gpg_crypto, yproxy_socket);
 
@@ -348,9 +346,7 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       !external_storage_path ? "" : std::string(external_storage_path);
   ReleaseSysCache(tp);
 
-  auto ioadv = std::make_shared<IOadv>(nspname, relname,
-      storage_host /* host */, storage_bucket /*bucket*/,
-      storage_prefix /*prefix*/, storage_class /* storage_class */,
+  auto ioadv = std::make_shared<IOadv>(nspname, relname, storage_class /* storage_class */,
       multipart_chunksize, coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
   try {
@@ -448,9 +444,6 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   auto ioadv = std::make_shared<IOadv>(
       nspname,
       std::string(aorel->rd_rel->relname.data),
-      std::string(storage_host /*host*/),
-      std::string(storage_bucket /*bucket*/),
-      std::string(storage_prefix /*prefix*/),
       std::string(storage_class /*storage_class*/), multipart_chunksize,
       coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
       yproxy_socket);
@@ -512,9 +505,6 @@ int statRelationSpaceUsagePerExternalChunk(Relation aorel, int segno,
   auto ioadv = std::make_shared<IOadv>(
       nspname,
       std::string(aorel->rd_rel->relname.data),
-      std::string(storage_host /*host*/),
-      std::string(storage_bucket /*bucket*/),
-      std::string(storage_prefix /*prefix*/),
       std::string(storage_class /*storage_class*/), multipart_chunksize,
       coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
       yproxy_socket);
