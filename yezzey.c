@@ -1334,27 +1334,12 @@ static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
 static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
     (void) standard_ExecutorStart(queryDesc, eflags);
 
-    typedef struct
-    {
-      DestReceiver pub;			/* publicly-known function pointers */
-      IntoClause *into;			/* target relation specification */
-      /* These fields are filled by intorel_startup: */
-      Relation	rel;			/* relation to write to */
-      CommandId	output_cid;		/* cmin to insert in output tuples */
-      int			hi_options;		/* heap_insert performance options */
-      BulkInsertState bistate;	/* bulk insert state */
-
-      struct AppendOnlyInsertDescData *ao_insertDesc; /* descriptor to AO tables */
-      struct AOCSInsertDescData *aocs_insertDes;      /* descriptor for aocs */
-    } DR_intorel;
-
-
     IntoClause *iclause;
     Oid sourceOid;
 
     if (queryDesc->plannedstmt->intoClause != NULL) {
       iclause = queryDesc->plannedstmt->intoClause;
-      if (strcmp(iclause->tableSpaceName, "yezzey(cloud-storage)") == 0) {
+      if (iclause->tableSpaceName && strcmp(iclause->tableSpaceName, "yezzey(cloud-storage)") == 0) {
         if (queryDesc->plannedstmt->relationOids->length != 1) {
           elog(ERROR, "unexpected plan relation size for yezzey alter: %d", queryDesc->plannedstmt->relationOids->length);
         }
