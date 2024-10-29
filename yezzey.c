@@ -1275,7 +1275,8 @@ void yezzey_object_access_hook (ObjectAccessType access,
     (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(offRel)), offRel->rd_node.relNode);
     (void)FixupOffloadMetadata(RelationGetRelid(offRel));
   } else if (access == OAT_POST_ALTER) { 
-    (void)YezzeyFixupVirtualIndex(offRel);
+    /* TODO: implement properly */
+    // (void)YezzeyFixupVirtualIndex(offRel);
   }
 
   relation_close(offRel, AccessShareLock);

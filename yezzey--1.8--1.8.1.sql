@@ -58,5 +58,33 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
-DROP IF EXISTS yezzey.yezzey_expire_index;
+DROP TABLE IF EXISTS yezzey.yezzey_expire_index;
+
+CREATE OR REPLACE FUNCTION
+yezzey.fixup_stale_data() RETURNS VOID
+AS
+$$
+    
+    --DELETE FROM yezzey.yezzey_virtual_index vi WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE relfilenode = vi.filenode);
+
+    DELETE FROM yezzey.offload_metadata op WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE oid = op.reloid);
+$$ LANGUAGE SQL
+EXECUTE ON ALL SEGMENTS;
+
+CREATE TABLE yezzey.yezzey_expire_hint
+(
+    x_path TEXT PRIMARY KEY,
+    lsn pg_lsn
+) with (appendonly=false);
+
+SET allow_segment_DML to ON;
+
+SELECT yezzey.fixup_stale_data();
+
+RESET allow_segment_DML;
+
+-- on master
+DELETE FROM yezzey.offload_metadata op WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE oid = op.reloid);
+
+DROP FUNCTION yezzey.fixup_stale_data();
 
