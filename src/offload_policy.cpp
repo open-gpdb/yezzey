@@ -408,3 +408,37 @@ void YezzeyLoadRealtion(Oid i_reloid) {
   /* make changes visible*/
   CommandCounterIncrement();
 }
+
+void FixupOffloadMetadata(Oid i_reloid) {
+  /**/
+  ScanKeyData skey[1];
+
+  auto snap = RegisterSnapshot(GetTransactionSnapshot());
+
+  auto offrel = heap_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
+
+  /* INSERT INTO yezzey.offload_metadata VALUES(v_reloid, 1, NULL, NOW()); */
+
+  ScanKeyInit(&skey[0], Anum_offload_metadata_reloid, BTEqualStrategyNumber,
+              F_OIDEQ, ObjectIdGetDatum(i_reloid));
+
+  auto scan = yezzey_beginscan(offrel, snap, 1, skey);
+
+  auto oldtuple = heap_getnext(scan, ForwardScanDirection);
+
+  if (HeapTupleIsValid(oldtuple)) {
+    auto meta = (Form_yezzey_offload_metadata)GETSTRUCT(oldtuple);
+
+    Assert(meta->reloid == i_reloid);
+
+    simple_heap_delete(offrel, &oldtuple->t_self);
+  }
+
+  heap_close(offrel, RowExclusiveLock);
+
+  yezzey_endscan(scan);
+  UnregisterSnapshot(snap);
+
+  /* make changes visible */
+  CommandCounterIncrement();
+}
