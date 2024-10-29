@@ -1270,7 +1270,13 @@ void yezzey_object_access_hook (ObjectAccessType access,
     return;
   }
 
-  (void)YezzeyFixupVirtualIndex(offRel);
+
+  if (access == OAT_DROP) {
+    (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(offRel)), offRel->rd_node.relNode);
+  } else if (access == OAT_POST_ALTER) { 
+    (void)YezzeyFixupVirtualIndex(offRel);
+  }
+
   relation_close(offRel, AccessShareLock);
 }
 

@@ -48,7 +48,7 @@ yezzey_create_index_internal(Oid relid, const std::string &relname,
       relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
       0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
       InvalidOid /* reloftypeid */, relowner /* owner */,
-      tupdesc /* rel tuple */, NIL, InvalidOid /* relam */, RELKIND_YEZZEYINDEX,
+      tupdesc /* rel tuple */, NIL, InvalidOid /* relam */, RELKIND_YEZZEYINDEX /*relkind*/,
       relpersistence, RELSTORAGE_HEAP, shared_relation, mapped_relation, true,
       0, ONCOMMIT_NOOP, NULL /* GP Policy */, (Datum)0,
       false /* use_user_acl */, true, true, false /* valid_opts */,
@@ -188,10 +188,6 @@ void emptyYezzeyIndexBlkno(Oid yezzey_index_oid, Oid reloid /* not used */,
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
-  // ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_reloid,
-  // BTEqualStrategyNumber,
-  //             F_OIDEQ, ObjectIdGetDatum(reloid));
-
   ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_filenode,
               BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(relfilenode));
 
@@ -238,9 +234,12 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
     auto meta = (Form_yezzey_virtual_index)GETSTRUCT(tuple);
 
     // Assert(meta->yrelfileoid == relfileoid);
+    if (meta->reloid == RelationGetRelid(relation)) {
+      continue;
+    }
 
-    values[Anum_yezzey_virtual_index_filenode - 1] =
-        ObjectIdGetDatum(relation->rd_node.relNode);
+    values[Anum_yezzey_virtual_index_reloid - 1] =
+        ObjectIdGetDatum(RelationGetRelid(relation));
 
     auto yandxtuple = heap_form_tuple(RelationGetDescr(relation), values, nulls);
 
