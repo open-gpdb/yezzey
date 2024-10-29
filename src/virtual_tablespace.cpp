@@ -90,28 +90,7 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
 
   heap_close(pg_class, RowExclusiveLock);
 
-  // yezzey: do we need this?
-  // /* MPP-6929: metadata tracking */
-  // if ((Gp_role == GP_ROLE_DISPATCH) && MetaTrackValidKindNsp(rel->rd_rel))
-  // 	MetaTrackUpdObject(RelationRelationId,
-  // 					   RelationGetRelid(rel),
-  // 					   GetUserId(),
-  // 					   "ALTER", "SET TABLESPACE");
-
   /* Make sure the reltablespace change is visible */
   CommandCounterIncrement();
-
-  /* yezzey: do we need to move indexes? */
-  // /*
-  //  * MPP-7996 - bitmap index subobjects w/Alter Table Set tablespace
-  //  */
-  // if (OidIsValid(relbmrelid))
-  // {
-  // 	Assert(!relaosegrelid);
-  // 	ATExecSetTableSpace(relbmrelid, newTableSpace, lockmode);
-  // }
-  // if (OidIsValid(relbmidxid))
-  // 	ATExecSetTableSpace(relbmidxid, newTableSpace, lockmode);
-
   /* Clean up */
 }
