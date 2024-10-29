@@ -95,7 +95,7 @@ int yezzey_vacuum_garbage_relation_internal(Relation rel,int segindx, bool confi
            RelationGetNamespace(rel));
     }
     
-    relnodeCoord coords{1663,rel->rd_node.dbNode,rel->rd_node.relNode,segindx};
+    relnodeCoord coords{DEFAULTTABLESPACE_OID,rel->rd_node.dbNode,rel->rd_node.relNode,segindx};
     Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
     auto nspname = std::string(nsptup->nspname.data);
     std::string relname = RelationGetRelationName(rel);
