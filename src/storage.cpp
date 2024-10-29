@@ -11,24 +11,20 @@
 
 #include "pg.h"
 
+#include "utils/rel.h"
+
 #include "io.h"
 #include <iostream>
-
 #include "virtual_index.h"
-
 #include "storage_lister.h"
 #include "url.h"
 #include "yproxy.h"
-
 #include "yezzey_meta.h"
-
 #include "offload_tablespace_map.h"
-
 #include "cdb/cdbvars.h"
-
 #include "cdb/cdbappendonlyxlog.h"
-
 #include "ygpver.h"
+#include "gucs.h"
 
 #define USE_YPX_LISTER = 1
 
@@ -239,7 +235,6 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
     elog(DEBUG1, "yezzey: complete %s offloading", dest_path.c_str());
   }
   return 0;
-  // return std::rename(tmp_path.c_str(), dest_path.c_str());
 }
 
 int loadRelationSegment(Relation aorel, Oid orig_relnode, int segno,

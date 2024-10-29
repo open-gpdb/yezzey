@@ -321,8 +321,9 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   * Dropping yezzey virtual index for loaded relation allow to
   * remove extension dependecy on this object (relation)
   * empty all track info **
-  (void)emptyYezzeyIndex(YezzeyFindAuxIndex(reloid));
   */
+ 
+  (void)emptyYezzeyIndex(yandexoid, aorel->rd_node.relNode);
   /* cleanup */
 
   relation_close(aorel, NoLock);

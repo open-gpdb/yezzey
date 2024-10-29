@@ -59,7 +59,6 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
-
 -- metadata migration
 
 DROP TABLE IF EXISTS yezzey.yezzey_expire_index;

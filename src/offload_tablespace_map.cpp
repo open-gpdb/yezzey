@@ -161,10 +161,7 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
 
     yezzey_endscan(scanoff);
     UnregisterSnapshot(snap);
-    elog(ERROR,
-         "failed to map relation %d to its origin tablespace: mapping already "
-         "exists",
-         i_reloid);
+    return;
   }
   yezzey_endscan(scanoff);
 
