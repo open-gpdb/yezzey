@@ -247,7 +247,7 @@ int loadRelationSegment(Relation aorel, Oid orig_relnode, int segno,
   if (dest_path) {
     path = std::string(dest_path);
   } else {
-    path = getlocalpath(coords);
+    path = getlocalpath(relnodeCoord(rnode.spcNode, rnode.dbNode, rnode.relNode, segno));
   }
 
   elog(yezzey_ao_log_level, "contructed path %s", path.c_str());
