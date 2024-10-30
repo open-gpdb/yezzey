@@ -3,6 +3,7 @@
 #include "meta.h"
 #include "url.h"
 #include "util.h"
+#include "virtual_index.h"
 #include <iostream>
 #include <sys/socket.h>
 
@@ -673,30 +674,36 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
     return res;
   }
 
-  auto msg = ConstructListRequest(yezzey_block_file_path(
-      adv_->nspname, adv_->relname, adv_->coords_, segindx_));
-  size_t rc = ::write(client_fd_, msg.data(), msg.size());
-  if (rc <= 0) {
-    // throw?
-    return res;
-  }
-
-  std::vector<storageChunkMeta> meta;
-  while (true) {
-    auto message = readMessage();
-    switch (message.type) {
-    case MessageTypeObjectMeta:
-      meta = readObjectMetaBody(&message.content);
-      res.insert(res.end(), meta.begin(), meta.end());
-      break;
-    case MessageTypeReadyForQuery:
-      return res;
-
-    default:
+  auto order = YezzeyVirtualGetOrder(YezzeyFindAuxIndex(adv_->reloid), adv_->reloid,
+                                      adv_->coords_.filenode, adv_->coords_.blkno);
+  for (auto& chunk : order) {
+    auto msg = ConstructListRequest(chunk.x_path);
+    size_t rc = ::write(client_fd_, msg.data(), msg.size());
+    if (rc <= 0) {
       // throw?
       return res;
     }
+
+    std::vector<storageChunkMeta> meta;
+    bool more = true;
+    while (more) {
+      auto message = readMessage();
+      switch (message.type) {
+      case MessageTypeObjectMeta:
+        meta = readObjectMetaBody(&message.content);
+        res.insert(res.end(), meta.begin(), meta.end());
+        break;
+      case MessageTypeReadyForQuery:
+        more = false;
+
+      default:
+        // throw?
+        return res;
+      }
+    }
   }
+
+  return res;
 }
 
 std::vector<std::string> YProxyLister::list_chunk_names() {
