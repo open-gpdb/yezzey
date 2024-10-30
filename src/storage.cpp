@@ -237,24 +237,11 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   return 0;
 }
 
-int loadRelationSegment(Relation aorel, Oid orig_relnode, int segno,
+int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode, int segno,
                         const char *dest_path) {
   auto rnode = aorel->rd_node;
 
   auto coords = relnodeCoord(rnode.spcNode, rnode.dbNode, orig_relnode, segno);
-
-  std::string path;
-  if (dest_path) {
-    path = std::string(dest_path);
-  } else {
-    path = getlocalpath(relnodeCoord(rnode.spcNode, rnode.dbNode, rnode.relNode, segno));
-  }
-
-  elog(yezzey_ao_log_level, "contructed path %s", path.c_str());
-  if (ensureFilepathLocal(path)) {
-    // nothing to do
-    return 0;
-  }
 
   std::string nspname;
   std::string relname;
@@ -272,6 +259,20 @@ int loadRelationSegment(Relation aorel, Oid orig_relnode, int segno,
     nspname = std::string(NameStr(nsptup->nspname));
     relname = std::string(aorel->rd_rel->relname.data);
     ReleaseSysCache(tp);
+  }
+
+  std::string path;
+  if (dest_path) {
+    path = std::string(dest_path);
+  } else {
+    path = getlocalpath(relnodeCoord(loadSpcOid, rnode.dbNode, rnode.relNode, segno));
+  }
+
+  elog(yezzey_ao_log_level, "contructed path %s", path.c_str());
+  if (ensureFilepathLocal(path)) {
+    // nothing to do
+  
+    return 0;
   }
 
   return loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords,
