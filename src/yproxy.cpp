@@ -5,6 +5,7 @@
 #include "util.h"
 #include "virtual_index.h"
 #include <iostream>
+#include <set>
 #include <sys/socket.h>
 
 #include <unistd.h>
@@ -667,17 +668,25 @@ int YProxyLister::prepareYproxyConnection() {
 }
 
 std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
-  std::vector<storageChunkMeta> res;
-  auto ret = prepareYproxyConnection();
-  if (ret != 0) {
-    // throw?
-    return res;
-  }
-
   auto order = YezzeyVirtualGetOrder(YezzeyFindAuxIndex(adv_->reloid), adv_->reloid,
                                       adv_->coords_.filenode, adv_->coords_.blkno);
+  std::set<std::string> xpaths;
   for (auto& chunk : order) {
-    auto msg = ConstructListRequest(chunk.x_path);
+    int i = 0;
+    for (int n = 0; n != 8 && i < chunk.x_path.size(); ++n)
+      i = chunk.x_path.find('_', i+1);
+    xpaths.insert(chunk.x_path.substr(0, i));
+  }
+
+  std::vector<storageChunkMeta> res;
+  for (auto& xpath : xpaths) {
+    auto ret = prepareYproxyConnection();
+    if (ret != 0) {
+      // throw?
+      return res;
+    }
+
+    auto msg = ConstructListRequest(xpath);
     size_t rc = ::write(client_fd_, msg.data(), msg.size());
     if (rc <= 0) {
       // throw?
@@ -695,6 +704,7 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
         break;
       case MessageTypeReadyForQuery:
         more = false;
+        break;
 
       default:
         // throw?
