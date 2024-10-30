@@ -137,7 +137,15 @@ int yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
 
 int yezzey_delete_chunk_internal(const char *external_chunk_path);
 int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop);
-int yezzey_vacuum_garbage_relation_internal(Oid reloid,int segindx, bool confirm, bool crazyDrop);
+int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid,int segindx, bool confirm, bool crazyDrop);
+int yezzey_vacuum_garbage_relation_internal(Relation rel,int segindx, bool confirm, bool crazyDrop);
+
+void yezzey_object_access_hook (ObjectAccessType access,
+													 Oid classId,
+													 Oid objectId,
+													 int subId,
+													 void *arg);
+
 /*
  * yezzey_define_relation_offload_policy_internal:
  * do all the work with initial relation offloading
@@ -261,8 +269,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
         elog(yezzey_log_level, "loading cs segment no %d pseudosegno %d", segno,
              pseudosegno);
 
-        rc =
-            loadRelationSegment(aorel, origrelfilenode, pseudosegno, dest_path);
+        rc = loadRelationSegment(aorel, origrelfilenode, pseudosegno, dest_path);
         if (rc < 0) {
           elog(ERROR, "failed to load cs segment number %d pseudosegno %d",
                segno, pseudosegno);
@@ -460,7 +467,7 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
     elog(ERROR, "crazyDrop forbidden for non-superuser");
   }
 
-  rc = yezzey_vacuum_garbage_relation_internal(reloid,GpIdentity.segindex,confirm,crazyDrop);
+  rc = yezzey_vacuum_garbage_relation_internal_oid(reloid, GpIdentity.segindex, confirm, crazyDrop);
 
   PG_RETURN_VOID();
 

@@ -70,7 +70,7 @@ int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
   }
   return 0;
 }
-int yezzey_vacuum_garbage_relation_internal(Relation rel,int segindx, bool confirm,bool crazyDrop){
+int yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx, bool confirm,bool crazyDrop){
   try {
     auto ioadv = std::make_shared<IOadv>("", "",
         std::string(storage_class /*storage_class*/), multipart_chunksize,
@@ -107,7 +107,7 @@ int yezzey_vacuum_garbage_relation_internal(Relation rel,int segindx, bool confi
   }
   return 0;
 }
-int yezzey_vacuum_garbage_relation_internal(Oid reloid,int segindx, bool confirm, bool crazyDrop) {
+int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid,int segindx, bool confirm, bool crazyDrop) {
     Relation rel = relation_open(reloid,NoLock);
     int rc = yezzey_vacuum_garbage_relation_internal(rel,segindx,confirm,crazyDrop);
     relation_close(rel,NoLock);
