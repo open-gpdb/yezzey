@@ -185,3 +185,13 @@ XLogRecPtr yezzeyGetXStorageInsertLsn(void) {
 
   return GetXLogWriteRecPtr();
 }
+
+std::string resolve_temp_relname(char* tempname) {
+  std::string name(tempname);
+  if (strncmp(name.c_str(), "pg_temp_", 8) == 0)
+  {
+    int oid = atoi(name.substr(8, name.find('_', 8)).c_str());
+    return std::string(get_rel_name(oid));
+  }
+  return tempname;
+}

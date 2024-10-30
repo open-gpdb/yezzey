@@ -207,7 +207,7 @@ EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
            */
           Assert(RecoveryInProgress());
         } else {
-          yfd.relname = std::string(relname);
+          yfd.relname = resolve_temp_relname(relname);
           yfd.nspname = std::string(nspname);
         }
       } else {

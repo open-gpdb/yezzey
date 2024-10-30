@@ -39,6 +39,7 @@ extern "C" {
 #include "storage/smgr.h"
 #include "utils/catcache.h"
 #include "utils/syscache.h"
+#include "utils/lsyscache.h"
 
 #include "catalog/dependency.h"
 #include "catalog/pg_extension.h"
@@ -99,6 +100,7 @@ extern "C" {
 #include "catalog/pg_namespace.h"
 #include "utils/catcache.h"
 #include "utils/syscache.h"
+#include "utils/lsyscache.h"
 
 #include "catalog/heap.h"
 
