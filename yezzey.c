@@ -223,8 +223,10 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
     elog(ERROR, "attempted to load non-offloaded relation");
   }
 
+  Oid loadSpcOid = YezzeyGetRelationOriginTablespaceOid(NULL, NULL, RelationGetRelid(aorel));
+
   /* Perform actual deletion of yezzey virtual index and metadata changes */
-  (void)YezzeyATExecSetTableSpace(aorel, reloid, DEFAULTTABLESPACE_OID);
+  (void)YezzeyATExecSetTableSpace(aorel, reloid, loadSpcOid);
 
   /* Get information about all the file segments we need to scan */
   if (RelationIsAoRows(aorel)) {
@@ -241,7 +243,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
       segno = segfile_array[i]->segno;
       elog(yezzey_log_level, "loading segment no %d", segno);
 
-      rc = loadRelationSegment(aorel, origrelfilenode, segno, dest_path);
+      rc = loadRelationSegment(aorel, loadSpcOid, origrelfilenode, segno, dest_path);
       if (rc < 0) {
         elog(ERROR, "failed to offload segment number %d", segno);
       }
@@ -269,7 +271,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
         elog(yezzey_log_level, "loading cs segment no %d pseudosegno %d", segno,
              pseudosegno);
 
-        rc = loadRelationSegment(aorel, origrelfilenode, pseudosegno, dest_path);
+        rc = loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno, dest_path);
         if (rc < 0) {
           elog(ERROR, "failed to load cs segment number %d pseudosegno %d",
                segno, pseudosegno);
@@ -330,7 +332,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   * empty all track info **
   */
  
-  (void)emptyYezzeyIndex(yandexoid, aorel->rd_node.relNode);
+  (void)emptyYezzeyIndex(yandexoid, origrelfilenode);
   /* cleanup */
 
   relation_close(aorel, NoLock);

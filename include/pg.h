@@ -124,10 +124,10 @@ extern "C" {
 #include "libpq/pqformat.h"
 
 #include "miscadmin.h"
-
 #include "libpq/libpq-be.h"
-
 #include "postmaster/postmaster.h"
+
+#include "commands/tablespace.h"
 
 #ifdef __cplusplus
 }

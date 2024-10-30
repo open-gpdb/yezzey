@@ -65,6 +65,11 @@ static std::string y_stringify_rv(const char *nspname, const char *relname) {
   return ret;
 }
 
+Oid YezzeyGetRelationOriginTablespaceOid(const char*nspname, const char * relname, Oid i_reloid) {
+  auto scpname = YezzeyGetRelationOriginTablespace(nspname, relname, i_reloid);
+  return get_tablespace_oid(scpname.c_str(), false);
+}
+
 std::string YezzeyGetRelationOriginTablespace(const char *nspname, const char *relname, Oid i_reloid) {
 
   if (nspname != NULL && relname != NULL) {
