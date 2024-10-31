@@ -775,13 +775,9 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
   Oid reloid;
   Relation aorel;
   int i;
-  int segno;
-  int pseudosegno;
   int total_segfiles;
   int nvp;
   int inat;
-  int64 modcount;
-  int64 logicalEof;
   FileSegInfo **segfile_array;
   AOCSFileSegInfo **segfile_array_cs;
   Snapshot appendOnlyMetaDataSnapshot;
@@ -825,13 +821,10 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
      */
     oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
-    size_t total_row = 0;
     size_t local_bytes = 0;
     size_t external_bytes = 0;
     size_t local_commited_bytes = 0;
 
-    if (RelationIsAoRows(aorel)) {
-      /* ao rows relation */
 #if IsModernYezzey
     segfile_array =
         GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles, &segrelid);
@@ -840,117 +833,44 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
         GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles);
 #endif
 
-      for (i = 0; i < total_segfiles; ++i) {
+    size_t curr_local_bytes = 0;
+    size_t curr_external_bytes = 0;
+    size_t curr_local_commited_bytes = 0;
+    yezzeyChunkMeta *list;
+    size_t cnt_chunks;
 
-        segno = segfile_array[i]->segno;
-        modcount = segfile_array[i]->modcount;
-        logicalEof = segfile_array[i]->eof;
-
-        elog(yezzey_log_level,
-             "stat segment no %d, modcount %ld with to logial eof %ld", segno,
-             modcount, logicalEof);
-        size_t curr_local_bytes = 0;
-        size_t curr_external_bytes = 0;
-        size_t curr_local_commited_bytes = 0;
-        yezzeyChunkMeta *list;
-        size_t cnt_chunks;
-
-        if (statRelationSpaceUsagePerExternalChunk(
-                aorel, segno, modcount, logicalEof, &curr_local_bytes,
-                &curr_local_commited_bytes, &list, &cnt_chunks) < 0) {
-          elog(ERROR, "failed to stat segment %d usage", segno);
-        }
-
-        local_bytes = curr_local_bytes;
-        external_bytes = curr_external_bytes;
-        local_commited_bytes = curr_local_commited_bytes;
-
-        chunkInfo = realloc(chunkInfo, sizeof(yezzeyChunkMetaInfo) *
-                                            (total_row + cnt_chunks));
-
-        for (size_t chunk_index = 0; chunk_index < cnt_chunks; ++chunk_index) {
-          chunkInfo[total_row + chunk_index].reloid = reloid;
-          chunkInfo[total_row + chunk_index].segindex = GpIdentity.segindex;
-          chunkInfo[total_row + chunk_index].segfileindex = i;
-          chunkInfo[total_row + chunk_index].external_storage_filepath =
-              list[chunk_index].chunkName;
-          chunkInfo[total_row + chunk_index].local_bytes = local_bytes;
-          chunkInfo[total_row + chunk_index].local_commited_bytes =
-              local_commited_bytes;
-          chunkInfo[total_row + chunk_index].external_bytes =
-              list[chunk_index].chunkSize;
-        }
-        total_row += cnt_chunks;
-      }
-
-      /*
-       * Build a tuple descriptor for our result type
-       * The number and type of attributes have to match the definition of the
-       * view yezzey_offload_relation_status_internal
-       */
-
-    } else if (RelationIsAoCols(aorel)) {
-
-#if IsGreenplum6
-      segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
-                                             &total_segfiles);
-#else 
-      segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
-                                             &total_segfiles, &segrelid);
-#endif
-
-      for (inat = 0; inat < nvp; ++inat) {
-        for (i = 0; i < total_segfiles; i++) {
-          segno = segfile_array_cs[i]->segno;
-          /* in AOCS case actual *segno* differs from segfile_array_cs[i]->segno
-           * whis is logical number of segment. On physical level, each logical
-           * segno (segfile_array_cs[i]->segno) is represented by
-           * AOTupleId_MultiplierSegmentFileNum in storage (1 file per
-           * attribute)
-           */
-          pseudosegno = (inat * AOTupleId_MultiplierSegmentFileNum) + segno;
-          modcount = segfile_array_cs[i]->modcount;
-          logicalEof = segfile_array_cs[i]->vpinfo.entry[inat].eof;
-
-          size_t curr_local_bytes = 0;
-          size_t curr_external_bytes = 0;
-          size_t curr_local_commited_bytes = 0;
-          yezzeyChunkMeta *list;
-          size_t cnt_chunks;
-
-          if (statRelationSpaceUsagePerExternalChunk(
-                  aorel, pseudosegno, modcount, logicalEof, &curr_local_bytes,
-                  &curr_local_commited_bytes, &list, &cnt_chunks) < 0) {
-            elog(ERROR, "failed to stat segment %d usage", segno);
-          }
-
-          local_bytes = curr_local_bytes;
-          external_bytes = curr_external_bytes;
-          local_commited_bytes = curr_local_commited_bytes;
-
-          chunkInfo = realloc(chunkInfo, sizeof(yezzeyChunkMetaInfo) *
-                                              (total_row + cnt_chunks));
-
-          for (size_t chunk_index = 0; chunk_index < cnt_chunks;
-               ++chunk_index) {
-            chunkInfo[total_row + chunk_index].reloid = reloid;
-            chunkInfo[total_row + chunk_index].segindex = GpIdentity.segindex;
-            chunkInfo[total_row + chunk_index].segfileindex = i;
-            chunkInfo[total_row + chunk_index].external_storage_filepath =
-                list[chunk_index].chunkName;
-            chunkInfo[total_row + chunk_index].local_bytes = local_bytes;
-            chunkInfo[total_row + chunk_index].local_commited_bytes =
-                local_commited_bytes;
-            chunkInfo[total_row + chunk_index].external_bytes =
-                list[chunk_index].chunkSize;
-          }
-          total_row += cnt_chunks;
-        }
-      }
-    } else {
-
-      elog(ERROR, "yezzey: wrong relation storage type: not AO/AOCS relation");
+    if (statRelationChunksSpaceUsage(
+            aorel, &curr_local_bytes,
+            &curr_local_commited_bytes, &list, &cnt_chunks) < 0) {
+      elog(ERROR, "failed to stat relation chunks space usage");
     }
+
+    local_bytes = curr_local_bytes;
+    external_bytes = curr_external_bytes;
+    local_commited_bytes = curr_local_commited_bytes;
+
+    chunkInfo = realloc(chunkInfo, sizeof(yezzeyChunkMetaInfo) *
+                                        (cnt_chunks));
+
+    for (size_t chunk_index = 0; chunk_index < cnt_chunks; ++chunk_index) {
+      chunkInfo[chunk_index].reloid = reloid;
+      chunkInfo[chunk_index].segindex = GpIdentity.segindex;
+      chunkInfo[chunk_index].segfileindex = yezzey_get_block_from_file_path(
+                                              list[chunk_index].chunkName);
+      chunkInfo[chunk_index].external_storage_filepath =
+          list[chunk_index].chunkName;
+      chunkInfo[chunk_index].local_bytes = local_bytes;
+      chunkInfo[chunk_index].local_commited_bytes =
+          local_commited_bytes;
+      chunkInfo[chunk_index].external_bytes =
+          list[chunk_index].chunkSize;
+    }
+
+    /*
+      * Build a tuple descriptor for our result type
+      * The number and type of attributes have to match the definition of the
+      * view yezzey_offload_relation_status_internal
+      */
 
 #if IsGreenplum6
     funcctx->tuple_desc = CreateTemplateTupleDesc(
@@ -985,8 +905,8 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     attinmeta = TupleDescGetAttInMetadata(funcctx->tuple_desc);
     funcctx->attinmeta = attinmeta;
 
-    if (total_row > 0) {
-      funcctx->max_calls = total_row;
+    if (cnt_chunks > 0) {
+      funcctx->max_calls = cnt_chunks;
       funcctx->user_fctx = chunkInfo;
       /* funcctx->user_fctx */
     } else {

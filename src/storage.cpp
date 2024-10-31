@@ -468,12 +468,11 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   return 0;
 }
 
-int statRelationSpaceUsagePerExternalChunk(Relation aorel, int segno,
-                                           int64 modcount, int64 logicalEof,
-                                           size_t *local_bytes,
-                                           size_t *local_commited_bytes,
-                                           yezzeyChunkMeta **list,
-                                           size_t *cnt_chunks) {
+int statRelationChunksSpaceUsage(Relation aorel,
+                                  size_t *local_bytes,
+                                  size_t *local_commited_bytes,
+                                  yezzeyChunkMeta **list,
+                                  size_t *cnt_chunks) {
   auto rnode = aorel->rd_node;
 
   /* rnode.spcNode == YEZZEYTABLESPACEOID here. we need
@@ -482,7 +481,7 @@ int statRelationSpaceUsagePerExternalChunk(Relation aorel, int segno,
   auto spcNode = resolveTablespaceOidByName(
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-  auto coords = relnodeCoord(spcNode, rnode.dbNode, rnode.relNode, segno);
+  auto coords = relnodeCoord(spcNode, rnode.dbNode, rnode.relNode, 0);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -539,4 +538,16 @@ int statRelationSpaceUsagePerExternalChunk(Relation aorel, int segno,
 
   *local_commited_bytes = 0;
   return 0;
+}
+
+int yezzey_get_block_from_file_path(const char* path) {
+  std::string pathstr = path;
+  int i = 0;
+  int previ = 0;
+  for (int n = 0; n < 7; ++n) {
+    previ = i;
+    i = pathstr.find('_', i+1);
+  }
+  auto blkno = pathstr.substr(previ+1, i-previ);
+  return atoi(blkno.c_str());
 }
