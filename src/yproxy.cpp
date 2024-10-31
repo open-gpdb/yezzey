@@ -668,52 +668,36 @@ int YProxyLister::prepareYproxyConnection() {
 }
 
 std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
-  auto order = YezzeyVirtualGetOrder(YezzeyFindAuxIndex(adv_->reloid), adv_->reloid,
-                                      adv_->coords_.filenode, adv_->coords_.blkno);
-  std::set<std::string> xpaths;
-  for (auto& chunk : order) {
-    int i = 0;
-    for (int n = 0; n != 8 && i < chunk.x_path.size(); ++n)
-      i = chunk.x_path.find('_', i+1);
-    xpaths.insert(chunk.x_path.substr(0, i));
-  }
-
   std::vector<storageChunkMeta> res;
-  for (auto& xpath : xpaths) {
-    auto ret = prepareYproxyConnection();
-    if (ret != 0) {
-      // throw?
-      return res;
-    }
-
-    auto msg = ConstructListRequest(xpath);
-    size_t rc = ::write(client_fd_, msg.data(), msg.size());
-    if (rc <= 0) {
-      // throw?
-      return res;
-    }
-
-    std::vector<storageChunkMeta> meta;
-    bool more = true;
-    while (more) {
-      auto message = readMessage();
-      switch (message.type) {
-      case MessageTypeObjectMeta:
-        meta = readObjectMetaBody(&message.content);
-        res.insert(res.end(), meta.begin(), meta.end());
-        break;
-      case MessageTypeReadyForQuery:
-        more = false;
-        break;
-
-      default:
-        // throw?
-        return res;
-      }
-    }
+  auto ret = prepareYproxyConnection();
+  if (ret != 0) {
+    // throw?
+    return res;
   }
 
-  return res;
+  auto msg = ConstructListRequest(yezzey_block_db_file_path(adv_->nspname, adv_->relname, adv_->coords_, segindx_));
+  size_t rc = ::write(client_fd_, msg.data(), msg.size());
+  if (rc <= 0) {
+    // throw?
+    return res;
+  }
+
+  std::vector<storageChunkMeta> meta;
+  while (true) {
+    auto message = readMessage();
+    switch (message.type) {
+    case MessageTypeObjectMeta:
+      meta = readObjectMetaBody(&message.content);
+      res.insert(res.end(), meta.begin(), meta.end());
+      break;
+    case MessageTypeReadyForQuery:
+      return res;
+
+    default:
+      // throw?
+      return res;
+    }
+  }
 }
 
 std::vector<std::string> YProxyLister::list_chunk_names() {
