@@ -59,10 +59,6 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
--- metadata migration
-
-DROP TABLE IF EXISTS yezzey.yezzey_expire_index;
-
 -- will preserve NULL distrib policy
 CREATE TABLE yezzey.yezzey_virtual_index_stale AS select * from yezzey.yezzey_virtual_index limit 0;
 CREATE TABLE yezzey.offload_metadata_stale AS select * from yezzey.offload_metadata limit 0;
