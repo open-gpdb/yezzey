@@ -92,10 +92,10 @@ $$
 $$ LANGUAGE SQL
 EXECUTE ON ALL SEGMENTS;
 
-create function yezzey.yezzey_fixup_yvi() 
+create function yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
 returns void as 
 $$
-update pg_class set relkind = 'r' where oid = 8500;
+SELECT yezzey_binary_upgrade_1_8_to_1_8_1();
 $$ 
 language sql 
 execute on all segments;
@@ -110,9 +110,13 @@ CREATE TABLE yezzey.yezzey_expire_hint
 SET allow_segment_dml TO ON;
 
 SELECT yezzey.fixup_stale_data();
-SELECT yezzey.yezzey_fixup_yvi();
+SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
+SELECT yezzey_binary_upgrade_1_8_to_1_8_1();
 
 RESET allow_segment_DML;
+
+DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
+DROP yezzey.fixup_stale_data();
 
 CREATE INDEX yezzey_virtual_index_x_path ON yezzey.yezzey_virtual_index(x_path);
 

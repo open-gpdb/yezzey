@@ -33,7 +33,7 @@ OBJS = \
 	src/yproxy.o \
 	src/init.o \
 	src/meta.o \
-	src/binary_upgarde.o \
+	src/binary_upgrade.o \
 	smgr.o yezzey.o
 
 EXTENSION = yezzey
