@@ -70,7 +70,7 @@
 #include "tcop/utility.h"
 
 #include "offload_tablespace_map.h"
-#include "binary_upgarde.h"
+#include "binary_upgrade.h"
 
 #include "xvacuum.h"
 

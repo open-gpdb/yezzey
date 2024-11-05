@@ -8,5 +8,4 @@
 #define EXTERNC
 #endif
 
-
 EXTERNC void YezzeyBinaryUpgrade(void);
