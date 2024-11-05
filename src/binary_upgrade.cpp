@@ -6,6 +6,10 @@
 void YezzeyBinaryUpgrade(void) {
   /**/
   ScanKeyData skey[2];
+  HeapTuple	newTuple;
+  Datum		values[Natts_pg_class];
+  bool		nulls[Natts_pg_class];
+  bool		replaces[Natts_pg_class];
  
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
@@ -41,14 +45,32 @@ void YezzeyBinaryUpgrade(void) {
   auto tupform = ((Form_pg_class) GETSTRUCT(systuple));
   tupform->relkind = RELKIND_RELATION;
 
+
+  /* Replace the ACL value */
+  MemSet(values, 0, sizeof(values));
+  MemSet(nulls, false, sizeof(nulls));
+  MemSet(replaces, false, sizeof(replaces));
+
+  replaces[Anum_pg_class_relkind - 1] = true;
+  values[Anum_pg_class_relkind - 1] = ObjectIdGetDatum(RELKIND_RELATION);
+  nulls[Anum_pg_class_relkind - 1] = false;
+
+  newTuple = heap_modify_tuple(systuple, RelationGetDescr(classrel),
+                                values, nulls, replaces);
+
+
 #if IsGreenplum6
-  simple_heap_update(classrel, &systuple->t_self, systuple);
-  CatalogUpdateIndexes(classrel, systuple);
+  simple_heap_update(classrel, &newTuple->t_self, newTuple);
+  /* keep the catalog indexes up to date */
+  CatalogUpdateIndexes(classrel, newTuple);
 #else
-  CatalogTupleUpdate(classrel, &systuple->t_self, systuple);
+  CatalogTupleUpdate(classrel, &newTuple->t_self, newTuple);
 #endif
 
   yezzey_endscan(scan);
   UnregisterSnapshot(snap);
   heap_close(classrel, RowExclusiveLock);
+
+  /* make changes visible*/
+  CommandCounterIncrement();
 }
