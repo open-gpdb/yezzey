@@ -20,6 +20,12 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
+CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1() RETURNS void
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
 CREATE OR REPLACE FUNCTION yezzey_vacuum_garbage_relation(
     i_offload_nspname TEXT,
     i_offload_relname TEXT,
@@ -92,28 +98,31 @@ $$
 $$ LANGUAGE SQL
 EXECUTE ON ALL SEGMENTS;
 
-create function yezzey.yezzey_fixup_yvi() 
-returns void as 
+CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
+RETURNS VOID AS 
 $$
-update pg_class set relkind = 'r' where oid = 8500;
+SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1();
 $$ 
-language sql 
-execute on all segments;
+LANGUAGE SQL 
+EXECUTE ON ALL SEGMENTS;
 
 CREATE TABLE yezzey.yezzey_expire_hint
 (
     x_path TEXT PRIMARY KEY,
     lsn pg_lsn
-) with (appendonly=false);
+) WITH (appendonly=false);
 
-
-set allow_segment_dml to on;
+SET allow_segment_dml TO ON;
 
 SELECT yezzey.fixup_stale_data();
-SELECT yezzey.yezzey_fixup_yvi();
+SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
+SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1();
 
 RESET allow_segment_DML;
 
-CREATE INDEX yezzey_virtual_index_x_path ON yezzey.yezzey_virtual_index(x_path);
+DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
+DROP FUNCTION yezzey.fixup_stale_data();
+
+-- CREATE INDEX yezzey_virtual_index_x_path ON yezzey.yezzey_virtual_index(x_path);
 
 

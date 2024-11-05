@@ -38,17 +38,17 @@ static Oid YezzeyResolveTablespaceMapOid() {
 
   /* No map relation created. return invalid oid */
   if (!HeapTupleIsValid(oldtuple)) {
-    heap_close(classrel, RowExclusiveLock);
     yezzey_endscan(scan);
     UnregisterSnapshot(snap);
+    heap_close(classrel, RowExclusiveLock);
     return InvalidOid;
   }
 
   Oid yezzey_tablespace_map_oid = HeapTupleGetOid(oldtuple);
 
-  heap_close(classrel, RowExclusiveLock);
   yezzey_endscan(scan);
   UnregisterSnapshot(snap);
+  heap_close(classrel, RowExclusiveLock);
 
   return yezzey_tablespace_map_oid;
 }

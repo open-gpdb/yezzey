@@ -66,11 +66,13 @@
 #include "storage.h"
 #include "yezzey.h"
 
-#include "offload_tablespace_map.h"
 
 #include "tcop/utility.h"
+
+#include "offload_tablespace_map.h"
+#include "binary_upgrade.h"
+
 #include "xvacuum.h"
-#include "cdb/cdbvars.h"
 
 // options for yezzey logging
 static const struct config_enum_entry loglevel_options[] = {
@@ -120,6 +122,7 @@ PG_FUNCTION_INFO_V1(yezzey_check_part_exr);
 PG_FUNCTION_INFO_V1(yezzey_delete_chunk);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
+PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
 
 
 /* Create yezzey metadata tables */
@@ -472,8 +475,14 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
   rc = yezzey_vacuum_garbage_relation_internal_oid(reloid, GpIdentity.segindex, confirm, crazyDrop);
 
   PG_RETURN_VOID();
-
 }
+
+Datum yezzey_binary_upgrade_1_8_to_1_8_1(PG_FUNCTION_ARGS) {
+  YezzeyBinaryUpgrade();
+  PG_RETURN_VOID();
+}
+
+
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   Relation aorel;
