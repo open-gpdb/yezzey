@@ -107,7 +107,7 @@ CREATE TABLE yezzey.yezzey_expire_hint
 ) with (appendonly=false);
 
 
-set allow_segment_dml to on;
+SET allow_segment_dml TO ON;
 
 SELECT yezzey.fixup_stale_data();
 SELECT yezzey.yezzey_fixup_yvi();
