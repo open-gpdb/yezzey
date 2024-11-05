@@ -123,6 +123,6 @@ RESET allow_segment_DML;
 DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
 DROP FUNCTION yezzey.fixup_stale_data();
 
--- CREATE INDEX yezzey_virtual_index_x_path ON yezzey.yezzey_virtual_index(x_path);
+CREATE INDEX yezzey_virtual_index_x_path ON yezzey.yezzey_virtual_index(x_path);
 
 
