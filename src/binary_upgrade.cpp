@@ -10,7 +10,11 @@ void YezzeyBinaryUpgrade(void) {
   Datum		values[Natts_pg_class];
   bool		nulls[Natts_pg_class];
   bool		replaces[Natts_pg_class];
- 
+
+  auto prevAllowSystableMods = allowSystemTableMods;
+
+  allowSystemTableMods = true;
+
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
   auto classrel = relation_open(RelationRelationId, RowExclusiveLock);
@@ -30,6 +34,7 @@ void YezzeyBinaryUpgrade(void) {
     UnregisterSnapshot(snap);
     heap_close(classrel, RowExclusiveLock);
 
+    allowSystemTableMods = prevAllowSystableMods;
     elog(ERROR, "failed to upgrade yezzey virtual index relation");
   }
 
@@ -39,6 +44,7 @@ void YezzeyBinaryUpgrade(void) {
     UnregisterSnapshot(snap);
     heap_close(classrel, RowExclusiveLock);
 
+    allowSystemTableMods = prevAllowSystableMods;
     elog(ERROR, "wrong oid when upgrade yezzey virtual index relation");
   }
   
@@ -73,4 +79,6 @@ void YezzeyBinaryUpgrade(void) {
 
   /* make changes visible*/
   CommandCounterIncrement();
+
+  allowSystemTableMods = prevAllowSystableMods;
 }

@@ -26,6 +26,13 @@ VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
+
+CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS void
+AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
+VOLATILE
+EXECUTE ON MASTER
+LANGUAGE C STRICT;
+
 CREATE OR REPLACE FUNCTION yezzey_vacuum_garbage_relation(
     i_offload_nspname TEXT,
     i_offload_relname TEXT,
@@ -116,13 +123,12 @@ SET allow_segment_dml TO ON;
 
 SELECT yezzey.fixup_stale_data();
 SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
-SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1();
+SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
 
 RESET allow_segment_DML;
 
 DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
+DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
 DROP FUNCTION yezzey.fixup_stale_data();
 
 CREATE INDEX yezzey_virtual_index_x_path ON yezzey.yezzey_virtual_index(x_path);
-
-
