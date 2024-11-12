@@ -789,8 +789,6 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
   int total_segfiles;
   int nvp;
   int inat;
-  FileSegInfo **segfile_array;
-  AOCSFileSegInfo **segfile_array_cs;
   Snapshot appendOnlyMetaDataSnapshot;
   FuncCallContext *funcctx;
   MemoryContext oldcontext;
@@ -802,9 +800,6 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
 #endif
 
   reloid = PG_GETARG_OID(0);
-
-  segfile_array_cs = NULL;
-  segfile_array = NULL;
 
   /*  This mode guarantees that the holder is the only transaction accessing the
    * table in any way. we need to be sure, thar no other transaction either
@@ -835,14 +830,6 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     size_t local_bytes = 0;
     size_t external_bytes = 0;
     size_t local_commited_bytes = 0;
-
-#if IsModernYezzey
-    segfile_array =
-        GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles, &segrelid);
-#else
-    segfile_array =
-        GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles);
-#endif
 
     size_t curr_local_bytes = 0;
     size_t curr_external_bytes = 0;
