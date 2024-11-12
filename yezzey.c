@@ -1234,7 +1234,7 @@ yezzey_ProcessUtility_hook(Node *parsetree,
           break;
         }
         Relation rel = relation_openrv(stmt->relation,NoLock);
-        if (stmt->options & VACOPT_YEZZEY & (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID)) {
+        if (stmt->options & VACOPT_YEZZEY && (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID)) {
           if (Gp_role == GP_ROLE_EXECUTE) {
             Assert(GpIdentity.segindex != -1);
             yezzey_vacuum_garbage_relation_internal(rel, GpIdentity.segindex,true,false);
