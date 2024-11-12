@@ -20,6 +20,15 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
+CREATE OR REPLACE FUNCTION yezzey_vacuum_relation(
+    relname TEXT,
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE
+) RETURNS void
+AS $$ SELECT yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop) $$
+LANGUAGE SQL;
+
+
 CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1() RETURNS void
 AS 'MODULE_PATHNAME'
 VOLATILE
