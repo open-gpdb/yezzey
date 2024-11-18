@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "virtual_index.h"
-#include "storage_lister.h"
 #include "yproxy.h"
 
 #include "io.h"
