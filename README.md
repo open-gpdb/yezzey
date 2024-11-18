@@ -44,8 +44,8 @@ Read/write logic in GP with AO/AOCS tables works in following way:
 
 So, our read logic will be following:
 
-1) Check if relation belongs to Yezzey virtual tablespace (YEZZEYTABLESPACE_OID == 5555). If yes, this means table (and this segment file) was not (yet) offloaded to external storage. So, process normally.
-2) If not, try to search for file with prefix segment<gpsegment>/base/<dboid>/<tableoid>.<segnum>.<current_read_offset>* with highest epoch number is external storage (S3). Is there is,
+1) Check if relation belongs to Yezzey virtual tablespace (YEZZEYTABLESPACE_OID == 8555). If yes, this means table (and this segment file) was not (yet) offloaded to external storage. So, process normally.
+2) If not, try to search for file with prefix segment<gpsegment>/base/<dboid>/<tableoid>.<segnum>.<current_read_offset>* with highest epoch number is external storage (S3). If there is,
    read them in lexicographically ascending order. Sum of sizes of external files should be >= than logical EOF (which can be found in pg_aoseg.pg_aoseg_<tableoid> table). 
    TDB: fix this to support proper VACUUM processing on offloaded relation, using yezzey_virtual_index relation (which tracks all extrenal chunks)
    

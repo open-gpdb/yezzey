@@ -326,7 +326,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   }
 
   /* update metadata relations */
-  YezzeyLoadRealtion(reloid);
+  YezzeyLoadRelation(reloid);
 
   /*
   * Do not empty, just drop
