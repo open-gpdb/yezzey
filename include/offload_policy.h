@@ -64,10 +64,10 @@ EXTERNC void YezzeyDefineOffloadPolicyPrepare(Oid reloid);
 EXTERNC void FixupOffloadMetadata(Oid reloid);
 
 /*
- * YezzeyLoadRealtion:
+ * YezzeyLoadRelation:
  * do all offload-metadata related work for relation loading:
  * 1) simply change relation offload policy in yezzey.offload_metadata
  * 2) ????
  * 3) success
  */
-EXTERNC void YezzeyLoadRealtion(Oid i_reloid);
+EXTERNC void YezzeyLoadRelation(Oid i_reloid);

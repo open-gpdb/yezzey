@@ -288,7 +288,7 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
   auto yezzey_ext_oid = get_extension_oid("yezzey", false);
 
   if (!yezzey_ext_oid) {
-    elog(ERROR, "failed to get yezzey extnsion oid");
+    elog(ERROR, "failed to get yezzey extension oid");
   }
 
   extensionAddr.classId = ExtensionRelationId;
@@ -296,12 +296,12 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
   extensionAddr.objectSubId = 0;
 
   /*
-   * 1.1: check if data has been already offloaded (maybe in the same
+   * 1.1: check if data has already been offloaded (maybe in the same
    * transaction)
    */
 
   /* record entry in offload metadata */
-  /* Bump rellast acrhive, or insert proper metadata tuple */
+  /* Bump rellast archive, or insert proper metadata tuple */
   if (!YezzeySetRelationExpiritySeg(reloid, 1 /* always external */,
                                     GetCurrentTimestamp())) {
     /* nothing to do */
@@ -309,7 +309,7 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
   }
 
   /*
-   * 2) Create auxularry yezzey table to track external storage
+   * 2) Create auxiliary yezzey table to track external storage
    * chunks
    */
   auto aorel = relation_open(reloid, AccessExclusiveLock);
@@ -329,7 +329,7 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
     }
   } else {
     /* clear all pre-assigned oids
-     * for auxularry yezzey table relation
+     * for auxiliary yezzey table relation
      *
      * We need to do it, else we will get error
      * about assigned, but not dispatched oids
@@ -351,13 +351,13 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
 }
 
 /*
- * YezzeyLoadRealtion:
+ * YezzeyLoadRelation:
  * do all offload-metadata related work for relation loading:
  * 1) simply change relation offload policy in yezzey.offload_metadata
  * 2) ????
  * 3) success
  */
-void YezzeyLoadRealtion(Oid i_reloid) {
+void YezzeyLoadRelation(Oid i_reloid) {
   /**/
   ScanKeyData skey[1];
 
