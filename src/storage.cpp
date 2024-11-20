@@ -16,7 +16,6 @@
 #include "io.h"
 #include <iostream>
 #include "virtual_index.h"
-#include "storage_lister.h"
 #include "url.h"
 #include "yproxy.h"
 #include "yezzey_meta.h"

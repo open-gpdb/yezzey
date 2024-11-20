@@ -5,7 +5,6 @@
 #include "url.h"
 #include "util.h"
 
-#include "storage_lister.h"
 #include "virtual_index.h"
 
 #define USE_YPX_READER 1
