@@ -141,3 +141,20 @@ DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
 DROP FUNCTION yezzey.fixup_stale_data();
 
 CREATE INDEX yezzey_virtual_index_x_path ON yezzey.yezzey_virtual_index(x_path);
+
+
+-- Delete files in trash
+
+CREATE OR REPLACE FUNCTION yezzey_collect_obsolete_chunks(
+) RETURNS void
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+CREATE OR REPLACE FUNCTION yezzey_delete_obsolete_chunks(
+) RETURNS void
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
