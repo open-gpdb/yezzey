@@ -666,8 +666,7 @@ int YProxyLister::prepareYproxyConnection() {
 
   return 0;
 }
-
-std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
+std::vector<storageChunkMeta> YProxyLister::list_by_prefix(std::string prefix){
   std::vector<storageChunkMeta> res;
   auto ret = prepareYproxyConnection();
   if (ret != 0) {
@@ -675,7 +674,7 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
     return res;
   }
 
-  auto msg = ConstructListRequest(yezzey_block_db_file_path(adv_->nspname, adv_->relname, adv_->coords_, segindx_));
+  auto msg = ConstructListRequest(prefix);
   size_t rc = ::write(client_fd_, msg.data(), msg.size());
   if (rc <= 0) {
     // throw?
@@ -698,6 +697,11 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
       return res;
     }
   }
+}
+
+std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
+  return this->list_by_prefix(yezzey_block_db_file_path(
+      adv_->nspname, adv_->relname, adv_->coords_, segindx_));
 }
 
 std::vector<std::string> YProxyLister::list_chunk_names() {

@@ -123,6 +123,7 @@ public:
 
   virtual bool close();
 
+  virtual std::vector<storageChunkMeta> list_by_prefix(std::string);
   virtual std::vector<storageChunkMeta> list_relation_chunks();
   virtual std::vector<std::string> list_chunk_names();
 
