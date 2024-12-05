@@ -21,7 +21,7 @@ EXTERNC int yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx, b
 EXTERNC int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx, bool confirm,
                                            bool crazyDrop);
 
-EXTERNC int yezzey_delete_obsolete_chunks_internal(Relation rel, int segindx);
-EXTERNC int yezzey_collect_obsolete_chunks_internal(Relation rel, int segindx);
+EXTERNC int yezzey_delete_obsolete_chunks_internal();
+EXTERNC int yezzey_collect_obsolete_chunks_internal();
 
 #endif /* YEZZEY_XVACUUM_H */

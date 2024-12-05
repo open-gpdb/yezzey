@@ -144,8 +144,8 @@ int yezzey_delete_chunk_internal(const char *external_chunk_path);
 int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop);
 int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid,int segindx, bool confirm, bool crazyDrop);
 int yezzey_vacuum_garbage_relation_internal(Relation rel,int segindx, bool confirm, bool crazyDrop);
-int yezzey_delete_obsolete_chunks_internal(Relation rel, int segindx);
-int yezzey_collect_obsolete_chunks_internal(Relation rel, int segindx);
+int yezzey_delete_obsolete_chunks_internal();
+int yezzey_collect_obsolete_chunks_internal();
 
 void yezzey_object_access_hook (ObjectAccessType access,
 													 Oid classId,
@@ -1341,20 +1341,19 @@ void _PG_init(void) {
 }
 
 Datum yezzey_collect_obsolete_chunks(PG_FUNCTION_ARGS){
-  if (GpIdentity.segindex == -1) {
-    elog(ERROR, "yezzey_collect_obsolete_chunks should be executed on SEGMENT");
+  if (GpIdentity.segindex != -1) {
+    elog(ERROR, "yezzey_collect_obsolete_chunks should be executed on MASTER");
   }
   Oid reloid = PG_GETARG_OID(0);
-  int rc = yezzey_collect_obsolete_chunks_internal(reloid, GpIdentity.segindex);
+  int rc = yezzey_collect_obsolete_chunks_internal();
   PG_RETURN_VOID();
 }
 
 Datum yezzey_delete_obsolete_chunks(PG_FUNCTION_ARGS){
-  if (GpIdentity.segindex == -1) {
-    elog(ERROR, "yezzey_delete_obsolete_chunks should be executed on SEGMENT");
+  if (GpIdentity.segindex != -1) {
+    elog(ERROR, "yezzey_delete_obsolete_chunks should be executed on MASTER");
   }
-  Oid reloid = PG_GETARG_OID(0);
-  int rc = yezzey_delete_obsolete_chunks_internal(reloid, GpIdentity.segindex);
+  int rc = yezzey_delete_obsolete_chunks_internal();
   PG_RETURN_VOID();
 }
 
