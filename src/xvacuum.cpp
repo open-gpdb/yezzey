@@ -9,7 +9,7 @@
 #include <string>
 #include <url.h>
 #include <util.h>
-
+#include "info_gp.h"
 /*
  * yezzey_delete_chunk_internal:
  * Given external chunk path, remove it from external storage
@@ -113,3 +113,44 @@ int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid,int segindx, bool con
     relation_close(rel,NoLock);
     return rc;
 }
+
+
+int yezzey_delete_obsolete_chunks_internal(){
+try {
+    auto ioadv = std::make_shared<IOadv>("", "",
+        std::string(storage_class /*storage_class*/), multipart_chunksize,
+        DEFAULTTABLESPACE_OID, "" /* coords */, InvalidOid /* reloid */,
+        use_gpg_crypto, yproxy_socket);
+
+    
+    auto manipulator =
+        std::make_shared<YProxyTrashManipulator>(ioadv);
+    manipulator->delete_obsolete_chunks();
+    
+    return -1;
+  } catch (...) {
+    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    return 0;
+  }
+  return 0;
+}
+
+int yezzey_collect_obsolete_chunks_internal(){
+try {
+    auto ioadv = std::make_shared<IOadv>("", "",
+        std::string(storage_class /*storage_class*/), multipart_chunksize,
+        DEFAULTTABLESPACE_OID, "" /* coords */, InvalidOid /* reloid */,
+        use_gpg_crypto, yproxy_socket);
+    auto manipulator =
+        std::make_shared<YProxyTrashManipulator>(ioadv);
+    manipulator->collect_obsolete_chunks();
+    /* external reader destruct */
+    return 0;
+  } catch (...) {
+    return -1;
+  }
+    
+
+  return 0;
+}
+

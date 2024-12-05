@@ -7,6 +7,7 @@
 #include "ylister.h"
 #include "yreader.h"
 #include "ywriter.h"
+#include "ymanipulator.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -142,6 +143,27 @@ protected:
 private:
   std::shared_ptr<IOadv> adv_;
   ssize_t segindx_;
+
+  int client_fd_{-1};
+};
+
+struct YProxyTrashManipulator : public YTrashManipulator {
+public:
+  explicit YProxyTrashManipulator(std::shared_ptr<IOadv> adv);
+  
+  virtual ~YProxyTrashManipulator();
+
+  bool collect_obsolete_chunks();
+  bool delete_obsolete_chunks();
+
+
+  virtual bool close();
+protected:
+  std::vector<char> ConstructRequest(char reqnum);
+  int prepareYproxyConnection();
+
+private:
+  std::shared_ptr<IOadv> adv_;
 
   int client_fd_{-1};
 };
