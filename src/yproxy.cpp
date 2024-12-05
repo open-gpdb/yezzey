@@ -42,6 +42,8 @@ const char MessageTypeReadyForQuery = 45;
 const char MessageTypeCopyData = 46;
 const char MessageTypeList = 48;
 const char MessageTypeObjectMeta = 49;
+const char MessageTypeDeleteObsolette = 56;
+const char MessageTypeUpdateObsolette = 57;
 
 const char MessageTypeDelete = 47;
 
@@ -666,8 +668,7 @@ int YProxyLister::prepareYproxyConnection() {
 
   return 0;
 }
-
-std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
+std::vector<storageChunkMeta> YProxyLister::list_by_prefix(std::string prefix){
   std::vector<storageChunkMeta> res;
   auto ret = prepareYproxyConnection();
   if (ret != 0) {
@@ -675,7 +676,7 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
     return res;
   }
 
-  auto msg = ConstructListRequest(yezzey_block_db_file_path(adv_->nspname, adv_->relname, adv_->coords_, segindx_));
+  auto msg = ConstructListRequest(prefix);
   size_t rc = ::write(client_fd_, msg.data(), msg.size());
   if (rc <= 0) {
     // throw?
@@ -698,6 +699,11 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
       return res;
     }
   }
+}
+
+std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
+  return this->list_by_prefix(yezzey_block_db_file_path(
+      adv_->nspname, adv_->relname, adv_->coords_, segindx_));
 }
 
 std::vector<std::string> YProxyLister::list_chunk_names() {
@@ -800,4 +806,130 @@ YProxyLister::readObjectMetaBody(std::vector<char> *body) {
   }
 
   return res;
+}
+
+YProxyTrashManipulator::YProxyTrashManipulator(std::shared_ptr<IOadv> adv)
+    : adv_(adv) {}
+
+
+int YProxyTrashManipulator::prepareYproxyConnection() {
+  // open unix data socket
+
+  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (client_fd_ == -1) {
+    elog(WARNING, "failed to create unix socket, errno: %m");
+    // throw here?
+    return -1;
+  }
+
+  struct sockaddr_un addr;
+  /* Bind socket to socket name. */
+
+  memset(&addr, 0, sizeof(addr));
+
+  addr.sun_family = AF_UNIX;
+  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
+          sizeof(addr.sun_path) - 1);
+
+  auto ret =
+      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
+
+  if (ret == -1) {
+    elog(WARNING,
+         "failed to acquire connection to unix socket on %s, errno: %m",
+         adv_->yproxy_socket.c_str());
+    return -1;
+  }
+  return 0;
+}
+std::vector<char> YProxyTrashManipulator::ConstructRequest(char reqnum){
+  
+  auto bytes = std::vector<char>(MSG_HEADER_SIZE + 1,0);// size (8 bytes) + reqnum (1 byte)
+  uint64_t len = bytes.size();
+
+  uint64_t cp = len;
+  for (ssize_t i = 7; i >= 0; --i) {
+    bytes[i] = cp & ((1 << 8) - 1);
+    cp >>= 8;
+  }
+  bytes[8] = reqnum;
+  return bytes;
+
+}
+bool YProxyTrashManipulator::collect_obsolete_chunks() {
+  if (client_fd_ == -1) {
+    if (prepareYproxyConnection() == -1) {
+      // Throw here?
+      close();
+      return false;
+    }
+  }
+
+  // TODO: split to chunks
+  auto msg = ConstructRequest(MessageTypeUpdateObsolette);
+
+  if (commonWriteFull(client_fd_, msg) == -1) {
+    close();
+    return false;
+  }
+  // *amount does not need to change in case of successfull write
+
+  msg = CommonCostructCommandCompleteRequest();
+  // signal that current chunk is full
+  if (commonWriteFull(client_fd_, msg) == -1) {
+    close();
+    return false;
+  }
+  // wait for responce
+  if (commonReadRFQResponce(client_fd_) != 0) {
+    close();
+    return false;
+  }
+
+  return true;
+}
+
+
+bool YProxyTrashManipulator::delete_obsolete_chunks(){
+  if (client_fd_ == -1) {
+    if (prepareYproxyConnection() == -1) {
+      // Throw here?
+      close();
+      return false;
+    }
+  }
+
+  // TODO: split to chunks
+  auto msg = ConstructRequest(MessageTypeDeleteObsolette);
+
+  if (commonWriteFull(client_fd_, msg) == -1) {
+    close();
+    return false;
+  }
+  // *amount does not need to change in case of successfull write
+
+  msg = CommonCostructCommandCompleteRequest();
+  // signal that current chunk is full
+  if (commonWriteFull(client_fd_, msg) == -1) {
+    close();
+    return false;
+  }
+  // wait for responce
+  if (commonReadRFQResponce(client_fd_) != 0) {
+    close();
+    return false;
+  }
+
+  return true;
+}
+
+
+YProxyTrashManipulator::~YProxyTrashManipulator() { close(); }
+
+bool YProxyTrashManipulator::close() {
+  if (client_fd_ != -1) {
+    ::close(client_fd_);
+    client_fd_ = -1;
+  }
+  return true;
 }

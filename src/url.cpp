@@ -63,6 +63,9 @@ std::string yezzey_block_db_file_path(const std::string &nspname,
   url += md;
   return url;
 }
+std::string yezzey_in_trash(const std::string &filepath){
+  return "trash/" + filepath;
+}
 /* prefix-independent WAL-G compatable path */
 std::string craftStorageUnPrefixedPath(const std::shared_ptr<IOadv> &adv,
                                        ssize_t segindx, ssize_t modcount,
