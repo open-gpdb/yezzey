@@ -17,7 +17,7 @@
 const std::string offload_tablespace_map_relname = "offload_tablespace_map";
 
 static Oid YezzeyResolveTablespaceMapOid() {
-
+    return InvalidOid;
   /* SELECT FROM pg_catalog.pg_class WHERE relname = 'offload_tablespace_map'
    * and relnamespace = 8001; */
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
