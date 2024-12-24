@@ -97,6 +97,88 @@ void YezzeyCreateVirtualIndex() {
   CommandCounterIncrement();
 }
 
+
+void YezzeyCreateVirtualIndexAuxIdx() {
+  auto yezzey_ao_auxiliary_relname_idx = std::string("yezzey_virtual_index_idx_relfilenodep");
+
+  /* ShareLock is not really needed here, but take it anyway */
+  auto yezzey_rel = heap_open(YEZZEY_TEMP_INDEX_RELATION, ShareLock);
+  char *colname = "filenode";
+  auto indexColNames = list_make1(colname);
+
+  auto indexInfo = makeNode(IndexInfo);
+
+  Oid collationObjectId[1];
+  Oid classObjectId[1];
+  int16 coloptions[1];
+
+  indexInfo->ii_NumIndexAttrs = 1;
+#if IsGreenplum6
+  indexInfo->ii_KeyAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
+#else
+  indexInfo->ii_IndexAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
+  indexInfo->ii_NumIndexKeyAttrs = indexInfo->ii_NumIndexAttrs;
+#endif
+  indexInfo->ii_Expressions = NIL;
+  indexInfo->ii_ExpressionsState = NIL;
+  indexInfo->ii_Predicate = NIL;
+#if IsGreenplum6
+  indexInfo->ii_PredicateState = NIL;
+#else
+  indexInfo->ii_PredicateState = NULL;
+#endif
+  indexInfo->ii_Unique = false;
+  indexInfo->ii_Concurrent = true;
+
+  collationObjectId[0] = InvalidOid;
+  classObjectId[0] = OID_BTREE_OPS_OID;
+  coloptions[0] = 0;
+
+#if IsGreenplum6
+  (void)index_create(yezzey_rel, yezzey_ao_auxiliary_relname_idx.c_str(),
+                     YEZZEY_TEMP_INDEX_IDX_RELATION, InvalidOid,
+                     InvalidOid, InvalidOid, indexInfo, indexColNames,
+                     BTREE_AM_OID, 0 /* tablespace */, collationObjectId,
+                     classObjectId, coloptions, (Datum)0, true, false, false,
+                     false, true, false, true, true, NULL);
+#else
+  bits16 flags, constr_flags;
+  flags = constr_flags = 0;
+  (void)index_create(yezzey_rel, yezzey_ao_auxiliary_relname_idx.c_str(),
+                     YEZZEY_TEMP_INDEX_IDX_RELATION, InvalidOid,
+                     InvalidOid, InvalidOid, indexInfo, indexColNames,
+                     BTREE_AM_OID, 0 /* tablespace */, collationObjectId,
+                     classObjectId, coloptions, (Datum)0, flags, constr_flags,
+                     true, true, NULL);
+#endif
+
+  /* Unlock target table -- no one can see it */
+  heap_close(yezzey_rel, ShareLock);
+
+  /* Unlock the index -- no one can see it anyway */
+  UnlockRelationOid(YEZZEY_TEMP_INDEX_IDX_RELATION, AccessExclusiveLock);
+
+  CommandCounterIncrement();
+
+  ObjectAddress baseobject;
+  ObjectAddress yezzey_ao_auxiliaryobject;
+
+  baseobject.classId = ExtensionRelationId;
+  baseobject.objectId = get_extension_oid("yezzey", false);
+  baseobject.objectSubId = 0;
+  yezzey_ao_auxiliaryobject.classId = RelationRelationId;
+  yezzey_ao_auxiliaryobject.objectId = YEZZEY_TEMP_INDEX_RELATION;
+  yezzey_ao_auxiliaryobject.objectSubId = 0;
+
+  recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
+                     DEPENDENCY_INTERNAL);
+
+  /*
+   * Make changes visible
+   */
+  CommandCounterIncrement();
+}
+
 Oid YezzeyFindAuxIndex_internal(Oid reloid) {
   HeapTuple tup;
   ScanKeyData skey[2];
@@ -354,10 +436,6 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
   auto rel = heap_open(yandexoid, RowExclusiveLock);
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
-
-  // ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_reloid,
-  // BTEqualStrategyNumber,
-  //             F_OIDEQ, ObjectIdGetDatum(reloid));
 
   ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_filenode,
               BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(relfilenode));

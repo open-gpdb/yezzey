@@ -18,6 +18,7 @@
 #endif
 
 #define YEZZEY_TEMP_INDEX_RELATION 8500
+#define YEZZEY_TEMP_INDEX_IDX_RELATION 8501
 
 /* ----------------
  *		compiler constants for pg_database
@@ -61,6 +62,16 @@ EXTERNC void emptyYezzeyIndexBlkno(Oid yezzey_index_oid, Oid relation,
 
 /* fixup virtual index entry for relation's relfilenode. */
 EXTERNC void YezzeyFixupVirtualIndex(Relation rel);
+
+
+
+#ifdef __cplusplus
+#define EXTERNC extern "C"
+#else
+#define EXTERNC
+#endif
+
+EXTERNC void YezzeyCreateVirtualIndexAuxIdx(void);
 
 #ifdef __cplusplus
 void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,

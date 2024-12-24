@@ -123,6 +123,7 @@ PG_FUNCTION_INFO_V1(yezzey_delete_chunk);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
+PG_FUNCTION_INFO_V1(yezzey_create_aux_virtual_index);
 
 
 /* Create yezzey metadata tables */
@@ -482,6 +483,10 @@ Datum yezzey_binary_upgrade_1_8_to_1_8_1(PG_FUNCTION_ARGS) {
   PG_RETURN_VOID();
 }
 
+Datum yezzey_create_aux_virtual_index(PG_FUNCTION_ARGS)
+{
+  PG_RETURN_VOID();
+}
 
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
