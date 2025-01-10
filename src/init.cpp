@@ -8,3 +8,8 @@ void YezzeyInitMetadata(void) {
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
 }
+
+void YezzeyBinaryUpdate183(void)
+{
+  (void)YezzeyCreateVirtualIndexIdx();
+}

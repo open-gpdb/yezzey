@@ -122,8 +122,9 @@ PG_FUNCTION_INFO_V1(yezzey_check_part_exr);
 PG_FUNCTION_INFO_V1(yezzey_delete_chunk);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
-PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
 
+PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
+PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_2_to_1_8_3);
 
 /* Create yezzey metadata tables */
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
@@ -317,7 +318,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   CommandCounterIncrement();
 
   /* Check if relation hash dedicated vitr index and drop */
-  if (yandexoid != YEZZEY_TEMP_INDEX_RELATION) {
+  if (yandexoid != YEZZEY_VIRTUAL_INDEX_RELATION) {
     ObjectAddress object; 
     object.classId = RelationRelationId;
     object.objectId = yandexoid;
@@ -479,6 +480,13 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
 
 Datum yezzey_binary_upgrade_1_8_to_1_8_1(PG_FUNCTION_ARGS) {
   YezzeyBinaryUpgrade();
+  PG_RETURN_VOID();
+}
+
+
+/* Create yezzey metadata tables */
+Datum yezzey_binary_upgrade_1_8_2_to_1_8_3(PG_FUNCTION_ARGS) {
+  YezzeyBinaryUpdate183();
   PG_RETURN_VOID();
 }
 

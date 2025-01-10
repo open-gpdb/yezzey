@@ -17,7 +17,8 @@
 #define EXTERNC
 #endif
 
-#define YEZZEY_TEMP_INDEX_RELATION 8500
+#define YEZZEY_VIRTUAL_INDEX_RELATION 8500
+#define YEZZEY_VIRTUAL_INDEX_IDX_RELATION 8501
 
 /* ----------------
  *		compiler constants for pg_database
@@ -75,5 +76,7 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/, Oid reloid,
                       Oid relfilenode, int blkno);
 
 void YezzeyCreateVirtualIndex();
+
+void YezzeyCreateVirtualIndexIdx();
 #else
 #endif
