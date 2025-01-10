@@ -39,7 +39,7 @@ void YezzeyBinaryUpgrade(void) {
   }
 
   Oid yezzey_vi_oid = HeapTupleGetOid(systuple);
-  if (yezzey_vi_oid != YEZZEY_TEMP_INDEX_RELATION) {
+  if (yezzey_vi_oid != YEZZEY_VIRTUAL_INDEX_RELATION) {
     yezzey_endscan(scan);
     UnregisterSnapshot(snap);
     heap_close(classrel, RowExclusiveLock);

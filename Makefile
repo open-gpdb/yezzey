@@ -37,7 +37,7 @@ OBJS = \
 	smgr.o yezzey.o
 
 EXTENSION = yezzey
-DATA = yezzey--1.0.sql yezzey--1.0--1.8.sql yezzey--1.8--1.8.1.sql
+DATA = yezzey--1.0.sql yezzey--1.0--1.8.sql yezzey--1.8--1.8.1.sql yezzey--1.8.1--1.8.2.sql yezzey--1.8.2--1.8.3.sql yezzey--1.8.3--1.8.4.sql
 PGFILEDESC = "yezzey - external storage tables offloading extension"
 
 ifdef USE_PGXS

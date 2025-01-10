@@ -7,7 +7,7 @@
 Oid YezzeyFindAuxIndex_internal(Oid reloid);
 
 static inline Oid
-yezzey_create_index_internal(Oid relid, const std::string &relname,
+yezzey_create_virtual_index_relation_internal(Oid relid, const std::string &relname,
                              Oid relowner, char relpersistence,
                              bool shared_relation, bool mapped_relation) {
 #if IsGreenplum6
@@ -71,10 +71,113 @@ yezzey_create_index_internal(Oid relid, const std::string &relname,
   return yezzey_ao_auxiliary_relid;
 }
 
+
+static inline void
+yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
+                             Oid relowner, char relpersistence)
+{
+
+
+  { /* check existed, if no, return */
+  }
+
+  /* ShareLock is not really needed here, but take it anyway */
+  auto yezzey_rel = heap_open(YEZZEY_VIRTUAL_INDEX_RELATION, ShareLock);
+  char *colname_fn = "filenode";
+  char *colname_blkno = "blkno";
+  auto indexColNames = list_make2(colname_fn, colname_blkno);
+
+  auto indexInfo = makeNode(IndexInfo);
+
+  Oid collationObjectId[2];
+  Oid classObjectId[2];
+  int16 coloptions[2];
+
+  indexInfo->ii_NumIndexAttrs = 2;
+#if IsGreenplum6
+  indexInfo->ii_KeyAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
+  indexInfo->ii_KeyAttrNumbers[1] = Anum_yezzey_virtual_index_blkno;
+#else
+  indexInfo->ii_IndexAttrNumbers[0] = Anum_offload_metadata_reloid;
+  indexInfo->ii_NumIndexKeyAttrs = indexInfo->ii_NumIndexAttrs;
+#endif
+  indexInfo->ii_Expressions = NIL;
+  indexInfo->ii_ExpressionsState = NIL;
+  indexInfo->ii_Predicate = NIL;
+#if IsGreenplum6
+  indexInfo->ii_PredicateState = NIL;
+#else
+  indexInfo->ii_PredicateState = NULL;
+#endif
+  indexInfo->ii_Unique = false;
+  indexInfo->ii_Concurrent = true;
+
+  collationObjectId[0] = InvalidOid;
+  collationObjectId[1] = InvalidOid;
+
+  classObjectId[0] = OID_BTREE_OPS_OID;
+  coloptions[0] = 0;
+
+  classObjectId[1] = INT8_BTREE_OPS_OID;
+  coloptions[1] = 0;
+
+#if IsGreenplum6
+  (void)index_create(yezzey_rel, relname.c_str(),
+                     relid, InvalidOid,
+                     InvalidOid, InvalidOid, indexInfo, indexColNames,
+                     BTREE_AM_OID, 0 /* tablespace */, collationObjectId,
+                     classObjectId, coloptions, (Datum)0, true, false, false,
+                     false, true, false, false, true, NULL);
+#else
+  bits16 flags, constr_flags;
+  flags = constr_flags = 0;
+  (void)index_create(yezzey_rel, relname.c_str(),
+                     relid, InvalidOid,
+                     InvalidOid, InvalidOid, indexInfo, indexColNames,
+                     BTREE_AM_OID, 0 /* tablespace */, collationObjectId,
+                     classObjectId, coloptions, (Datum)0, flags, constr_flags,
+                     true, true, NULL);
+#endif
+
+  /* Unlock target table -- no one can see it */
+  heap_close(yezzey_rel, ShareLock);
+
+  /*
+   * Make changes visible
+   */
+  CommandCounterIncrement();
+}
+
+void YezzeyCreateVirtualIndexIdx() {
+  auto yezzey_ao_auxiliary_idxname = std::string("yezzey_virtual_index_idx");
+
+  (void)yezzey_create_virtual_index_idx_internal(YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
+                                     yezzey_ao_auxiliary_idxname, GetUserId(),
+                                     RELPERSISTENCE_PERMANENT);
+
+  ObjectAddress baseobject;
+  ObjectAddress yezzey_ao_auxiliaryobject;
+
+  baseobject.classId = ExtensionRelationId;
+  baseobject.objectId = get_extension_oid("yezzey", false);
+  baseobject.objectSubId = 0;
+  yezzey_ao_auxiliaryobject.classId = RelationRelationId;
+  yezzey_ao_auxiliaryobject.objectId = YEZZEY_VIRTUAL_INDEX_IDX_RELATION;
+  yezzey_ao_auxiliaryobject.objectSubId = 0;
+
+  recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
+                     DEPENDENCY_INTERNAL);
+
+  /*
+   * Make changes visible
+   */
+  CommandCounterIncrement();
+}
+
 void YezzeyCreateVirtualIndex() {
   auto yezzey_ao_auxiliary_relname = std::string("yezzey_virtual_index");
 
-  (void)yezzey_create_index_internal(YEZZEY_TEMP_INDEX_RELATION,
+  (void)yezzey_create_virtual_index_relation_internal(YEZZEY_VIRTUAL_INDEX_RELATION,
                                      yezzey_ao_auxiliary_relname, GetUserId(),
                                      RELPERSISTENCE_PERMANENT, false, false);
 
@@ -85,7 +188,7 @@ void YezzeyCreateVirtualIndex() {
   baseobject.objectId = get_extension_oid("yezzey", false);
   baseobject.objectSubId = 0;
   yezzey_ao_auxiliaryobject.classId = RelationRelationId;
-  yezzey_ao_auxiliaryobject.objectId = YEZZEY_TEMP_INDEX_RELATION;
+  yezzey_ao_auxiliaryobject.objectId = YEZZEY_VIRTUAL_INDEX_RELATION;
   yezzey_ao_auxiliaryobject.objectSubId = 0;
 
   recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
@@ -132,7 +235,7 @@ Oid YezzeyFindAuxIndex_internal(Oid reloid) {
   } else {
     // use separate index for relations, offloaded without yezzey api
     // this may happen during expand process and maybe some other cases
-    yezzey_virtual_index_oid = YEZZEY_TEMP_INDEX_RELATION;
+    yezzey_virtual_index_oid = YEZZEY_VIRTUAL_INDEX_RELATION;
   }
 
   systable_endscan(scan);
@@ -141,7 +244,7 @@ Oid YezzeyFindAuxIndex_internal(Oid reloid) {
   return yezzey_virtual_index_oid;
 }
 
-Oid YezzeyFindAuxIndex(Oid reloid) { return YEZZEY_TEMP_INDEX_RELATION; }
+Oid YezzeyFindAuxIndex(Oid reloid) { return YEZZEY_VIRTUAL_INDEX_RELATION; }
 
 void emptyYezzeyIndex(Oid yezzey_index_oid, Oid relfilenode) {
   HeapTuple tuple;

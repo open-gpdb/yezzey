@@ -28,20 +28,6 @@ CREATE OR REPLACE FUNCTION yezzey_vacuum_relation(
 AS $$ SELECT yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop) $$
 LANGUAGE SQL;
 
-
-CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1() RETURNS void
-AS 'MODULE_PATHNAME'
-VOLATILE
-EXECUTE ON ALL SEGMENTS
-LANGUAGE C STRICT;
-
-
-CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS void
-AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
-VOLATILE
-EXECUTE ON MASTER
-LANGUAGE C STRICT;
-
 CREATE OR REPLACE FUNCTION yezzey_vacuum_garbage_relation(
     i_offload_nspname TEXT,
     i_offload_relname TEXT,
@@ -80,6 +66,20 @@ BEGIN
 END;
 $$
 LANGUAGE PLPGSQL;
+
+
+CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1() RETURNS void
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+
+CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS void
+AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
+VOLATILE
+EXECUTE ON MASTER
+LANGUAGE C STRICT;
 
 
 CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
