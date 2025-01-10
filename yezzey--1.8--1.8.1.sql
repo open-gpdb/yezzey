@@ -81,38 +81,6 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
--- will preserve NULL distrib policy
-CREATE TABLE yezzey.yezzey_virtual_index_stale AS select * from yezzey.yezzey_virtual_index limit 0;
-CREATE TABLE yezzey.offload_metadata_stale AS select * from yezzey.offload_metadata limit 0;
-
-CREATE OR REPLACE FUNCTION
-yezzey.fixup_stale_data() RETURNS VOID
-AS
-$$
-    WITH stale_data AS (
-        SELECT * FROM
-            yezzey.yezzey_virtual_index vi 
-        WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE relfilenode = vi.filenode)
-    )
-    INSERT INTO yezzey.yezzey_virtual_index_stale TABLE stale_data;
-
-    DELETE FROM 
-            yezzey.yezzey_virtual_index vi 
-        WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE relfilenode = vi.filenode);
-
-    WITH stale_offload_data AS (
-        SELECT * FROM
-            yezzey.offload_metadata op 
-        WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE oid = op.reloid)
-    )
-    INSERT INTO yezzey.offload_metadata_stale TABLE stale_offload_data;
-
-    DELETE FROM 
-            yezzey.offload_metadata op 
-        WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE oid = op.reloid);
-
-$$ LANGUAGE SQL
-EXECUTE ON ALL SEGMENTS;
 
 CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
 RETURNS VOID AS 
@@ -122,15 +90,8 @@ $$
 LANGUAGE SQL 
 EXECUTE ON ALL SEGMENTS;
 
-CREATE TABLE yezzey.yezzey_expire_hint
-(
-    x_path TEXT PRIMARY KEY,
-    lsn pg_lsn
-) WITH (appendonly=false);
-
 SET allow_segment_dml TO ON;
 
-SELECT yezzey.fixup_stale_data();
 SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
 SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
 
@@ -138,6 +99,3 @@ RESET allow_segment_DML;
 
 DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
 DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
-DROP FUNCTION yezzey.fixup_stale_data();
-
-CREATE INDEX yezzey_virtual_index_x_path ON yezzey.yezzey_virtual_index(x_path);
