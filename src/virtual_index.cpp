@@ -98,7 +98,8 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
   indexInfo->ii_KeyAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
   indexInfo->ii_KeyAttrNumbers[1] = Anum_yezzey_virtual_index_blkno;
 #else
-  indexInfo->ii_IndexAttrNumbers[0] = Anum_offload_metadata_reloid;
+  indexInfo->ii_IndexAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
+  indexInfo->ii_IndexAttrNumbers[1] = Anum_yezzey_virtual_index_blkno;
   indexInfo->ii_NumIndexKeyAttrs = indexInfo->ii_NumIndexAttrs;
 #endif
   indexInfo->ii_Expressions = NIL;
@@ -118,7 +119,7 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
   classObjectId[0] = OID_BTREE_OPS_OID;
   coloptions[0] = 0;
 
-  classObjectId[1] = INT8_BTREE_OPS_OID;
+  classObjectId[1] = INT4_BTREE_OPS_OID;
   coloptions[1] = 0;
 
 #if IsGreenplum6
