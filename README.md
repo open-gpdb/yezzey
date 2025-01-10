@@ -14,7 +14,7 @@ Difficulties:
 
 # Design goals:
 
-Greenplum 6/7 compatibility.
+Greenplum 6, Greenplum 7 and Cloudberry compatibility.
 
 Avoid binary incompatibilities, such as custom WAL records, which will not be replayabe in upstream GP.
 
