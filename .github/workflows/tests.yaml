@@ -21,7 +21,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          repository: open-gpdb/gpdb/
+          repository: open-gpdb/gpdb
           ref: OPENGPDB_STABLE
 
       - name: set PR ref
