@@ -3,7 +3,9 @@ name: Pull request
 on:
   pull_request:
     branches: "*"
-
+  push:
+    branches:
+      - "v*"
 jobs:
   test:
     name: Run tests
@@ -19,8 +21,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          repository: yezzey-gp/gp_modified_for_yezzey
-          ref: yezzey_6_25_1_pure_squashed
+          repository: open-gpdb/gpdb/
+          ref: OPENGPDB_STABLE
 
       - name: set PR ref
         if: ${{github.event_name == 'pull_request'}}
