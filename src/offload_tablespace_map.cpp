@@ -32,13 +32,13 @@ static Oid YezzeyResolveTablespaceMapOid() {
   ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(YEZZEY_AUX_NAMESPACE));
 
-  auto scan = yezzey_beginscan(classrel, snap, 2, skey);
+  auto scan = systable_beginscan(classrel, ClassNameNspIndexId, true, snap, 2, skey);
 
-  auto oldtuple = heap_getnext(scan, ForwardScanDirection);
+  auto oldtuple = systable_getnext(scan);
 
   /* No map relation created. return invalid oid */
   if (!HeapTupleIsValid(oldtuple)) {
-    yezzey_endscan(scan);
+    systable_endscan(scan);
     UnregisterSnapshot(snap);
     heap_close(classrel, RowExclusiveLock);
     return InvalidOid;
@@ -46,7 +46,7 @@ static Oid YezzeyResolveTablespaceMapOid() {
 
   Oid yezzey_tablespace_map_oid = HeapTupleGetOid(oldtuple);
 
-  yezzey_endscan(scan);
+  systable_endscan(scan);
   UnregisterSnapshot(snap);
   heap_close(classrel, RowExclusiveLock);
 
