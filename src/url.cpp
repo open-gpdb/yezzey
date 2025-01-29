@@ -1,5 +1,5 @@
 
-#include "url.h"
+#include "../include/url.h"
 
 #if PG_VERSION_NUM >= 100000
 #include "common/md5.h"
@@ -37,22 +37,6 @@ std::string yezzey_block_namespace_path(int32_t segid) {
   return "/segments_005/seg" + std::to_string(segid) + baseYezzeyPath;
 }
 /* creates yezzey xternal storage prefix path */
-std::string yezzey_block_file_path(const std::string &nspname,
-                                   const std::string &relname,
-                                   relnodeCoord coords, int32_t segid) {
-
-  std::string url = yezzey_block_namespace_path(segid);
-
-  url +=
-      std::to_string(coords.spcNode) + "_" + std::to_string(coords.dboid) + "_";
-
-  auto md = yezzey_fqrelname_md5(nspname, relname);
-  url += md;
-  url += "_" + std::to_string(coords.filenode) + "_" +
-         std::to_string(coords.blkno) + "_";
-
-  return url;
-}
 std::string yezzey_block_db_file_path(const std::string &nspname,
                                    const std::string &relname,
                                    relnodeCoord coords, int32_t segid){
@@ -61,6 +45,17 @@ std::string yezzey_block_db_file_path(const std::string &nspname,
 
   auto md = yezzey_fqrelname_md5(nspname, relname);
   url += md;
+
+  return url;
+}
+std::string yezzey_block_file_path(const std::string &nspname,
+                                   const std::string &relname,
+                                   relnodeCoord coords, int32_t segid) {
+
+  std::string url = yezzey_block_db_file_path(nspname,relname,coords,segid);
+  
+  url += "_" + std::to_string(coords.filenode) + "_" + std::to_string(coords.blkno) + "_";
+
   return url;
 }
 /* prefix-independent WAL-G compatable path */
