@@ -175,11 +175,13 @@ EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, const char *nspname,
                                          int64 modcount)
 #else
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
-                                         char *relname, const char *fileName,
+                                         char *relname, FileName *fName,
                                          int fileFlags, int fileMode,
                                          int64 modcount)
 #endif
 {
+  auto fileName = (char *) fName;
+  
   if (modcount != -1) {
     /* advance modcount to the value it will be after commit */
     ++modcount;

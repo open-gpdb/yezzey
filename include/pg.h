@@ -57,6 +57,7 @@ extern "C" {
 #include "access/aosegfiles.h"
 #include "storage/bufmgr.h"
 #include "storage/lmgr.h"
+#include "storage/fd.h"
 
 #if PG_VERSION_NUM < 100000
 #include "utils/tqual.h"

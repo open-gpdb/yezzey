@@ -794,9 +794,7 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
   Oid reloid;
   Relation aorel;
   int i;
-  int total_segfiles;
   int nvp;
-  int inat;
   Snapshot appendOnlyMetaDataSnapshot;
   FuncCallContext *funcctx;
   MemoryContext oldcontext;
@@ -1277,7 +1275,7 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
         if (queryDesc->plannedstmt->relationOids->length != 1) {
           elog(ERROR, "unexpected plan relation size for yezzey alter: %d", queryDesc->plannedstmt->relationOids->length);
         }
-        sourceOid = lfirst(queryDesc->plannedstmt->relationOids->head);
+        sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids->head);
         /* so, target relation is yezzey. This should be expand or alter table reorg; */
         YezzeyCopyOTM(iclause->rel, sourceOid);
       }
