@@ -121,6 +121,38 @@ static int commonReadRFQResponce(int client_fd_) {
   return 0;
 }
 
+
+
+int YProxyConnector::prepareYproxyConnection() {
+  // open unix data socket
+
+  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (client_fd_ == -1) {
+    elog(WARNING, "failed to create unix socket, errno: %m");
+    return -1;
+  }
+
+  struct sockaddr_un addr;
+  /* Bind socket to socket name. */
+
+  memset(&addr, 0, sizeof(addr));
+
+  addr.sun_family = AF_UNIX;
+  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
+          sizeof(addr.sun_path) - 1);
+
+  auto ret =
+      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
+
+  if (ret == -1) {
+    elog(WARNING,
+         "failed to acquire connection to unix socket on %s, errno: %m",
+         adv_->yproxy_socket.c_str());
+    return -1;
+  }
+  return 0;
+}
+
 std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
                                                     size_t start_off) {
 
@@ -192,35 +224,13 @@ std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
   return buff;
 }
 
-int YProxyReader::prepareYproxyConnection(const ChunkInfo &ci,
-                                          size_t start_off) {
-  // open unix data socket
-
-  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (client_fd_ == -1) {
-    // throw here?
-    elog(WARNING, "failed to create unix socket, errno: %m");
-    return -1;
+int YProxyReader::prepareYproxyConnection() {
+  int rb = base::prepareYproxyConnection();
+  if (rb!=0)
+  {
+    return rb;
   }
 
-  struct sockaddr_un addr;
-  /* Bind socket to socket name. */
-
-  memset(&addr, 0, sizeof(addr));
-
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
-          sizeof(addr.sun_path) - 1);
-
-  auto ret =
-      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
-  if (ret == -1) {
-    // THROW here?
-    elog(WARNING,
-         "failed to acquire connection to unix socket on %s, errno: %m",
-         adv_->yproxy_socket.c_str());
-    return -1;
-  }
 
   auto msg = ConstructCatRequest(ci, start_off);
 
@@ -358,31 +368,10 @@ bool YProxyWriter::write(const char *buffer, size_t *amount) {
 
 int YProxyWriter::prepareYproxyConnection() {
   // open unix data socket
-
-  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (client_fd_ == -1) {
-    elog(WARNING, "failed to create unix socket, errno: %m");
-    // throw here?
-    return -1;
-  }
-
-  struct sockaddr_un addr;
-  /* Bind socket to socket name. */
-
-  memset(&addr, 0, sizeof(addr));
-
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
-          sizeof(addr.sun_path) - 1);
-
-  auto ret =
-      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
-
-  if (ret == -1) {
-    elog(WARNING,
-         "failed to acquire connection to unix socket on %s, errno: %m",
-         adv_->yproxy_socket.c_str());
-    return -1;
+  int rb = base::prepareYproxyConnection();
+  if (rb!=0)
+  {
+    return rb;
   }
 
   auto msg = ConstructPutRequest(storage_path_);
@@ -579,33 +568,7 @@ std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
 
 int YProxyDeleter::prepareYproxyConnection() {
   // open unix data socket
-
-  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (client_fd_ == -1) {
-    elog(WARNING, "failed to create unix socket, errno: %m");
-    // throw here?
-    return -1;
-  }
-
-  struct sockaddr_un addr;
-  /* Bind socket to socket name. */
-
-  memset(&addr, 0, sizeof(addr));
-
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
-          sizeof(addr.sun_path) - 1);
-
-  auto ret =
-      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
-
-  if (ret == -1) {
-    elog(WARNING,
-         "failed to acquire connection to unix socket on %s, errno: %m",
-         adv_->yproxy_socket.c_str());
-    return -1;
-  }
-  return 0;
+  return base::prepareYproxyConnection();
 }
 
 bool YProxyDeleter::close() {
@@ -637,34 +600,7 @@ bool YProxyLister::close() {
 
 int YProxyLister::prepareYproxyConnection() {
   // open unix data socket
-
-  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (client_fd_ == -1) {
-    // throw here?
-    elog(WARNING, "failed to create unix socket, errno: %m");
-    return -1;
-  }
-
-  struct sockaddr_un addr;
-
-  /* Bind socket to socket name. */
-  memset(&addr, 0, sizeof(addr));
-
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
-          sizeof(addr.sun_path) - 1);
-
-  auto ret =
-      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
-
-  if (ret == -1) {
-    elog(WARNING,
-         "failed to acquire connection to unix socket on %s, errno: %m",
-         adv_->yproxy_socket.c_str());
-    return -1;
-  }
-
-  return 0;
+  return base::prepareYproxyConnection();
 }
 
 std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {

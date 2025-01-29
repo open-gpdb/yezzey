@@ -1,7 +1,6 @@
 
 #include "io_adv.h"
 #include "util.h"
-#include "ylister.h"
 
 std::string yezzey_fqrelname_md5(const std::string &nspname,
                                  const std::string &relname);
