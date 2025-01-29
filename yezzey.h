@@ -99,7 +99,7 @@ const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode, SMgrImpl which);
 #endif
 
 #if IsGreenplum6 || IsModernYezzey
-const f_smgr_ao *smgrao_yezzey();
+const f_smgr_ao *smgrao_yezzey(void);
 #endif
 void smgr_init_yezzey(void);
 

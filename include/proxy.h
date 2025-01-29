@@ -32,7 +32,7 @@ EXTERNC int yezzey_FileSync(SMGRFile file);
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(const char *fileName, int fileFlags);
 #else
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
-                                         char *relname, const char *fileName,
+                                         char *relname, FileName *fName,
                                          int fileFlags, int fileMode,
                                          int64 modcount);
 #endif
