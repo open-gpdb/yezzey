@@ -35,6 +35,7 @@ jobs:
       - name: Build docker image
         uses: docker/build-push-action@v2
         with:
+          file: docker/yezzey/Dockerfile
           context: .
           push: false
           load: true
