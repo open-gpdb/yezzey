@@ -9,10 +9,9 @@
 
 class YProxyConnector {
 public:
-  explicit YProxyConnector(std::shared_ptr<IOadv> adv,ssize_t segindx);
+  explicit YProxyConnector(std::shared_ptr<IOadv> adv, ssize_t segindx);
   ~YProxyConnector();
   virtual bool close();
-
 
 protected:
   virtual int prepareYproxyConnection();
@@ -20,7 +19,6 @@ protected:
   ssize_t segindx_{0};
 
   int client_fd_{-1};
-
 };
 
 struct storageChunkMeta {
@@ -46,8 +44,7 @@ public:
 protected:
   /* prepare connection for chunk reading */
   std::vector<char> ConstructCatRequest(const ChunkInfo &ci, size_t start_off);
-  virtual int prepareYproxyConnection(const ChunkInfo &ci,
-                                          size_t start_off);
+  virtual int prepareYproxyConnection(const ChunkInfo &ci, size_t start_off);
 
 private:
   int64_t order_ptr_{0};
@@ -60,7 +57,7 @@ private:
 };
 
 // Write into external storage using yproxy
-class YProxyWriter :  YProxyConnector {
+class YProxyWriter : YProxyConnector {
 public:
   explicit YProxyWriter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                         ssize_t modcount, const std::string &storage_path);
@@ -68,7 +65,7 @@ public:
   virtual ~YProxyWriter();
 
   virtual bool write(const char *buffer, size_t *amount);
-  
+
   virtual bool close();
 
 protected:
@@ -91,7 +88,7 @@ public:
 };
 
 /* Delete specified file from external storage, bypassing all sanity checks */
-class YProxyDeleter :  YProxyConnector {
+class YProxyDeleter : YProxyConnector {
 public:
   /*
    * Direct delete dispatch, appliable from MASTER
@@ -120,7 +117,7 @@ private:
 };
 
 // list external storage using yproxy
-class YProxyLister :  YProxyConnector {
+class YProxyLister : YProxyConnector {
 public:
   explicit YProxyLister(std::shared_ptr<IOadv> adv, ssize_t segindx);
 

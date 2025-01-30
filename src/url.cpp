@@ -38,10 +38,11 @@ std::string yezzey_block_namespace_path(int32_t segid) {
 }
 /* creates yezzey xternal storage prefix path */
 std::string yezzey_block_db_file_path(const std::string &nspname,
-                                   const std::string &relname,
-                                   relnodeCoord coords, int32_t segid){
+                                      const std::string &relname,
+                                      relnodeCoord coords, int32_t segid) {
   std::string url = yezzey_block_namespace_path(segid);
-  url += std::to_string(coords.spcNode) + "_" + std::to_string(coords.dboid) + "_";
+  url +=
+      std::to_string(coords.spcNode) + "_" + std::to_string(coords.dboid) + "_";
 
   auto md = yezzey_fqrelname_md5(nspname, relname);
   url += md;
@@ -52,9 +53,10 @@ std::string yezzey_block_file_path(const std::string &nspname,
                                    const std::string &relname,
                                    relnodeCoord coords, int32_t segid) {
 
-  std::string url = yezzey_block_db_file_path(nspname,relname,coords,segid);
-  
-  url += "_" + std::to_string(coords.filenode) + "_" + std::to_string(coords.blkno) + "_";
+  std::string url = yezzey_block_db_file_path(nspname, relname, coords, segid);
+
+  url += "_" + std::to_string(coords.filenode) + "_" +
+         std::to_string(coords.blkno) + "_";
 
   return url;
 }
@@ -69,9 +71,8 @@ std::string craftStorageUnPrefixedPath(const std::shared_ptr<IOadv> &adv,
 }
 
 /* creates yezzey xternal storage prefix path */
-std::string
-getYezzeyRelationUrl_internal(const std::string &nspname,
-                              const std::string &relname,
-                              relnodeCoord coords, int32_t segid) {
+std::string getYezzeyRelationUrl_internal(const std::string &nspname,
+                                          const std::string &relname,
+                                          relnodeCoord coords, int32_t segid) {
   return yezzey_block_file_path(nspname, relname, coords, segid);
 }

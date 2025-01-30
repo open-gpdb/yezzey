@@ -1,15 +1,15 @@
-#include "pg.h"
-#include "yezzey_heap_api.h"
-#include "virtual_index.h"
 #include "binary_upgrade.h"
+#include "pg.h"
+#include "virtual_index.h"
+#include "yezzey_heap_api.h"
 
 void YezzeyBinaryUpgrade(void) {
   /**/
   ScanKeyData skey[2];
-  HeapTuple	newTuple;
-  Datum		values[Natts_pg_class];
-  bool		nulls[Natts_pg_class];
-  bool		replaces[Natts_pg_class];
+  HeapTuple newTuple;
+  Datum values[Natts_pg_class];
+  bool nulls[Natts_pg_class];
+  bool replaces[Natts_pg_class];
 
   auto prevAllowSystableMods = allowSystemTableMods;
 
@@ -47,10 +47,9 @@ void YezzeyBinaryUpgrade(void) {
     allowSystemTableMods = prevAllowSystableMods;
     elog(ERROR, "wrong oid when upgrade yezzey virtual index relation");
   }
-  
-  auto tupform = ((Form_pg_class) GETSTRUCT(systuple));
-  tupform->relkind = RELKIND_RELATION;
 
+  auto tupform = ((Form_pg_class)GETSTRUCT(systuple));
+  tupform->relkind = RELKIND_RELATION;
 
   /* Replace the ACL value */
   MemSet(values, 0, sizeof(values));
@@ -61,9 +60,8 @@ void YezzeyBinaryUpgrade(void) {
   values[Anum_pg_class_relkind - 1] = ObjectIdGetDatum(RELKIND_RELATION);
   nulls[Anum_pg_class_relkind - 1] = false;
 
-  newTuple = heap_modify_tuple(systuple, RelationGetDescr(classrel),
-                                values, nulls, replaces);
-
+  newTuple = heap_modify_tuple(systuple, RelationGetDescr(classrel), values,
+                               nulls, replaces);
 
 #if IsGreenplum6
   simple_heap_update(classrel, &newTuple->t_self, newTuple);

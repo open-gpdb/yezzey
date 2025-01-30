@@ -38,7 +38,7 @@ typedef struct {
   text x_path;           /* external path */
 } FormData_yezzey_virtual_index;
 
-typedef FormData_yezzey_virtual_index* Form_yezzey_virtual_index;
+typedef FormData_yezzey_virtual_index *Form_yezzey_virtual_index;
 
 #define Natts_yezzey_virtual_index 10
 #define Anum_yezzey_virtual_index_reloid 1

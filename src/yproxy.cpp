@@ -12,11 +12,12 @@
 
 const int kDefaultRetryLimit = 100;
 
-YProxyConnector::YProxyConnector(std::shared_ptr<IOadv> adv,ssize_t segindx) : adv_(adv), segindx_(segindx), client_fd_(-1) {}
+YProxyConnector::YProxyConnector(std::shared_ptr<IOadv> adv, ssize_t segindx)
+    : adv_(adv), segindx_(segindx), client_fd_(-1) {}
 
 YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
                            const std::vector<ChunkInfo> order)
-    : YProxyConnector(adv,segindx), order_ptr_(0), order_(order),
+    : YProxyConnector(adv, segindx), order_ptr_(0), order_(order),
       current_chunk_remaining_bytes_(0), current_retry(0),
       retry_limit(kDefaultRetryLimit) {}
 
@@ -123,8 +124,6 @@ static int commonReadRFQResponce(int client_fd_) {
   return 0;
 }
 
-
-
 int YProxyConnector::prepareYproxyConnection() {
   // open unix data socket
 
@@ -229,11 +228,9 @@ std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
 int YProxyReader::prepareYproxyConnection(const ChunkInfo &ci,
                                           size_t start_off) {
   int rb = YProxyConnector::prepareYproxyConnection();
-  if (rb!=0)
-  {
+  if (rb != 0) {
     return rb;
   }
-
 
   auto msg = ConstructCatRequest(ci, start_off);
 
@@ -317,7 +314,7 @@ std::string YProxyWriter::createXPath() {
 
 YProxyWriter::YProxyWriter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                            ssize_t modcount, const std::string &storage_path)
-    : YProxyConnector(adv,segindx), modcount_(modcount),
+    : YProxyConnector(adv, segindx), modcount_(modcount),
       insertion_rec_ptr_(yezzeyGetXStorageInsertLsn()),
       storage_path_(createXPath()) {}
 
@@ -372,8 +369,7 @@ bool YProxyWriter::write(const char *buffer, size_t *amount) {
 int YProxyWriter::prepareYproxyConnection() {
   // open unix data socket
   int rb = YProxyConnector::prepareYproxyConnection();
-  if (rb!=0)
-  {
+  if (rb != 0) {
     return rb;
   }
 
@@ -479,10 +475,11 @@ std::vector<char> YProxyWriter::ConstructCopyDataRequest(const char *buffer,
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                              bool confirm)
-    :YProxyConnector(adv,segindx), garbage_cleanup_(true), confirm_(confirm) {}
+    : YProxyConnector(adv, segindx), garbage_cleanup_(true), confirm_(confirm) {
+}
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv)
-    : YProxyConnector(adv,-1), garbage_cleanup_(false), confirm_(true) {}
+    : YProxyConnector(adv, -1), garbage_cleanup_(false), confirm_(true) {}
 
 YProxyDeleter::~YProxyDeleter() { close(); }
 
@@ -589,7 +586,7 @@ bool YProxyDeleter::close() {
  */
 
 YProxyLister::YProxyLister(std::shared_ptr<IOadv> adv, ssize_t segindx)
-    : YProxyConnector(adv,segindx) {}
+    : YProxyConnector(adv, segindx) {}
 
 YProxyLister::~YProxyLister() { close(); }
 
@@ -614,7 +611,8 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
     return res;
   }
 
-  auto msg = ConstructListRequest(yezzey_block_db_file_path(adv_->nspname, adv_->relname, adv_->coords_, segindx_));
+  auto msg = ConstructListRequest(yezzey_block_db_file_path(
+      adv_->nspname, adv_->relname, adv_->coords_, segindx_));
   size_t rc = ::write(client_fd_, msg.data(), msg.size());
   if (rc <= 0) {
     // throw?

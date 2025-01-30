@@ -32,7 +32,8 @@ static Oid YezzeyResolveTablespaceMapOid() {
   ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(YEZZEY_AUX_NAMESPACE));
 
-  auto scan = systable_beginscan(classrel, ClassNameNspIndexId, true, snap, 2, skey);
+  auto scan =
+      systable_beginscan(classrel, ClassNameNspIndexId, true, snap, 2, skey);
 
   auto oldtuple = systable_getnext(scan);
 
@@ -65,12 +66,15 @@ static std::string y_stringify_rv(const char *nspname, const char *relname) {
   return ret;
 }
 
-Oid YezzeyGetRelationOriginTablespaceOid(const char*nspname, const char * relname, Oid i_reloid) {
+Oid YezzeyGetRelationOriginTablespaceOid(const char *nspname,
+                                         const char *relname, Oid i_reloid) {
   auto scpname = YezzeyGetRelationOriginTablespace(nspname, relname, i_reloid);
   return get_tablespace_oid(scpname.c_str(), false);
 }
 
-std::string YezzeyGetRelationOriginTablespace(const char *nspname, const char *relname, Oid i_reloid) {
+std::string YezzeyGetRelationOriginTablespace(const char *nspname,
+                                              const char *relname,
+                                              Oid i_reloid) {
 
   if (nspname != NULL && relname != NULL) {
     auto key = y_stringify_rv(nspname, relname);
@@ -201,15 +205,13 @@ void YezzeyRegisterRelationOriginTablespace(Oid i_reloid, Oid i_reltablespace) {
   ReleaseSysCache(spctuple);
 }
 
-
 void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
-  auto val = YezzeyGetRelationOriginTablespace(rv->schemaname, rv->relname, sourceRelationOid);
+  auto val = YezzeyGetRelationOriginTablespace(rv->schemaname, rv->relname,
+                                               sourceRelationOid);
 
   auto key = y_stringify_rv(rv->schemaname, rv->relname);
 
   yezzey_otm_hint[key] = val;
 }
 
-void YezzeyTruncateOTMHint(void) {
-  yezzey_otm_hint.clear();
-}
+void YezzeyTruncateOTMHint(void) { yezzey_otm_hint.clear(); }

@@ -40,7 +40,8 @@ EXTERNC int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                                    int64 logicalEof,
                                    const char *external_storage_path);
 
-EXTERNC int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode, int segno,
+EXTERNC int loadRelationSegment(Relation aorel, Oid loadSpcOid,
+                                Oid orig_relnode, int segno,
                                 const char *dest_path);
 
 EXTERNC bool ensureFileLocal(RelFileNode rnode, BackendId backend,
@@ -51,11 +52,11 @@ EXTERNC int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                                    size_t *local_commited_bytes,
                                    size_t *external_bytes);
 
-EXTERNC int statRelationChunksSpaceUsage(
-    Relation aorel,
-    size_t *local_bytes, size_t *local_commited_bytes, yezzeyChunkMeta **list,
-    size_t *cnt_chunks);
+EXTERNC int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
+                                         size_t *local_commited_bytes,
+                                         yezzeyChunkMeta **list,
+                                         size_t *cnt_chunks);
 
-EXTERNC int yezzey_get_block_from_file_path(const char* path);
+EXTERNC int yezzey_get_block_from_file_path(const char *path);
 
 #endif /* YEZZEY_STORAGE_H */

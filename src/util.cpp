@@ -69,15 +69,14 @@ relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
 }
 
 void getYezzeyExternalStoragePathByCoords(const char *nspname,
-                                          const char *relname,
-                                          Oid spcNode, Oid dbNode, Oid relNode,
+                                          const char *relname, Oid spcNode,
+                                          Oid dbNode, Oid relNode,
                                           int32_t segblockno /* segment no*/,
                                           int32_t segid, char **dest) {
 
   /* FIXME: Support for non-default table space? */
   auto coords = relnodeCoord(spcNode, dbNode, relNode, segblockno);
-  auto prefix = getYezzeyRelationUrl_internal(nspname, relname,
-                                              coords, segid);
+  auto prefix = getYezzeyRelationUrl_internal(nspname, relname, coords, segid);
   auto path = prefix;
 
   *dest = (char *)malloc(sizeof(char) * path.size());
@@ -185,10 +184,9 @@ XLogRecPtr yezzeyGetXStorageInsertLsn(void) {
   return GetXLogWriteRecPtr();
 }
 
-std::string resolve_temp_relname(char* tempname) {
+std::string resolve_temp_relname(char *tempname) {
   std::string name(tempname);
-  if (strncmp(name.c_str(), "pg_temp_", 8) == 0)
-  {
+  if (strncmp(name.c_str(), "pg_temp_", 8) == 0) {
     int oid = atoi(name.substr(8, name.find('_', 8)).c_str());
     return std::string(get_rel_name(oid));
   }

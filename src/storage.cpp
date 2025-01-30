@@ -13,17 +13,17 @@
 
 #include "utils/rel.h"
 
-#include "io.h"
-#include <iostream>
-#include "virtual_index.h"
-#include "url.h"
-#include "yproxy.h"
-#include "yezzey_meta.h"
-#include "offload_tablespace_map.h"
-#include "cdb/cdbvars.h"
 #include "cdb/cdbappendonlyxlog.h"
-#include "ygpver.h"
+#include "cdb/cdbvars.h"
 #include "gucs.h"
+#include "io.h"
+#include "offload_tablespace_map.h"
+#include "url.h"
+#include "virtual_index.h"
+#include "yezzey_meta.h"
+#include "ygpver.h"
+#include "yproxy.h"
+#include <iostream>
 
 #define USE_YPX_LISTER = 1
 
@@ -191,9 +191,9 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   /* FIXME */
 
   auto ioadv = std::make_shared<IOadv>(
-      nspname, relname, storage_class /* storage_class */,
-      multipart_chunksize, coords /* filename */, rel->rd_id /* reloid */,
-      use_gpg_crypto, yproxy_socket);
+      nspname, relname, storage_class /* storage_class */, multipart_chunksize,
+      coords /* filename */, rel->rd_id /* reloid */, use_gpg_crypto,
+      yproxy_socket);
 
   /*
    * Create external storage reader handle to read segment files
@@ -236,8 +236,8 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   return 0;
 }
 
-int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode, int segno,
-                        const char *dest_path) {
+int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
+                        int segno, const char *dest_path) {
   auto rnode = aorel->rd_node;
 
   auto coords = relnodeCoord(rnode.spcNode, rnode.dbNode, orig_relnode, segno);
@@ -264,13 +264,14 @@ int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode, int se
   if (dest_path) {
     path = std::string(dest_path);
   } else {
-    path = getlocalpath(relnodeCoord(loadSpcOid, rnode.dbNode, rnode.relNode, segno));
+    path = getlocalpath(
+        relnodeCoord(loadSpcOid, rnode.dbNode, rnode.relNode, segno));
   }
 
   elog(yezzey_ao_log_level, "contructed path %s", path.c_str());
   if (ensureFilepathLocal(path)) {
     // nothing to do
-  
+
     return 0;
   }
 
@@ -341,8 +342,9 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       !external_storage_path ? "" : std::string(external_storage_path);
   ReleaseSysCache(tp);
 
-  auto ioadv = std::make_shared<IOadv>(nspname, relname, storage_class /* storage_class */,
-      multipart_chunksize, coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
+  auto ioadv = std::make_shared<IOadv>(
+      nspname, relname, storage_class /* storage_class */, multipart_chunksize,
+      coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
   try {
     if ((rc = offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
@@ -437,8 +439,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   auto coords = relnodeCoord(spcNode, rnode.dbNode, rnode.relNode, segno);
 
   auto ioadv = std::make_shared<IOadv>(
-      nspname,
-      std::string(aorel->rd_rel->relname.data),
+      nspname, std::string(aorel->rd_rel->relname.data),
       std::string(storage_class /*storage_class*/), multipart_chunksize,
       coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
       yproxy_socket);
@@ -468,11 +469,9 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   return 0;
 }
 
-int statRelationChunksSpaceUsage(Relation aorel,
-                                  size_t *local_bytes,
-                                  size_t *local_commited_bytes,
-                                  yezzeyChunkMeta **list,
-                                  size_t *cnt_chunks) {
+int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
+                                 size_t *local_commited_bytes,
+                                 yezzeyChunkMeta **list, size_t *cnt_chunks) {
   auto rnode = aorel->rd_node;
 
   /* rnode.spcNode == YEZZEYTABLESPACEOID here. we need
@@ -497,8 +496,7 @@ int statRelationChunksSpaceUsage(Relation aorel,
   ReleaseSysCache(tp);
 
   auto ioadv = std::make_shared<IOadv>(
-      nspname,
-      std::string(aorel->rd_rel->relname.data),
+      nspname, std::string(aorel->rd_rel->relname.data),
       std::string(storage_class /*storage_class*/), multipart_chunksize,
       coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
       yproxy_socket);
@@ -540,14 +538,14 @@ int statRelationChunksSpaceUsage(Relation aorel,
   return 0;
 }
 
-int yezzey_get_block_from_file_path(const char* path) {
+int yezzey_get_block_from_file_path(const char *path) {
   std::string pathstr = path;
   int i = 0;
   int previ = 0;
   for (int n = 0; n < 7; ++n) {
     previ = i;
-    i = pathstr.find('_', i+1);
+    i = pathstr.find('_', i + 1);
   }
-  auto blkno = pathstr.substr(previ+1, i-previ);
+  auto blkno = pathstr.substr(previ + 1, i - previ);
   return atoi(blkno.c_str());
 }

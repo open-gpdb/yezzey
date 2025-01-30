@@ -9,7 +9,4 @@ void YezzeyInitMetadata(void) {
   (void)YezzeyCreateVirtualIndex();
 }
 
-void YezzeyBinaryUpdate183(void)
-{
-  (void)YezzeyCreateVirtualIndexIdx();
-}
+void YezzeyBinaryUpdate183(void) { (void)YezzeyCreateVirtualIndexIdx(); }

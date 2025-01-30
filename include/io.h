@@ -8,7 +8,6 @@
 
 #include "yproxy.h"
 
-
 #include "io_adv.h"
 
 struct YIO {
