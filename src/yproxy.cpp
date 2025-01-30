@@ -12,10 +12,12 @@
 
 const int kDefaultRetryLimit = 100;
 
+YProxyConnector::YProxyConnector(std::shared_ptr<IOadv> adv,ssize_t segindx) : adv_(adv), segindx_(segindx), client_fd_(-1) {}
+
 YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
                            const std::vector<ChunkInfo> order)
-    : adv_(adv), segindx_(segindx), order_ptr_(0), order_(order),
-      current_chunk_remaining_bytes_(0), client_fd_(-1), current_retry(0),
+    : YProxyConnector(adv,segindx), order_ptr_(0), order_(order),
+      current_chunk_remaining_bytes_(0), current_retry(0),
       retry_limit(kDefaultRetryLimit) {}
 
 YProxyReader::~YProxyReader() { close(); }
@@ -224,8 +226,9 @@ std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
   return buff;
 }
 
-int YProxyReader::prepareYproxyConnection() {
-  int rb = base::prepareYproxyConnection();
+int YProxyReader::prepareYproxyConnection(const ChunkInfo &ci,
+                                          size_t start_off) {
+  int rb = YProxyConnector::prepareYproxyConnection();
   if (rb!=0)
   {
     return rb;
@@ -314,7 +317,7 @@ std::string YProxyWriter::createXPath() {
 
 YProxyWriter::YProxyWriter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                            ssize_t modcount, const std::string &storage_path)
-    : adv_(adv), segindx_(segindx), modcount_(modcount),
+    : YProxyConnector(adv,segindx), modcount_(modcount),
       insertion_rec_ptr_(yezzeyGetXStorageInsertLsn()),
       storage_path_(createXPath()) {}
 
@@ -368,7 +371,7 @@ bool YProxyWriter::write(const char *buffer, size_t *amount) {
 
 int YProxyWriter::prepareYproxyConnection() {
   // open unix data socket
-  int rb = base::prepareYproxyConnection();
+  int rb = YProxyConnector::prepareYproxyConnection();
   if (rb!=0)
   {
     return rb;
@@ -476,10 +479,10 @@ std::vector<char> YProxyWriter::ConstructCopyDataRequest(const char *buffer,
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                              bool confirm)
-    : adv_(adv), segindx_(segindx), garbage_cleanup_(true), confirm_(confirm) {}
+    :YProxyConnector(adv,segindx), garbage_cleanup_(true), confirm_(confirm) {}
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv)
-    : adv_(adv), segindx_(-1), garbage_cleanup_(false), confirm_(true) {}
+    : YProxyConnector(adv,-1), garbage_cleanup_(false), confirm_(true) {}
 
 YProxyDeleter::~YProxyDeleter() { close(); }
 
@@ -568,7 +571,7 @@ std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
 
 int YProxyDeleter::prepareYproxyConnection() {
   // open unix data socket
-  return base::prepareYproxyConnection();
+  return YProxyConnector::prepareYproxyConnection();
 }
 
 bool YProxyDeleter::close() {
@@ -586,7 +589,7 @@ bool YProxyDeleter::close() {
  */
 
 YProxyLister::YProxyLister(std::shared_ptr<IOadv> adv, ssize_t segindx)
-    : adv_(adv), segindx_(segindx) {}
+    : YProxyConnector(adv,segindx) {}
 
 YProxyLister::~YProxyLister() { close(); }
 
@@ -600,7 +603,7 @@ bool YProxyLister::close() {
 
 int YProxyLister::prepareYproxyConnection() {
   // open unix data socket
-  return base::prepareYproxyConnection();
+  return YProxyConnector::prepareYproxyConnection();
 }
 
 std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {

@@ -7,26 +7,29 @@
 #include <string>
 #include <vector>
 
-class YproxyConnector {
+class YProxyConnector {
 public:
-  explicit YproxyConnector() = 0;
-  ~YproxyConnector();
+  explicit YProxyConnector(std::shared_ptr<IOadv> adv,ssize_t segindx);
+  ~YProxyConnector();
   virtual bool close();
 
 
 protected:
-  int prepareYproxyConnection();
+  virtual int prepareYproxyConnection();
   std::shared_ptr<IOadv> adv_{nullptr};
   ssize_t segindx_{0};
 
   int client_fd_{-1};
 
-}
+};
 
-
+struct storageChunkMeta {
+  int64_t chunkSize;
+  std::string chunkName;
+};
 
 /* reader using yproxy */
-class YProxyReader : public YproxyConnector {
+class YProxyReader : YProxyConnector {
 public:
   friend class ExternalWriter;
   explicit YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
@@ -38,9 +41,13 @@ public:
 
   virtual bool empty();
 
+  virtual bool close();
+
 protected:
   /* prepare connection for chunk reading */
   std::vector<char> ConstructCatRequest(const ChunkInfo &ci, size_t start_off);
+  virtual int prepareYproxyConnection(const ChunkInfo &ci,
+                                          size_t start_off);
 
 private:
   int64_t order_ptr_{0};
@@ -53,7 +60,7 @@ private:
 };
 
 // Write into external storage using yproxy
-class YProxyWriter : public YproxyConnector {
+class YProxyWriter :  YProxyConnector {
 public:
   explicit YProxyWriter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                         ssize_t modcount, const std::string &storage_path);
@@ -61,11 +68,14 @@ public:
   virtual ~YProxyWriter();
 
   virtual bool write(const char *buffer, size_t *amount);
+  
+  virtual bool close();
 
 protected:
   /* prepare connection for chunk reading */
   std::vector<char> ConstructPutRequest(std::string fileName);
   std::vector<char> ConstructCopyDataRequest(const char *buffer, size_t amount);
+  virtual int prepareYproxyConnection();
 
 private:
   std::string createXPath();
@@ -81,7 +91,7 @@ public:
 };
 
 /* Delete specified file from external storage, bypassing all sanity checks */
-class YProxyDeleter : public YproxyConnector {
+class YProxyDeleter :  YProxyConnector {
 public:
   /*
    * Direct delete dispatch, appliable from MASTER
@@ -97,9 +107,12 @@ public:
 
   virtual bool deleteChunk(const std::string &chunkName);
 
+  virtual bool close();
+
 protected:
   /* prepare connection for chunk reading */
   std::vector<char> ConstructDeleteRequest(std::string fileName);
+  virtual int prepareYproxyConnection();
 
 private:
   bool garbage_cleanup_{false};
@@ -107,7 +120,7 @@ private:
 };
 
 // list external storage using yproxy
-class YProxyLister : public YLister {
+class YProxyLister :  YProxyConnector {
 public:
   explicit YProxyLister(std::shared_ptr<IOadv> adv, ssize_t segindx);
 
@@ -116,8 +129,11 @@ public:
   virtual std::vector<storageChunkMeta> list_relation_chunks();
   virtual std::vector<std::string> list_chunk_names();
 
+  virtual bool close();
+
 protected:
   std::vector<char> ConstructListRequest(std::string fileName);
+  virtual int prepareYproxyConnection();
 
   struct message {
     char type;
