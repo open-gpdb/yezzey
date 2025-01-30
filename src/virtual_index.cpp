@@ -6,10 +6,9 @@
 
 Oid YezzeyFindAuxIndex_internal(Oid reloid);
 
-static inline Oid
-yezzey_create_virtual_index_relation_internal(Oid relid, const std::string &relname,
-                             Oid relowner, char relpersistence,
-                             bool shared_relation, bool mapped_relation) {
+static inline Oid yezzey_create_virtual_index_relation_internal(
+    Oid relid, const std::string &relname, Oid relowner, char relpersistence,
+    bool shared_relation, bool mapped_relation) {
 #if IsGreenplum6
   auto tupdesc = CreateTemplateTupleDesc(Natts_yezzey_virtual_index, false);
 #else
@@ -48,11 +47,12 @@ yezzey_create_virtual_index_relation_internal(Oid relid, const std::string &reln
       relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
       0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
       InvalidOid /* reloftypeid */, relowner /* owner */,
-      tupdesc /* rel tuple */, NIL, InvalidOid /* relam */, RELKIND_YEZZEYINDEX /*relkind*/,
-      relpersistence, RELSTORAGE_HEAP, shared_relation, mapped_relation, true,
-      0, ONCOMMIT_NOOP, NULL /* GP Policy */, (Datum)0,
-      false /* use_user_acl */, true, true, false /* valid_opts */,
-      false /* is_part_child */, false /* is part parent */, NULL);
+      tupdesc /* rel tuple */, NIL, InvalidOid /* relam */,
+      RELKIND_YEZZEYINDEX /*relkind*/, relpersistence, RELSTORAGE_HEAP,
+      shared_relation, mapped_relation, true, 0, ONCOMMIT_NOOP,
+      NULL /* GP Policy */, (Datum)0, false /* use_user_acl */, true, true,
+      false /* valid_opts */, false /* is_part_child */,
+      false /* is part parent */, NULL);
 #else
   auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
       relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
@@ -71,12 +71,9 @@ yezzey_create_virtual_index_relation_internal(Oid relid, const std::string &reln
   return yezzey_ao_auxiliary_relid;
 }
 
-
 static inline void
 yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
-                             Oid relowner, char relpersistence)
-{
-
+                                         Oid relowner, char relpersistence) {
 
   { /* check existed, if no, return */
   }
@@ -123,21 +120,19 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
   coloptions[1] = 0;
 
 #if IsGreenplum6
-  (void)index_create(yezzey_rel, relname.c_str(),
-                     relid, InvalidOid,
-                     InvalidOid, InvalidOid, indexInfo, indexColNames,
-                     BTREE_AM_OID, 0 /* tablespace */, collationObjectId,
-                     classObjectId, coloptions, (Datum)0, true, false, false,
-                     false, true, false, false, true, NULL);
+  (void)index_create(yezzey_rel, relname.c_str(), relid, InvalidOid, InvalidOid,
+                     InvalidOid, indexInfo, indexColNames, BTREE_AM_OID,
+                     0 /* tablespace */, collationObjectId, classObjectId,
+                     coloptions, (Datum)0, true, false, false, false, true,
+                     false, false, true, NULL);
 #else
   bits16 flags, constr_flags;
   flags = constr_flags = 0;
-  (void)index_create(yezzey_rel, relname.c_str(),
-                     relid, InvalidOid,
-                     InvalidOid, InvalidOid, indexInfo, indexColNames,
-                     BTREE_AM_OID, 0 /* tablespace */, collationObjectId,
-                     classObjectId, coloptions, (Datum)0, flags, constr_flags,
-                     true, true, NULL);
+  (void)index_create(yezzey_rel, relname.c_str(), relid, InvalidOid, InvalidOid,
+                     InvalidOid, indexInfo, indexColNames, BTREE_AM_OID,
+                     0 /* tablespace */, collationObjectId, classObjectId,
+                     coloptions, (Datum)0, flags, constr_flags, true, true,
+                     NULL);
 #endif
 
   /* Unlock target table -- no one can see it */
@@ -152,9 +147,9 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
 void YezzeyCreateVirtualIndexIdx() {
   auto yezzey_ao_auxiliary_idxname = std::string("yezzey_virtual_index_idx");
 
-  (void)yezzey_create_virtual_index_idx_internal(YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
-                                     yezzey_ao_auxiliary_idxname, GetUserId(),
-                                     RELPERSISTENCE_PERMANENT);
+  (void)yezzey_create_virtual_index_idx_internal(
+      YEZZEY_VIRTUAL_INDEX_IDX_RELATION, yezzey_ao_auxiliary_idxname,
+      GetUserId(), RELPERSISTENCE_PERMANENT);
 
   ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
@@ -178,9 +173,9 @@ void YezzeyCreateVirtualIndexIdx() {
 void YezzeyCreateVirtualIndex() {
   auto yezzey_ao_auxiliary_relname = std::string("yezzey_virtual_index");
 
-  (void)yezzey_create_virtual_index_relation_internal(YEZZEY_VIRTUAL_INDEX_RELATION,
-                                     yezzey_ao_auxiliary_relname, GetUserId(),
-                                     RELPERSISTENCE_PERMANENT, false, false);
+  (void)yezzey_create_virtual_index_relation_internal(
+      YEZZEY_VIRTUAL_INDEX_RELATION, yezzey_ao_auxiliary_relname, GetUserId(),
+      RELPERSISTENCE_PERMANENT, false, false);
 
   ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
@@ -313,9 +308,8 @@ void emptyYezzeyIndexBlkno(Oid yezzey_index_oid, Oid reloid /* not used */,
   CommandCounterIncrement();
 } /* end emptyYezzeyIndexBlkno */
 
-
 void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
-  
+
   HeapTuple tuple;
   ScanKeyData skey[1];
   bool nulls[Natts_yezzey_virtual_index];
@@ -329,12 +323,13 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
   ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_filenode,
-              BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(relation->rd_node.relNode));
+              BTEqualStrategyNumber, F_OIDEQ,
+              ObjectIdGetDatum(relation->rd_node.relNode));
 
   auto desc = yezzey_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
 
   while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
-        // update
+    // update
     auto meta = (Form_yezzey_virtual_index)GETSTRUCT(tuple);
 
     // Assert(meta->yrelfileoid == relfileoid);
@@ -345,7 +340,8 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
     values[Anum_yezzey_virtual_index_reloid - 1] =
         ObjectIdGetDatum(RelationGetRelid(relation));
 
-    auto yandxtuple = heap_form_tuple(RelationGetDescr(relation), values, nulls);
+    auto yandxtuple =
+        heap_form_tuple(RelationGetDescr(relation), values, nulls);
 
 #if IsGreenplum6
     simple_heap_update(relation, &tuple->t_self, yandxtuple);
@@ -362,10 +358,11 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
 
   /* make changes visible*/
   CommandCounterIncrement();
-} 
+}
 
 void YezzeyFixupVirtualIndex(Relation relation) {
-  (void) YezzeyFixupVirtualIndex_internal(YezzeyFindAuxIndex(RelationGetRelid(relation)), relation);
+  (void)YezzeyFixupVirtualIndex_internal(
+      YezzeyFindAuxIndex(RelationGetRelid(relation)), relation);
 } /* end YezzeyFixupVirtualIndex */
 
 void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,

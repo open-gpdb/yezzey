@@ -32,18 +32,16 @@ struct IOadv {
   // yproxy
   const std::string yproxy_socket;
 
-  IOadv(const std::string &nspname,
-        const std::string &relname,
+  IOadv(const std::string &nspname, const std::string &relname,
         const std::string &storage_class, const int &multipart_chunksize,
         /*unparse coords*/ Oid spcNode, const std::string &fileName,
         const Oid reloid, bool use_gpg_crypto,
         const std::string &yproxy_socket);
 
-  IOadv(const std::string &nspname,
-        const std::string &relname,
+  IOadv(const std::string &nspname, const std::string &relname,
         const std::string &storage_class, const int &multipart_chunksize,
-        const relnodeCoord &coords, const Oid reloid,
-        bool use_gpg_crypto, const std::string &yproxy_socket);
+        const relnodeCoord &coords, const Oid reloid, bool use_gpg_crypto,
+        const std::string &yproxy_socket);
 };
 
 #endif /*YEZZEY_IO_ADV_H*/

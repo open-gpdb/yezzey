@@ -6,9 +6,7 @@
 
 #include <chunkinfo.h>
 
-#include "ylister.h"
-#include "yreader.h"
-#include "ywriter.h"
+#include "yproxy.h"
 
 #include "io_adv.h"
 
@@ -22,8 +20,8 @@ struct YIO {
   //  S3 + WAL-G - related structs
 
   //   reader and writer
-  std::shared_ptr<YReader> reader_{nullptr};
-  std::shared_ptr<YWriter> writer_{nullptr};
+  std::shared_ptr<YProxyReader> reader_{nullptr};
+  std::shared_ptr<YProxyWriter> writer_{nullptr};
 
   std::shared_ptr<IOadv> adv_;
   ssize_t segindx_;

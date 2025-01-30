@@ -12,20 +12,27 @@
 
 const int kDefaultRetryLimit = 100;
 
-YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
-                           const std::vector<ChunkInfo> order)
-    : adv_(adv), segindx_(segindx), order_ptr_(0), order_(order),
-      current_chunk_remaining_bytes_(0), client_fd_(-1), current_retry(0),
-      retry_limit(kDefaultRetryLimit) {}
+YProxyConnector::YProxyConnector(std::shared_ptr<IOadv> adv, ssize_t segindx)
+    : adv_(adv), segindx_(segindx), client_fd_(-1) {}
 
-YProxyReader::~YProxyReader() { close(); }
-
-bool YProxyReader::close() {
+YProxyConnector::~YProxyConnector(){ close(); }
+bool YProxyConnector::close() {
   if (client_fd_ != -1) {
     ::close(client_fd_);
     client_fd_ = -1;
   }
   return true;
+}
+YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
+                           const std::vector<ChunkInfo> order)
+    : YProxyConnector(adv, segindx), order_ptr_(0), order_(order),
+      current_chunk_remaining_bytes_(0), current_retry(0),
+      retry_limit(kDefaultRetryLimit) {}
+
+YProxyReader::~YProxyReader() { close(); }
+
+bool YProxyReader::close() {
+  return YProxyConnector::close();
 }
 
 const char DecryptRequest = 1;
@@ -121,6 +128,36 @@ static int commonReadRFQResponce(int client_fd_) {
   return 0;
 }
 
+int YProxyConnector::prepareYproxyConnection() {
+  // open unix data socket
+
+  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (client_fd_ == -1) {
+    elog(WARNING, "failed to create unix socket, errno: %m");
+    return -1;
+  }
+
+  struct sockaddr_un addr;
+  /* Bind socket to socket name. */
+
+  memset(&addr, 0, sizeof(addr));
+
+  addr.sun_family = AF_UNIX;
+  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
+          sizeof(addr.sun_path) - 1);
+
+  auto ret =
+      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
+
+  if (ret == -1) {
+    elog(WARNING,
+         "failed to acquire connection to unix socket on %s, errno: %m",
+         adv_->yproxy_socket.c_str());
+    return -1;
+  }
+  return 0;
+}
+
 std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
                                                     size_t start_off) {
 
@@ -194,32 +231,9 @@ std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
 
 int YProxyReader::prepareYproxyConnection(const ChunkInfo &ci,
                                           size_t start_off) {
-  // open unix data socket
-
-  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (client_fd_ == -1) {
-    // throw here?
-    elog(WARNING, "failed to create unix socket, errno: %m");
-    return -1;
-  }
-
-  struct sockaddr_un addr;
-  /* Bind socket to socket name. */
-
-  memset(&addr, 0, sizeof(addr));
-
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
-          sizeof(addr.sun_path) - 1);
-
-  auto ret =
-      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
-  if (ret == -1) {
-    // THROW here?
-    elog(WARNING,
-         "failed to acquire connection to unix socket on %s, errno: %m",
-         adv_->yproxy_socket.c_str());
-    return -1;
+  int rb = YProxyConnector::prepareYproxyConnection();
+  if (rb != 0) {
+    return rb;
   }
 
   auto msg = ConstructCatRequest(ci, start_off);
@@ -304,7 +318,7 @@ std::string YProxyWriter::createXPath() {
 
 YProxyWriter::YProxyWriter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                            ssize_t modcount, const std::string &storage_path)
-    : adv_(adv), segindx_(segindx), modcount_(modcount),
+    : YProxyConnector(adv, segindx), modcount_(modcount),
       insertion_rec_ptr_(yezzeyGetXStorageInsertLsn()),
       storage_path_(createXPath()) {}
 
@@ -358,31 +372,9 @@ bool YProxyWriter::write(const char *buffer, size_t *amount) {
 
 int YProxyWriter::prepareYproxyConnection() {
   // open unix data socket
-
-  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (client_fd_ == -1) {
-    elog(WARNING, "failed to create unix socket, errno: %m");
-    // throw here?
-    return -1;
-  }
-
-  struct sockaddr_un addr;
-  /* Bind socket to socket name. */
-
-  memset(&addr, 0, sizeof(addr));
-
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
-          sizeof(addr.sun_path) - 1);
-
-  auto ret =
-      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
-
-  if (ret == -1) {
-    elog(WARNING,
-         "failed to acquire connection to unix socket on %s, errno: %m",
-         adv_->yproxy_socket.c_str());
-    return -1;
+  int rb = YProxyConnector::prepareYproxyConnection();
+  if (rb != 0) {
+    return rb;
   }
 
   auto msg = ConstructPutRequest(storage_path_);
@@ -487,10 +479,11 @@ std::vector<char> YProxyWriter::ConstructCopyDataRequest(const char *buffer,
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                              bool confirm)
-    : adv_(adv), segindx_(segindx), garbage_cleanup_(true), confirm_(confirm) {}
+    : YProxyConnector(adv, segindx), garbage_cleanup_(true), confirm_(confirm) {
+}
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv)
-    : adv_(adv), segindx_(-1), garbage_cleanup_(false), confirm_(true) {}
+    : YProxyConnector(adv, -1), garbage_cleanup_(false), confirm_(true) {}
 
 YProxyDeleter::~YProxyDeleter() { close(); }
 
@@ -579,42 +572,11 @@ std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
 
 int YProxyDeleter::prepareYproxyConnection() {
   // open unix data socket
-
-  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (client_fd_ == -1) {
-    elog(WARNING, "failed to create unix socket, errno: %m");
-    // throw here?
-    return -1;
-  }
-
-  struct sockaddr_un addr;
-  /* Bind socket to socket name. */
-
-  memset(&addr, 0, sizeof(addr));
-
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
-          sizeof(addr.sun_path) - 1);
-
-  auto ret =
-      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
-
-  if (ret == -1) {
-    elog(WARNING,
-         "failed to acquire connection to unix socket on %s, errno: %m",
-         adv_->yproxy_socket.c_str());
-    return -1;
-  }
-  return 0;
+  return YProxyConnector::prepareYproxyConnection();
 }
 
 bool YProxyDeleter::close() {
-  if (client_fd_ == -1) {
-    return true;
-  }
-  ::close(client_fd_);
-  client_fd_ = -1;
-  return true;
+  return YProxyConnector::close();
 }
 
 /*
@@ -623,48 +585,17 @@ bool YProxyDeleter::close() {
  */
 
 YProxyLister::YProxyLister(std::shared_ptr<IOadv> adv, ssize_t segindx)
-    : adv_(adv), segindx_(segindx) {}
+    : YProxyConnector(adv, segindx) {}
 
 YProxyLister::~YProxyLister() { close(); }
 
 bool YProxyLister::close() {
-  if (client_fd_ != -1) {
-    ::close(client_fd_);
-    client_fd_ = -1;
-  }
-  return true;
+  return YProxyConnector::close();
 }
 
 int YProxyLister::prepareYproxyConnection() {
   // open unix data socket
-
-  client_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (client_fd_ == -1) {
-    // throw here?
-    elog(WARNING, "failed to create unix socket, errno: %m");
-    return -1;
-  }
-
-  struct sockaddr_un addr;
-
-  /* Bind socket to socket name. */
-  memset(&addr, 0, sizeof(addr));
-
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
-          sizeof(addr.sun_path) - 1);
-
-  auto ret =
-      ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
-
-  if (ret == -1) {
-    elog(WARNING,
-         "failed to acquire connection to unix socket on %s, errno: %m",
-         adv_->yproxy_socket.c_str());
-    return -1;
-  }
-
-  return 0;
+  return YProxyConnector::prepareYproxyConnection();
 }
 
 std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
@@ -675,7 +606,8 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
     return res;
   }
 
-  auto msg = ConstructListRequest(yezzey_block_db_file_path(adv_->nspname, adv_->relname, adv_->coords_, segindx_));
+  auto msg = ConstructListRequest(yezzey_block_db_file_path(
+      adv_->nspname, adv_->relname, adv_->coords_, segindx_));
   size_t rc = ::write(client_fd_, msg.data(), msg.size());
   if (rc <= 0) {
     // throw?

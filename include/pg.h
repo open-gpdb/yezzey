@@ -38,8 +38,8 @@ extern "C" {
 #include "catalog/storage_xlog.h"
 #include "storage/smgr.h"
 #include "utils/catcache.h"
-#include "utils/syscache.h"
 #include "utils/lsyscache.h"
+#include "utils/syscache.h"
 
 #include "catalog/dependency.h"
 #include "catalog/pg_extension.h"
@@ -100,8 +100,8 @@ extern "C" {
 
 #include "catalog/pg_namespace.h"
 #include "utils/catcache.h"
-#include "utils/syscache.h"
 #include "utils/lsyscache.h"
+#include "utils/syscache.h"
 
 #include "catalog/heap.h"
 
@@ -124,8 +124,8 @@ extern "C" {
 
 #include "libpq/pqformat.h"
 
-#include "miscadmin.h"
 #include "libpq/libpq-be.h"
+#include "miscadmin.h"
 #include "postmaster/postmaster.h"
 
 #include "commands/tablespace.h"

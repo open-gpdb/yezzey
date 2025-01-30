@@ -33,7 +33,9 @@ typedef struct {
 typedef FormData_offload_tablespace_map *Form_offload_tablespace_map;
 
 #ifdef __cplusplus
-std::string YezzeyGetRelationOriginTablespace(const char *nspname, const char *relname, Oid i_reloid);
+std::string YezzeyGetRelationOriginTablespace(const char *nspname,
+                                              const char *relname,
+                                              Oid i_reloid);
 
 void YezzeyRegisterRelationOriginTablespace(Oid i_reloid, Oid i_reltablespace);
 
@@ -42,4 +44,6 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname);
 
 EXTERNC void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid);
 EXTERNC void YezzeyTruncateOTMHint(void);
-EXTERNC Oid YezzeyGetRelationOriginTablespaceOid(const char*nspname, const char * relname, Oid i_reloid);
+EXTERNC Oid YezzeyGetRelationOriginTablespaceOid(const char *nspname,
+                                                 const char *relname,
+                                                 Oid i_reloid);
