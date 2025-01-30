@@ -10,7 +10,7 @@
 class YProxyConnector {
 public:
   explicit YProxyConnector(std::shared_ptr<IOadv> adv, ssize_t segindx);
-  ~YProxyConnector();
+  virtual ~YProxyConnector();
   virtual bool close();
 
 protected:

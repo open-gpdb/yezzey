@@ -15,6 +15,14 @@ const int kDefaultRetryLimit = 100;
 YProxyConnector::YProxyConnector(std::shared_ptr<IOadv> adv, ssize_t segindx)
     : adv_(adv), segindx_(segindx), client_fd_(-1) {}
 
+YProxyConnector::~YProxyConnector(){ close(); }
+bool YProxyConnector::close() {
+  if (client_fd_ != -1) {
+    ::close(client_fd_);
+    client_fd_ = -1;
+  }
+  return true;
+}
 YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
                            const std::vector<ChunkInfo> order)
     : YProxyConnector(adv, segindx), order_ptr_(0), order_(order),
@@ -24,11 +32,7 @@ YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
 YProxyReader::~YProxyReader() { close(); }
 
 bool YProxyReader::close() {
-  if (client_fd_ != -1) {
-    ::close(client_fd_);
-    client_fd_ = -1;
-  }
-  return true;
+  return YProxyConnector::close();
 }
 
 const char DecryptRequest = 1;
@@ -572,12 +576,7 @@ int YProxyDeleter::prepareYproxyConnection() {
 }
 
 bool YProxyDeleter::close() {
-  if (client_fd_ == -1) {
-    return true;
-  }
-  ::close(client_fd_);
-  client_fd_ = -1;
-  return true;
+  return YProxyConnector::close();
 }
 
 /*
@@ -591,11 +590,7 @@ YProxyLister::YProxyLister(std::shared_ptr<IOadv> adv, ssize_t segindx)
 YProxyLister::~YProxyLister() { close(); }
 
 bool YProxyLister::close() {
-  if (client_fd_ != -1) {
-    ::close(client_fd_);
-    client_fd_ = -1;
-  }
-  return true;
+  return YProxyConnector::close();
 }
 
 int YProxyLister::prepareYproxyConnection() {
