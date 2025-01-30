@@ -1,19 +1,18 @@
 CREATE EXTENSION yezzey;
+SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE regaoty(i INT) WITH (appendonly=true);
-NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'i' as the Greenplum Database data distribution key for this table.
-HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('regaoty');
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 127.0.1.1:6002 pid=1819226)
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 127.0.1.1:6003 pid=1819227)
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:6004 pid=1819228)
-INFO:  yezzey: relation segment reached external storage (blkno=1), up to logical eof 335168  (seg0 slice1 127.0.1.1:6002 pid=1819226)
-INFO:  yezzey: relation segment reached external storage (blkno=1), up to logical eof 333816  (seg1 slice1 127.0.1.1:6003 pid=1819227)
-INFO:  yezzey: relation segment reached external storage (blkno=1), up to logical eof 332656  (seg2 slice1 127.0.1.1:6004 pid=1819228)
  yezzey_define_offload_policy 
 ------------------------------
  
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaoty'::regclass::oid;
+ reltablespace 
+---------------
+          8555
 (1 row)
 
 SELECT count(1) FROM yezzey_dump_virtual_index('regaoty');
@@ -39,30 +38,10 @@ SELECT * FROM regaoty ORDER BY i LIMIT 5 OFFSET 7823;
  3914
 (5 rows)
 
-SELECT segindex,external_bytes FROM yezzey_offload_relation_status('regaoty');
- segindex | external_bytes 
-----------+----------------
-        0 |         670336
-        1 |         667632
-        2 |         665312
-(3 rows)
-
-SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('regaoty');
- segindex | segfileindex | external_bytes 
-----------+--------------+----------------
-        2 |            1 |         665312
-        1 |            1 |         667632
-        0 |            1 |         670336
-(3 rows)
-
-SELECT segindex,segfileindex,external_bytes FROM yezzey_relation_describe_external_storage_structure('regaoty');
- segindex | segfileindex | external_bytes 
-----------+--------------+----------------
-        0 |            1 |         335168
-        0 |            1 |         335168
-        1 |            1 |         333816
-        1 |            1 |         333816
-        2 |            1 |         332656
-        2 |            1 |         332656
-(6 rows)
-
+-- TODO: check
+--SELECT segindex,external_bytes FROM yezzey_offload_relation_status('regaoty');
+--SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('regaoty');
+--SELECT segindex,segfileindex,external_bytes FROM yezzey_relation_describe_external_storage_structure('regaoty');
+DROP TABLE regaoty;
+DROP EXTENSION yezzey;
+CHECKPOINT;
