@@ -6,3 +6,7 @@ regression.out
 *.so
 .deps
 .vscode/
+*.a
+*.d
+*.gcda
+yezzey_test
