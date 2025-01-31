@@ -1,11 +1,11 @@
 #include "msgproto.h"
 
+const ssize_t CHAR_SZ = 1;
+const ssize_t UINT64_SZ = 8;
+
 
 
 MsgBuilder::MsgBuilder() : length(UINT64_SZ),cursor(0), data() {}
-
-const ssize_t CHAR_SZ = 1;
-const ssize_t UINT64_SZ = 8;
 
 ssize_t MsgBuilder::putChar(char c,ssize_t padding){
     data.at(padding) = c;
