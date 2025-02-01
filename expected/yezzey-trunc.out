@@ -1,0 +1,192 @@
+CREATE EXTENSION yezzey;
+SET client_min_messages TO WARNING;
+-- AO
+CREATE TABLE regaoty(i INT) WITH (appendonly=true);
+INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
+SELECT * FROM yezzey_define_offload_policy('regaoty');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaoty'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('regaoty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaoty');
+ count 
+-------
+     3
+(1 row)
+
+--SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count(1) FROM regaoty;
+ count  
+--------
+ 100000
+(1 row)
+
+INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaoty;
+ count  
+--------
+ 200000
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('regaoty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaoty');
+ count 
+-------
+     3
+(1 row)
+
+--SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaoty');
+DELETE FROM regaoty;
+INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
+INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaoty;
+ count  
+--------
+ 200000
+(1 row)
+
+TRUNCATE regaoty;
+SELECT count(1) FROM regaoty;
+ count 
+-------
+     0
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('regaoty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaoty');
+ count 
+-------
+     0
+(1 row)
+
+--SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaoty');
+INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
+INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaoty;
+ count  
+--------
+ 200000
+(1 row)
+
+DROP TABLE regaoty;
+\! echo AO simple test OK
+AO simple test OK
+-- AOCS
+CREATE TABLE regaocsty(i INT) WITH (appendonly=true, orientation=column);
+INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT * FROM yezzey_define_offload_policy('regaocsty');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaocsty'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+--SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+SELECT count(1) FROM regaocsty;
+ count  
+--------
+ 100000
+(1 row)
+
+INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaocsty;
+ count  
+--------
+ 200000
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+--SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+DELETE FROM regaocsty;
+INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
+INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaocsty;
+ count  
+--------
+ 200000
+(1 row)
+
+TRUNCATE regaocsty;
+SELECT count(1) FROM regaocsty;
+ count 
+-------
+     0
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
+ count 
+-------
+     0
+(1 row)
+
+--SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
+INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaocsty;
+ count  
+--------
+ 200000
+(1 row)
+
+DROP TABLE regaocsty;
+\! echo AOCS simple test OK
+AOCS simple test OK
+DROP EXTENSION yezzey;
+CHECKPOINT;
