@@ -166,7 +166,7 @@ std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
       {"TableSpace", adv_->tableSpace},
   };
 
-  for (auto j = 0; j < settingsCnt; ++j) {
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
     settingsMsgSpace += settings[j].first.size() + 1;
     settingsMsgSpace += settings[j].second.size() + 1;
   }
@@ -214,7 +214,7 @@ std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
 
   settings_offset += MSG_HEADER_SIZE;
 
-  for (auto j = 0; j < settingsCnt; ++j) {
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
     strncpy(buff.data() + settings_offset, settings[j].first.c_str(),
             settings[j].first.size());
     settings_offset += settings[j].first.size() + 1;
@@ -395,7 +395,7 @@ std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
       {"TableSpace", adv_->tableSpace},
   };
 
-  for (auto j = 0; j < settingsCnt; ++j) {
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
     settingsMsgSpace += settings[j].first.size() + 1;
     settingsMsgSpace += settings[j].second.size() + 1;
   }
@@ -435,7 +435,7 @@ std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
 
   settings_offset += MSG_HEADER_SIZE;
 
-  for (auto j = 0; j < settingsCnt; ++j) {
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
     strncpy(buff.data() + settings_offset, settings[j].first.c_str(),
             settings[j].first.size());
     settings_offset += settings[j].first.size() + 1;
@@ -661,7 +661,7 @@ YProxyLister::message YProxyLister::readMessage() {
   // try to read small number of bytes in one op
   // if failed, give up
   int rc = ::read(client_fd_, buffer, len);
-  if (rc != len) {
+  if (rc < 0 || (size_t)rc != len) {
     // handle
     res.retCode = -1;
     return res;
@@ -685,7 +685,7 @@ YProxyLister::message YProxyLister::readMessage() {
     return res;
   }
 
-  if (rc != msgLen) {
+  if ((uint64_t)rc != msgLen) {
     // handle
     res.retCode = -1;
     return res;

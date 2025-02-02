@@ -47,7 +47,7 @@ protected:
   virtual int prepareYproxyConnection(const ChunkInfo &ci, size_t start_off);
 
 private:
-  int64_t order_ptr_{0};
+  uint64_t order_ptr_{0};
   const std::vector<ChunkInfo> order_;
   int64_t current_chunk_remaining_bytes_{0};
   int64_t current_chunk_offset_{0};

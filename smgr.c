@@ -2,13 +2,17 @@
 #include "postgres.h"
 
 #include "miscadmin.h"
-#include "utils/snapmgr.h"
-
-#include "ygpver.h"
 
 #if PG_VERSION_NUM >= 130000
 #include "postmaster/interrupt.h"
 #endif
+
+#include "catalog/pg_tablespace.h"
+
+
+// For GpIdentity
+#include "c.h"
+#include "cdb/cdbvars.h"
 
 #include "storage/ipc.h"
 #include "storage/lwlock.h"
@@ -23,26 +27,16 @@
 #endif
 
 #include "utils/elog.h"
-
-#if IsGreenplum6 || IsModernYezzey
-#include "cdb/cdbvars.h"
-#endif
-
-#include "catalog/pg_tablespace.h"
-
-#include "yezzey.h"
-
-// For GpIdentity
-#include "c.h"
-#include "cdb/cdbvars.h"
+#include "utils/snapmgr.h"
 
 #if IsModernYezzey
 #include "access/aomd.h"
 #endif
 
 #include "storage.h"
-
 #include "proxy.h"
+#include "yezzey.h"
+#include "ygpver.h"
 
 /*
  * Construct external storage filepath.
