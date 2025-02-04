@@ -1,9 +1,10 @@
 # Include
-COMMON_OBJS = msgproto.o 
+COMMON_OBJS = msgproto.o yproxy.o
 
 COMMON_LINK_OPTIONS = -lstdc++ -lxml2 -lpthread -lcrypto -lcurl -lz
 
-COMMON_CPP_FLAGS = -std=c++11 -fPIC -I/usr/include/libxml2 -I/usr/local/opt/openssl/include
+COMMON_CPP_FLAGS = -fPIC -lstdc++fs -lstdc++ -lz -g3 -ggdb -Wall -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -fno-strict-aliasing -fwrapv -fno-aggressive-loop-optimizations -Wno-unused-but-set-variable -Wno-address -Werror=format-security -Wno-format-truncation -Wno-stringop-truncation -g -ggdb -std=c++11 -fPIC -I/usr/local/opt/openssl/include -Iinclude -Ilib  -g -I. -I. -I../../src/include -I../../../src/include -D_GNU_SOURCE
+
 
 TEST_OBJS = $(patsubst %.o,%_test.o,$(COMMON_OBJS))
 
