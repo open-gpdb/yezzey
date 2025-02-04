@@ -140,9 +140,8 @@ std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
   return buff;
 }
 
-
 std::vector<char> YProxyWriter::ConstructCopyDataRequest(const char *buffer,
-                                                            size_t amount) {
+                                                         size_t amount) {
   std::vector<char> buff(MSG_HEADER_SIZE + PROTO_HEADER_SIZE + 8 + amount, 0);
   buff[8] = MessageTypeCopyData;
   uint64_t len = buff.size();

@@ -50,8 +50,7 @@ bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
         Confirm bool
         Garbage bool
 */
-std::vector<char>
-YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
+std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
   std::vector<char> buff(MSG_HEADER_SIZE + PROTO_HEADER_SIZE + fileName.size() +
                              1 + OFFSET_SZ + OFFSET_SZ,
                          0);

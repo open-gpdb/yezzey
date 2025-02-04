@@ -39,7 +39,6 @@ static std::vector<char> CommonCostructCommandCompleteRequest() {
   return buff;
 }
 
-
 static int commonWriteFull(int client_fd_, const std::vector<char> &msg) {
   int len = msg.size();
   int sync_offset = 0;
