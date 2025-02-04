@@ -2,6 +2,7 @@
 
 #include "io_adv.h"
 #include "msgproto.h"
+#include "unistd.h"
 #include <memory>
 #include <string>
 #include <vector>
