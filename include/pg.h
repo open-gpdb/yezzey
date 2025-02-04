@@ -124,7 +124,6 @@ extern "C" {
 
 #include "libpq/pqformat.h"
 
-#include "libpq/libpq-be.h"
 #include "miscadmin.h"
 #include "postmaster/postmaster.h"
 

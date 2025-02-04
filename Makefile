@@ -31,6 +31,12 @@ OBJS = \
 	src/init.o \
 	src/meta.o \
 	src/binary_upgrade.o \
+	src/msgproto.o \
+	src/yproxy_connector.o \
+	src/yproxy_deleter.o \
+	src/yproxy_lister.o \
+	src/yproxy_reader.o \
+	src/yproxy_writer.o \
 	smgr.o yezzey.o
 
 EXTENSION = yezzey

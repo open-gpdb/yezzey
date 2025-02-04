@@ -109,8 +109,8 @@ void YezzeyCreateOffloadPolicyRelation() {
 
   /* ShareLock is not really needed here, but take it anyway */
   auto yezzey_rel = heap_open(YEZZEY_OFFLOAD_POLICY_RELATION, ShareLock);
-  const char * colname = "reloid";
-  auto indexColNames = list_make1((void*)colname);
+  const char *colname = "reloid";
+  auto indexColNames = list_make1((void *)colname);
 
   auto indexInfo = makeNode(IndexInfo);
 
