@@ -76,7 +76,7 @@ int YProxyWriter::prepareYproxyConnection() {
   return 0;
 }
 
-std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
+std::vector<char> YProxyWriter::ConstructPutRequestOld(std::string fileName) {
   uint64_t settingsCnt = 4;
   uint64_t settingsMsgSpace = 0;
 
@@ -140,8 +140,40 @@ std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
   return buff;
 }
 
-std::vector<char> YProxyWriter::ConstructCopyDataRequest(const char *buffer,
-                                                         size_t amount) {
+std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
+  uint64_t settingsCnt = 4;
+  uint64_t settingsMsgSpace = 0;
+
+  std::vector<std::pair<std::string, std::string>> settings = {
+      {"StorageClass", adv_->storage_class},
+      {"MultipartChunksize", std::to_string(adv_->multipart_chunksize)},
+      {"MultipartUpload", adv_->multipart_upload ? "1" : "0"},
+      {"TableSpace", adv_->tableSpace},
+  };
+  MsgBuilder builder =
+      MsgBuilder().fieldProto().fieldString(fileName.size()).fieldUInt64();
+
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
+    builder.fieldString(settings[j].first.size())
+        .fieldString(settings[j].second.size());
+  }
+  builder.endDescription();
+
+  builder
+      .addProto(MessageTypePutV2,
+                adv_->use_gpg_crypto ? EncryptRequest : NoEncryptRequest)
+      .addString(fileName)
+      .addUInt64(settingsCnt);
+
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
+    builder.addString(settings[j].first).addString(settings[j].second);
+  }
+
+  return builder.get();
+}
+
+std::vector<char> YProxyWriter::ConstructCopyDataRequestOld(const char *buffer,
+                                                            size_t amount) {
   std::vector<char> buff(MSG_HEADER_SIZE + PROTO_HEADER_SIZE + 8 + amount, 0);
   buff[8] = MessageTypeCopyData;
   uint64_t len = buff.size();
@@ -161,4 +193,20 @@ std::vector<char> YProxyWriter::ConstructCopyDataRequest(const char *buffer,
   }
 
   return buff;
+}
+
+std::vector<char> YProxyWriter::ConstructCopyDataRequest(const char *buffer,
+                                                         size_t amount) {
+
+  MsgBuilder builder = MsgBuilder()
+                           .fieldProto()
+                           .fieldUInt64()
+                           .fieldBytes(amount)
+                           .endDescription();
+
+  builder.addProto(MessageTypeCopyData)
+      .addUInt64(amount)
+      .addBytes(buffer, amount);
+
+  return builder.get();
 }

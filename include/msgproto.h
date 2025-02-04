@@ -27,6 +27,30 @@ const size_t FLAG_SZ = 1;
 const size_t CHAR_SZ = 1;
 const size_t UINT64_SZ = 8;
 
+const char DecryptRequest = 1;
+const char NoDecryptRequest = 0;
+const char ExtendedMessage = 1;
+const char EncryptRequest = 1;
+const char NoEncryptRequest = 0;
+const char MessageTypeCat = 42;
+const char MessageTypeCatV2 = 54;
+const char MessageTypePut = 43;
+const char MessageTypePutV2 = 53;
+const char MessageTypeCommandComplete = 44;
+const char MessageTypeReadyForQuery = 45;
+const char MessageTypeCopyData = 46;
+const char MessageTypeList = 48;
+const char MessageTypeObjectMeta = 49;
+
+const char MessageTypeDelete = 47;
+
+const size_t MSG_HEADER_SIZE = 8;
+const size_t PROTO_HEADER_SIZE = 4;
+const size_t OFFSET_SZ = 8;
+const size_t FLAG_SZ = 1;
+const size_t CHAR_SZ = 1;
+const size_t UINT64_SZ = 8;
+
 class MsgBuilder {
 public:
   explicit MsgBuilder();

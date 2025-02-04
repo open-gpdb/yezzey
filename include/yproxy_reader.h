@@ -24,6 +24,8 @@ public:
 protected:
   /* prepare connection for chunk reading */
   std::vector<char> ConstructCatRequest(const ChunkInfo &ci, size_t start_off);
+  std::vector<char> ConstructCatRequestOld(const ChunkInfo &ci,
+                                           size_t start_off);
   virtual int prepareYproxyConnection(const ChunkInfo &ci, size_t start_off);
 
 private:

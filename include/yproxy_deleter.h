@@ -25,6 +25,7 @@ protected:
   /* prepare connection for chunk reading */
   std::vector<char> ConstructDeleteRequest(std::string fileName);
 
+  std::vector<char> ConstructDeleteRequestOld(std::string fileName);
   virtual int prepareYproxyConnection();
 
 private:

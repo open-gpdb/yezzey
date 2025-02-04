@@ -17,6 +17,7 @@ public:
 protected:
   std::vector<char> ConstructListRequest(std::string fileName);
 
+  std::vector<char> ConstructListRequestOld(std::string fileName);
   virtual int prepareYproxyConnection();
 
   struct message {

@@ -50,7 +50,8 @@ bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
         Confirm bool
         Garbage bool
 */
-std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
+std::vector<char>
+YProxyDeleter::ConstructDeleteRequestOld(std::string fileName) {
   std::vector<char> buff(MSG_HEADER_SIZE + PROTO_HEADER_SIZE + fileName.size() +
                              1 + OFFSET_SZ + OFFSET_SZ,
                          0);
@@ -90,6 +91,25 @@ std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
 
   off += OFFSET_SZ;
   return buff;
+}
+
+std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
+  std::vector<char> buff(MSG_HEADER_SIZE + PROTO_HEADER_SIZE + fileName.size() +
+                             1 + OFFSET_SZ + OFFSET_SZ,
+                         0);
+  MsgBuilder builder = MsgBuilder()
+                           .fieldProto()
+                           .fieldString(fileName.size())
+                           .fieldUInt64()
+                           .fieldUInt64()
+                           .endDescription();
+
+  builder.addProto(MessageTypeDelete, confirm_, garbage_cleanup_)
+      .addString(fileName)
+      .addUInt64(PostPortNumber)
+      .addUInt64(segindx_);
+
+  return builder.get();
 }
 
 int YProxyDeleter::prepareYproxyConnection() {
