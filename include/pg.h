@@ -14,6 +14,14 @@ extern "C" {
 #include "postmaster/interrupt.h"
 #endif
 
+
+#if PG_VERSION_NUM >= 100000
+#include "common/md5.h"
+#else
+#include "libpq/md5.h"
+#endif
+
+
 #include "utils/timestamp.h"
 #if PG_VERSION_NUM >= 100000
 #include "common/file_perm.h"
@@ -21,40 +29,46 @@ extern "C" {
 #include "access/xact.h"
 #endif
 
-#include "utils/elog.h"
-
-#include "utils/builtins.h"
-
 #if IsModernYezzey
 #include "access/relation.h"
 #endif
 
+#include "access/aocssegfiles.h"
 #include "access/aosegfiles.h"
 #include "access/htup_details.h"
+#include "access/xlog.h"
 
 #include "catalog/pg_namespace.h"
 #include "catalog/pg_tablespace.h"
 #include "catalog/storage.h"
 #include "catalog/storage_xlog.h"
-#include "storage/smgr.h"
-#include "utils/catcache.h"
-#include "utils/lsyscache.h"
-#include "utils/syscache.h"
-
 #include "catalog/dependency.h"
 #include "catalog/pg_extension.h"
+#include "catalog/catalog.h"
+#include "catalog/objectaccess.h"
+#include "catalog/pg_tablespace.h"
+#include "catalog/storage.h"
+#include "catalog/indexing.h"
+
+
+#include "storage/smgr.h"
+
 #include "commands/extension.h"
 
-#include "access/xlog.h"
-#include "catalog/storage_xlog.h"
+
+
 #include "common/relpath.h"
 #include "executor/spi.h"
 #include "funcapi.h"
 #include "pgstat.h"
-#include "utils/builtins.h"
 
-#include "access/aocssegfiles.h"
-#include "access/aosegfiles.h"
+#include "utils/builtins.h"
+#include "utils/catcache.h"
+#include "utils/lsyscache.h"
+#include "utils/syscache.h"
+#include "utils/elog.h"
+
+
 #include "storage/bufmgr.h"
 #include "storage/fd.h"
 #include "storage/lmgr.h"
@@ -64,14 +78,6 @@ extern "C" {
 #endif
 
 #include "utils/fmgroids.h"
-
-#include "catalog/catalog.h"
-#include "catalog/objectaccess.h"
-#include "catalog/pg_tablespace.h"
-#include "catalog/storage.h"
-
-#include "catalog/indexing.h"
-
 #include "utils/snapmgr.h"
 
 #include "utils/guc.h"

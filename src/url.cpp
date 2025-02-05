@@ -1,12 +1,6 @@
 
 #include "url.h"
 
-#if PG_VERSION_NUM >= 100000
-#include "common/md5.h"
-#else
-#include "libpq/md5.h"
-#endif
-
 /*
  * Create an md5 hash of a text string and return it as hex
  *
@@ -15,10 +9,12 @@
 
 std::string yezzey_fqrelname_md5(const std::string &nspname,
                                  const std::string &relname) {
-  unsigned char md[MD5_DIGEST_LENGTH];
+  char md[MD5_DIGEST_LENGTH];
   std::string full_name = nspname + "." + relname;
-  /* compute AO/AOCS relation name, just like walg does*/
-  (void)MD5((const unsigned char *)full_name.c_str(), full_name.size(), md);
+  /* compute AO/AOCS relation name, just like WAL-G does*/
+	if (!pg_md5_hash(full_name.c_str(), full_name.size(), md)) {
+    elog(ERROR, "failed to calculated RFQN md5 hash");
+  }
 
   std::string relmd5;
 
