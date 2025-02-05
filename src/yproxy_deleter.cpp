@@ -50,49 +50,6 @@ bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
         Confirm bool
         Garbage bool
 */
-std::vector<char>
-YProxyDeleter::ConstructDeleteRequestOld(std::string fileName) {
-  std::vector<char> buff(MSG_HEADER_SIZE + PROTO_HEADER_SIZE + fileName.size() +
-                             1 + OFFSET_SZ + OFFSET_SZ,
-                         0);
-  buff[8] = MessageTypeDelete;
-  /* confirm */
-  buff[9] = confirm_;
-  /* garbage */
-  buff[10] = garbage_cleanup_;
-
-  uint64_t len = buff.size();
-
-  uint64_t cp = len;
-  for (ssize_t i = 7; i >= 0; --i) {
-    buff[i] = cp & ((1 << 8) - 1);
-    cp >>= 8;
-  }
-
-  strncpy(buff.data() + MSG_HEADER_SIZE + PROTO_HEADER_SIZE, fileName.c_str(),
-          fileName.size());
-
-  uint64_t port = PostPortNumber;
-
-  int off = MSG_HEADER_SIZE + PROTO_HEADER_SIZE + fileName.size() + 1;
-
-  for (ssize_t i = off + 7; i >= off; --i) {
-    buff[i] = port & ((1 << 8) - 1);
-    port >>= 8;
-  }
-
-  off += OFFSET_SZ;
-
-  uint64_t segId = segindx_;
-  for (ssize_t i = off + 7; i >= off; --i) {
-    buff[i] = segId & ((1 << 8) - 1);
-    segId >>= 8;
-  }
-
-  off += OFFSET_SZ;
-  return buff;
-}
-
 std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
 
   MsgBuilder builder = MsgBuilder()
