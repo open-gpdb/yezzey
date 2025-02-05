@@ -26,7 +26,7 @@ struct storageChunkMeta {
   std::string chunkName;
 };
 
-static std::vector<char> CommonCostructCommandCompleteRequest() {
+static std::vector<char> CommonCostructCommandCompleteRequestOld() {
   std::vector<char> buff(MSG_HEADER_SIZE + PROTO_HEADER_SIZE, 0);
   buff[8] = MessageTypeCommandComplete;
   uint64_t len = MSG_HEADER_SIZE + PROTO_HEADER_SIZE;
@@ -38,6 +38,12 @@ static std::vector<char> CommonCostructCommandCompleteRequest() {
   }
 
   return buff;
+}
+
+static std::vector<char> CommonCostructCommandCompleteRequest() {
+  MsgBuilder builder = MsgBuilder().fieldProto().endDescription();
+
+  return builder.addProto(MessageTypeCommandComplete).get();
 }
 
 static int commonWriteFull(int client_fd_, const std::vector<char> &msg) {

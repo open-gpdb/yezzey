@@ -12,8 +12,8 @@ YProxyReader::~YProxyReader() { close(); }
 
 bool YProxyReader::close() { return YProxyConnector::close(); }
 
-std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
-                                                    size_t start_off) {
+std::vector<char> YProxyReader::ConstructCatRequestOld(const ChunkInfo &ci,
+                                                       size_t start_off) {
 
   uint64_t settingsCnt = 1;
   uint64_t settingsMsgSpace = 0;
@@ -81,6 +81,40 @@ std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
   }
 
   return buff;
+}
+
+std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
+                                                    size_t start_off) {
+
+  uint64_t settingsCnt = 1;
+  std::vector<std::pair<std::string, std::string>> settings = {
+      {"TableSpace", adv_->tableSpace},
+  };
+
+  MsgBuilder builder = MsgBuilder()
+                           .fieldProto()
+                           .fieldString(ci.x_path.size())
+                           .fieldUInt64() // offset
+                           .fieldUInt64();
+
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
+    builder.fieldString(settings[j].first.size())
+        .fieldString(settings[j].second.size());
+  }
+  builder.endDescription();
+
+  builder
+      .addProto(MessageTypeCatV2, ci.enc ? DecryptRequest : NoDecryptRequest,
+                start_off != 0 ? ExtendedMessage : 0)
+      .addString(ci.x_path)
+      .addUInt64(start_off)
+      .addUInt64(settingsCnt);
+
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
+    builder.addString(settings[j].first).addString(settings[j].second);
+  }
+
+  return builder.get();
 }
 
 int YProxyReader::prepareYproxyConnection(const ChunkInfo &ci,

@@ -62,7 +62,7 @@ std::vector<std::string> YProxyLister::list_chunk_names() {
   return res;
 }
 
-std::vector<char> YProxyLister::ConstructListRequest(std::string fileName) {
+std::vector<char> YProxyLister::ConstructListRequestOld(std::string fileName) {
   std::vector<char> buff(
       MSG_HEADER_SIZE + PROTO_HEADER_SIZE + fileName.size() + 1, 0);
   buff[8] = MessageTypeList;
@@ -78,6 +78,15 @@ std::vector<char> YProxyLister::ConstructListRequest(std::string fileName) {
   }
 
   return buff;
+}
+
+std::vector<char> YProxyLister::ConstructListRequest(std::string fileName) {
+  MsgBuilder builder =
+      MsgBuilder().fieldProto().fieldString(fileName.size()).endDescription();
+
+  builder.addProto(MessageTypeList).addString(fileName);
+
+  return builder.get();
 }
 
 YProxyLister::message YProxyLister::readMessage() {
