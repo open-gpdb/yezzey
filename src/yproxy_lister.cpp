@@ -81,7 +81,8 @@ std::vector<char> YProxyLister::ConstructListRequestOld(std::string fileName) {
 }
 
 std::vector<char> YProxyLister::ConstructListRequest(std::string fileName) {
-  MsgBuilder builder = MsgBuilder().fieldProto().fieldString(fileName.size());
+  MsgBuilder builder =
+      MsgBuilder().fieldProto().fieldString(fileName.size()).endDescription();
 
   builder.addProto(MessageTypeList).addString(fileName);
 

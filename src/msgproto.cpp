@@ -1,4 +1,5 @@
 #include "msgproto.h"
+
 MsgBuilder::MsgBuilder() : length(UINT64_SZ), cursor(0), data() {}
 
 ssize_t MsgBuilder::putChar(char c, ssize_t padding) {
