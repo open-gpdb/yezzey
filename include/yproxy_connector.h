@@ -26,19 +26,6 @@ struct storageChunkMeta {
   std::string chunkName;
 };
 
-static std::vector<char> CommonCostructCommandCompleteRequestOld() {
-  std::vector<char> buff(MSG_HEADER_SIZE + PROTO_HEADER_SIZE, 0);
-  buff[8] = MessageTypeCommandComplete;
-  uint64_t len = MSG_HEADER_SIZE + PROTO_HEADER_SIZE;
-
-  uint64_t cp = len;
-  for (ssize_t i = 7; i >= 0; --i) {
-    buff[i] = cp & ((1 << 8) - 1);
-    cp >>= 8;
-  }
-
-  return buff;
-}
 
 static std::vector<char> CommonCostructCommandCompleteRequest() {
   MsgBuilder builder = MsgBuilder().fieldProto().endDescription();

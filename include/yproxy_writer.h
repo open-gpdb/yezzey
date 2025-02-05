@@ -19,9 +19,6 @@ protected:
   std::vector<char> ConstructPutRequest(std::string fileName);
   std::vector<char> ConstructCopyDataRequest(const char *buffer, size_t amount);
 
-  std::vector<char> ConstructPutRequestOld(std::string fileName);
-  std::vector<char> ConstructCopyDataRequestOld(const char *buffer,
-                                                size_t amount);
   virtual int prepareYproxyConnection();
 
 private:

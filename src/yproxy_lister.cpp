@@ -62,24 +62,6 @@ std::vector<std::string> YProxyLister::list_chunk_names() {
   return res;
 }
 
-std::vector<char> YProxyLister::ConstructListRequestOld(std::string fileName) {
-  std::vector<char> buff(
-      MSG_HEADER_SIZE + PROTO_HEADER_SIZE + fileName.size() + 1, 0);
-  buff[8] = MessageTypeList;
-  uint64_t len = buff.size();
-
-  strncpy(buff.data() + MSG_HEADER_SIZE + PROTO_HEADER_SIZE, fileName.c_str(),
-          fileName.size());
-
-  uint64_t cp = len;
-  for (ssize_t i = 7; i >= 0; --i) {
-    buff[i] = cp & ((1 << 8) - 1);
-    cp >>= 8;
-  }
-
-  return buff;
-}
-
 std::vector<char> YProxyLister::ConstructListRequest(std::string fileName) {
   MsgBuilder builder =
       MsgBuilder().fieldProto().fieldString(fileName.size()).endDescription();
