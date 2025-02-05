@@ -1,0 +1,113 @@
+CREATE EXTENSION yezzey;
+SET client_min_messages TO WARNING;
+-- AO
+CREATE TABLE regaotylol(i INT) WITH (appendonly=true);
+INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
+SELECT * FROM yezzey_define_offload_policy('regaotylol');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT count(1) FROM regaotylol;
+ count  
+--------
+ 100000
+(1 row)
+
+INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaotylol;
+ count  
+--------
+ 200000
+(1 row)
+
+DELETE FROM regaotylol;
+INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
+VACUUM regaotylol;
+SELECT count(1) FROM regaotylol;
+ count  
+--------
+ 100000
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT yezzey_load_relation('regaotylol');
+INFO:  loaded relation regaotylols to local storage
+CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+        'public',
+        load_relname
+    )"
+PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
+ yezzey_load_relation 
+----------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
+ reltablespace 
+---------------
+          1663
+(1 row)
+
+SELECT count(1) FROM regaotylol;
+ count  
+--------
+ 100000
+(1 row)
+
+INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaotylol;
+ count  
+--------
+ 200000
+(1 row)
+
+SELECT * FROM yezzey_define_offload_policy('regaotylol');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT count(1) FROM regaotylol;
+ count  
+--------
+ 200000
+(1 row)
+
+INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaotylol;
+ count  
+--------
+ 300000
+(1 row)
+
+DELETE FROM regaotylol;
+INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
+VACUUM regaotylol;
+SELECT count(1) FROM regaotylol;
+ count  
+--------
+ 100000
+(1 row)
+
+DROP TABLE regaotylol;
+DROP EXTENSION yezzey;
+CHECKPOINT;
