@@ -125,6 +125,10 @@ PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_2_to_1_8_3);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_3_to_1_8_4);
+
+PG_FUNCTION_INFO_V1(yezzey_delete_obsolette);
+PG_FUNCTION_INFO_V1(yezzey_collect_obsolette);
+
 /* Create yezzey metadata tables */
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
   YezzeyInitMetadata();
@@ -1355,4 +1359,42 @@ void _PG_init(void) {
 #else
   TrackDropObject_hook = yezzey_TrackObjDrop;
 #endif
+}
+
+
+Datum yezzey_delete_obsolette(PG_FUNCTION_ARGS) {
+  bool crazyDrop;
+  crazyDrop = PG_GETARG_BOOL(0);
+  if (crazyDrop && !superuser()) {
+    elog(ERROR, "crazyDrop forbidden for non-superuser");
+  }
+
+  if (GpIdentity.segindex == -1) {
+    elog(ERROR, "yezzey_vacuum_garbage_internal should be executed on SEGMENT");
+  }
+
+  Name		db;
+	db = (Name) palloc(NAMEDATALEN);
+	namestrcpy(db, get_database_name(MyDatabaseId));
+  
+  
+  int rc;
+  rc = yezzey_delele_obsolette_internal(GpIdentity.segindex,crazyDrop,db->data,MyDatabaseTableSpace, MyDatabaseId);
+  PG_RETURN_VOID();
+}
+
+Datum yezzey_collect_obsolette(PG_FUNCTION_ARGS) {
+	if (GpIdentity.segindex == -1) {
+    elog(ERROR, "yezzey_vacuum_garbage_internal should be executed on SEGMENT");
+  }
+  
+  Name		db;
+	db = (Name) palloc(NAMEDATALEN);
+	namestrcpy(db, get_database_name(MyDatabaseId));
+
+  int rc;
+  rc = yezzey_collect_obsolette_internal(GpIdentity.segindex,db->data,MyDatabaseTableSpace, MyDatabaseId);
+  pfree(db);
+
+  PG_RETURN_VOID();
 }

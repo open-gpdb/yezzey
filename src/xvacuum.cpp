@@ -119,3 +119,53 @@ int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
   relation_close(rel, NoLock);
   return rc;
 }
+
+int yezzey_delele_obsolette_internal(int segindx, bool crazy_drop, char *dbname,
+                                     Oid nspoid, Oid dboid) {
+  try {
+    auto ioadv = std::make_shared<IOadv>(
+        "", "", std::string(storage_class /*storage_class*/),
+        multipart_chunksize, DEFAULTTABLESPACE_OID, "" /* coords */,
+        InvalidOid /* reloid */, use_gpg_crypto, yproxy_socket);
+
+    std::string storage_path(yezzey_block_db_path(nspoid, dboid, segindx));
+
+    auto deleter = std::make_shared<YProxyDeleterV2>(
+        ioadv, ssize_t(segindx), std::string(dbname), crazy_drop);
+
+    if (deleter->Delete(storage_path)) {
+      return 0;
+    }
+
+    return -1;
+  } catch (...) {
+    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    return 0;
+  }
+  return 0;
+}
+
+int yezzey_collect_obsolette_internal(int segindx, char *dbname, Oid nspoid,
+                                      Oid dboid) {
+  try {
+    auto ioadv = std::make_shared<IOadv>(
+        "", "", std::string(storage_class /*storage_class*/),
+        multipart_chunksize, DEFAULTTABLESPACE_OID, "" /* coords */,
+        InvalidOid /* reloid */, use_gpg_crypto, yproxy_socket);
+
+    std::string storage_path(yezzey_block_db_path(nspoid, dboid, segindx));
+
+    auto deleter = std::make_shared<YProxyDeleterV2>(ioadv, ssize_t(segindx),
+                                                     std::string(dbname));
+    // TODO get lock on smthng
+    if (deleter->Collect(storage_path)) {
+      return 0;
+    }
+
+    return -1;
+  } catch (...) {
+    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    return 0;
+  }
+  return 0;
+}
