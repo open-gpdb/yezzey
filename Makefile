@@ -37,6 +37,7 @@ OBJS = \
 	src/yproxy_lister.o \
 	src/yproxy_reader.o \
 	src/yproxy_writer.o \
+	src/yproxy_deleter_v2.o\
 	smgr.o yezzey.o
 
 EXTENSION = yezzey

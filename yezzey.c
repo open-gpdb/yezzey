@@ -72,7 +72,7 @@
 #include "binary_upgrade.h"
 
 #include "xvacuum.h"
-
+#include "../../src/include/commands/dbcommands.h"
 // options for yezzey logging
 static const struct config_enum_entry loglevel_options[] = {
     {"debug5", DEBUG5, false},   {"debug4", DEBUG4, false},
