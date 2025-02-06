@@ -139,7 +139,7 @@ int yezzey_delele_obsolette_internal(int segindx, bool crazy_drop, char *dbname,
 
     return -1;
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    elog(ERROR, "failed to prepare x-storage delete");
     return 0;
   }
   return 0;
@@ -164,7 +164,7 @@ int yezzey_collect_obsolette_internal(int segindx, char *dbname, Oid nspoid,
 
     return -1;
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    elog(ERROR, "failed to prepare x-storage obsolette");
     return 0;
   }
   return 0;
