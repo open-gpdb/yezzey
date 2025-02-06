@@ -6,8 +6,8 @@ make clean && make -j32 install
 make destroy-demo-cluster && make create-demo-cluster
 source gpAux/gpdemo/gpdemo-env.sh
 
-gpconfig -c max_worker_processes -v 10
-gpconfig -c yezzey.autooffload -v  "on"
+
+gpconfig -c yezzey.use_gpg_crypto -v "false"
 gpconfig -c shared_preload_libraries -v yezzey
 gpstop -a -i && gpstart -a
 
