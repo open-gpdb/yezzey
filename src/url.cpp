@@ -54,6 +54,7 @@ std::string yezzey_block_db_path(const Oid nspname, const Oid relname,
                                  int32_t segid) {
   std::string url = yezzey_block_namespace_path(segid);
   url += std::to_string(nspname) + "_" + std::to_string(relname) + "_";
+  return url;
 }
 
 /* prefix-independent WAL-G compatable path */
