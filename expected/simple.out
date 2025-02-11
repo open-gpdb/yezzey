@@ -28,14 +28,28 @@ SELECT count(1) FROM regaoty;
  200000
 (1 row)
 
+UPDATE regaoty SET i = i + 1;
+SELECT count(1) FROM regaoty;
+ count  
+--------
+ 200000
+(1 row)
+
+DELETE FROM regaoty WHERE i < 50501;
+SELECT count(1) FROM regaoty;
+ count 
+-------
+ 99002
+(1 row)
+
 SELECT * FROM regaoty ORDER BY i LIMIT 5 OFFSET 7823;
-  i   
-------
- 3912
- 3913
- 3913
- 3914
- 3914
+   i   
+-------
+ 54412
+ 54413
+ 54413
+ 54414
+ 54414
 (5 rows)
 
 SELECT segindex FROM yezzey_offload_relation_status('regaoty');

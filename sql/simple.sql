@@ -14,9 +14,13 @@ SELECT reltablespace FROM pg_class where oid = 'regaoty'::regclass::oid;
 SELECT count(1) FROM yezzey_dump_virtual_index('regaoty');
 
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-
 SELECT count(1) FROM regaoty;
 
+UPDATE regaoty SET i = i + 1;
+SELECT count(1) FROM regaoty;
+
+DELETE FROM regaoty WHERE i < 50501;
+SELECT count(1) FROM regaoty;
 
 SELECT * FROM regaoty ORDER BY i LIMIT 5 OFFSET 7823;
 
