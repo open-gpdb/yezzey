@@ -73,9 +73,60 @@ int YProxyWriter::prepareYproxyConnection() {
     return -1;
   }
 
+  rb = readPutCompleteResponce(client_fd_);
+  if (rb != 0) {
+    // TODO: handle
+    return rb;
+  }
+
   return 0;
 }
 
+
+
+int YProxyWriter::readPutCompleteResponce(int client_fd_) {
+  int len = MSG_HEADER_SIZE;
+  char buffer[len];
+  // try to read small number of bytes in one op
+  // if failed, give up
+  int rc = ::read(client_fd_, buffer, len);
+  if (rc != len) {
+    // handle
+    return -1;
+  }
+
+  uint64_t msgLen = 0;
+  for (int i = 0; i < 8; i++) {
+    msgLen <<= 8;
+    msgLen += uint8_t(buffer[i]);
+  }
+
+  if (msgLen != MSG_HEADER_SIZE + PROTO_HEADER_SIZE + 2) {
+    // protocol violation
+    return 1;
+  }
+
+  // substract header
+  msgLen -= len;
+
+  char data[msgLen];
+  rc = ::read(client_fd_, data, msgLen);
+  if (rc < 0) {
+    return -1;
+  }
+  if (uint64_t(rc) != msgLen) {
+    // handle
+    return -1;
+  }
+
+  if (data[0] != MessageTypePutComplete) {
+    return 2;
+  }
+  uint16_t kv = uint8_t(data[4]) + (1 << 8) * uint16_t(data[5]);
+  key_version = kv;
+
+  return 0;
+}
 
 std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
   uint64_t settingsCnt = 4;
@@ -96,7 +147,7 @@ std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
   builder.endDescription();
 
   builder
-      .addProto(MessageTypePutV2,
+      .addProto(MessageTypePutV3,
                 adv_->use_gpg_crypto ? EncryptRequest : NoEncryptRequest)
       .addString(fileName)
       .addUInt64(settingsCnt);

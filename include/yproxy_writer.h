@@ -24,9 +24,12 @@ protected:
 private:
   std::string createXPath();
 
+  int readPutCompleteResponce(int client_fd_);
+
   ssize_t modcount_;
   XLogRecPtr insertion_rec_ptr_;
   std::string storage_path_;
+  uint16_t key_version;
 
 public:
   std::string getExternalStoragePath() { return storage_path_; }
