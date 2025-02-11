@@ -42,6 +42,7 @@ jobs:
                       -d -e "MINIO_ROOT_USER=some_key" \
                       -e "MINIO_ROOT_PASSWORD=some_key" \
                       quay.io/minio/minio server /data
+          sleep 2s
           docker exec s3_gpyezzey mc alias set myminio http://localhost:9000 some_key some_key
           docker exec s3_gpyezzey mc mb myminio/test-bucket-yezzey
 
