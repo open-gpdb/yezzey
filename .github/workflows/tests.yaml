@@ -46,20 +46,8 @@ jobs:
           docker exec s3_gpyezzey mc alias set myminio http://localhost:9000 some_key some_key
           docker exec s3_gpyezzey mc mb myminio/test-bucket-yezzey
 
-      - name: Build docker image
-        uses: docker/build-push-action@v2
-        with:
-          file: docker/yezzey/Dockerfile
-          context: .
-          push: false
-          load: true
-          tags: yezzey:1.0
-          build-args: |
-            accessKeyId=some_key
-            secretAccessKey=some_key
-            bucketName=test-bucket-yezzey
-            yezzeyRef=${{env.GITHUB_REF}}
-            s3endpoint=http:\\/\\/$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' s3_gpyezzey):9000
+      - name: Build
+        run: docker build . --file docker/yezzey/Dockerfile --tag yezzey_test:1234 --build-arg accessKeyId=some_key --build-arg secretAccessKey=some_key --build-arg bucketName=gpyezzey --build-arg s3endpoint=http:\\/\\/$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' s3_gpyezzey):9000
 
       - name: Run Docker
         shell: bash
