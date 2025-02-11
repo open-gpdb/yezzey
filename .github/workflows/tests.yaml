@@ -39,10 +39,10 @@ jobs:
                       -p 9001:9001 \
                       --name s3_gpyezzey \
                       --network yezzey_test_network \
-                      -d -e "MINIO_ROOT_USER=${{secrets.ACCESS_KEY_ID}}" \
-                      -e "MINIO_ROOT_PASSWORD=${{secrets.SECRET_ACCESS_KEY}}" \
+                      -d -e "MINIO_ROOT_USER=some_key" \
+                      -e "MINIO_ROOT_PASSWORD=some_key" \
                       quay.io/minio/minio server /data
-          docker exec s3_gpyezzey mc alias set myminio http://localhost:9000 ${{secrets.ACCESS_KEY_ID}} ${{secrets.SECRET_ACCESS_KEY}}
+          docker exec s3_gpyezzey mc alias set myminio http://localhost:9000 some_key some_key
           docker exec s3_gpyezzey mc mb myminio/test-bucket-yezzey
 
       - name: Build docker image
@@ -54,8 +54,8 @@ jobs:
           load: true
           tags: yezzey:1.0
           build-args: |
-            accessKeyId=${{secrets.ACCESS_KEY_ID}}
-            secretAccessKey=${{secrets.SECRET_ACCESS_KEY}}
+            accessKeyId=some_key
+            secretAccessKey=some_key
             bucketName=test-bucket-yezzey
             yezzeyRef=${{env.GITHUB_REF}}
             s3endpoint=http:\\/\\/$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' s3_gpyezzey):9000
