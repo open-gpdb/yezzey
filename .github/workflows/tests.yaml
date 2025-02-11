@@ -39,11 +39,11 @@ jobs:
                       -p 9001:9001 \
                       --name s3_gpyezzey \
                       --network yezzey_test_network \
-                      -d -e "MINIO_ROOT_USER=some_key" \
-                      -e "MINIO_ROOT_PASSWORD=some_key" \
+                      -d -e "MINIO_ROOT_USER=${{secrets.ACCESS_KEY_ID}}" \
+                      -e "MINIO_ROOT_PASSWORD=${{secrets.SECRET_ACCESS_KEY}}" \
                       quay.io/minio/minio server /data
-          docker exec s3_gpyezzey mc alias set myminio http://localhost:9000 some_key some_key
-          docker exec s3_gpyezzey mc mb myminio/gpyezzey
+          docker exec s3_gpyezzey mc alias set myminio http://localhost:9000 ${{secrets.ACCESS_KEY_ID}} ${{secrets.SECRET_ACCESS_KEY}}
+          docker exec s3_gpyezzey mc mb myminio/test-bucket-yezzey
 
       - name: Build docker image
         uses: docker/build-push-action@v2
