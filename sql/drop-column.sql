@@ -18,7 +18,7 @@ SELECT count(1) from regaotya;
 
 SELECT count() FROM yezzey_offload_relation_status('regaotya');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaotya');
---SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaotya');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaotya');
 
 DROP TABLE regaotya;
 
@@ -36,7 +36,7 @@ SELECT count(1) from regaocstya;
 
 SELECT count() FROM yezzey_offload_relation_status('regaocstya');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocstya');
---SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaocstya');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaocstya');
 
 DROP TABLE regaocstya;
 

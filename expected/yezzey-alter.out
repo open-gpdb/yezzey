@@ -27,7 +27,12 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaoty');
      3
 (1 row)
 
---SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty');
+ count |   sum    
+-------+----------
+    88 | 30049136
+(1 row)
+
 SELECT count(1) FROM regaoty;
  count  
 --------
@@ -53,7 +58,12 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaoty');
      3
 (1 row)
 
---SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty');
+ count |   sum    
+-------+----------
+    88 | 30049136
+(1 row)
+
 DELETE FROM regaoty;
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
@@ -82,7 +92,12 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaoty');
      3
 (1 row)
 
---SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty');
+ count |   sum    
+-------+----------
+    88 | 30049136
+(1 row)
+
 DROP TABLE regaoty;
 \! echo AO simple test OK
 AO simple test OK
@@ -113,7 +128,12 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
      3
 (1 row)
 
---SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+ count |   sum    
+-------+----------
+    90 | 19031064
+(1 row)
+
 SELECT count(1) FROM regaocsty;
  count  
 --------
@@ -139,7 +159,12 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
      3
 (1 row)
 
---SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+ count |   sum    
+-------+----------
+    90 | 19031064
+(1 row)
+
 DELETE FROM regaocsty;
 INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
 INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
@@ -169,7 +194,12 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
      3
 (1 row)
 
---SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+ count |   sum    
+-------+----------
+    90 | 19031064
+(1 row)
+
 DROP TABLE regaocsty;
 \! echo AOCS simple test OK
 AOCS simple test OK
