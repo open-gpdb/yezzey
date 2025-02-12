@@ -73,11 +73,11 @@ int YProxyWriter::prepareYproxyConnection() {
     return -1;
   }
 
-  rb = readPutCompleteResponce(client_fd_);
-  if (rb != 0) {
-    // TODO: handle
-    return rb;
-  }
+  // rb = readPutCompleteResponce(client_fd_);
+  // if (rb != 0) {
+  //   // TODO: handle
+  //   return rb;
+  // }
 
   return 0;
 }
