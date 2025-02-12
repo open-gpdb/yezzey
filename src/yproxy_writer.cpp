@@ -28,6 +28,14 @@ bool YProxyWriter::close() {
     client_fd_ = -1;
     return false;
   }
+
+  if (readPutCompleteResponce(client_fd_) != 0) {
+    ::close(client_fd_);
+    client_fd_ = -1;
+    // TODO: handle
+    return false;
+  }
+
   // wait for responce
   if (commonReadRFQResponce(client_fd_) != 0) {
     ::close(client_fd_);
@@ -72,12 +80,6 @@ int YProxyWriter::prepareYproxyConnection() {
   if (commonWriteFull(client_fd_, msg) == -1) {
     return -1;
   }
-
-  // rb = readPutCompleteResponce(client_fd_);
-  // if (rb != 0) {
-  //   // TODO: handle
-  //   return rb;
-  // }
 
   return 0;
 }
