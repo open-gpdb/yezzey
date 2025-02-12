@@ -32,22 +32,25 @@ jobs:
         if: ${{github.event_name == 'push'}}
         run: echo "GITHUB_REF=${{github.ref_name}}" >> $GITHUB_ENV
 
-      - name: Build docker image
-        uses: docker/build-push-action@v2
-        with:
-          file: docker/yezzey/Dockerfile
-          context: .
-          push: false
-          load: true
-          tags: yezzey:1.0
-          build-args: |
-            accessKeyId=${{secrets.ACCESS_KEY_ID}}
-            secretAccessKey=${{secrets.SECRET_ACCESS_KEY}}
-            bucketName=test-bucket-yezzey
-            yezzeyRef=${{env.GITHUB_REF}}
+      - name: Setup S3
+        run: |
+          docker network create -d bridge yezzey_test_network
+          docker run -p 9000:9000 \
+                      -p 9001:9001 \
+                      --name s3_gpyezzey \
+                      --network yezzey_test_network \
+                      -d -e "MINIO_ROOT_USER=some_key" \
+                      -e "MINIO_ROOT_PASSWORD=some_key" \
+                      quay.io/minio/minio server /data
+          sleep 2s
+          docker exec s3_gpyezzey mc alias set myminio http://localhost:9000 some_key some_key
+          docker exec s3_gpyezzey mc mb myminio/gpyezzey
+
+      - name: Build
+        run: docker build . --file docker/yezzey/Dockerfile --tag yezzey:1.0 --build-arg accessKeyId=some_key --build-arg secretAccessKey=some_key --build-arg bucketName=gpyezzey --build-arg s3endpoint=http:\\/\\/$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' s3_gpyezzey):9000
 
       - name: Run Docker
         shell: bash
         run: |
-          docker run yezzey:1.0
+          docker run --network yezzey_test_network  yezzey:1.0
 
