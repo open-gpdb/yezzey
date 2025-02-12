@@ -13,13 +13,13 @@ const char MessageTypeCat = 42;
 const char MessageTypeCatV2 = 54;
 const char MessageTypePut = 43;
 const char MessageTypePutV2 = 53;
-const char MessageTypePutV3 = 54;
+const char MessageTypePutV3 = 56;
 const char MessageTypeCommandComplete = 44;
 const char MessageTypeReadyForQuery = 45;
 const char MessageTypeCopyData = 46;
 const char MessageTypeList = 48;
 const char MessageTypeObjectMeta = 49;
-const char MessageTypePutComplete = 55;
+const char MessageTypePutComplete = 57;
 
 const char MessageTypeDelete = 47;
 
