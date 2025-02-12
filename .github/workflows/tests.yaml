@@ -52,5 +52,5 @@ jobs:
       - name: Run Docker
         shell: bash
         run: |
-          docker run yezzey:1.0
+          docker run --network yezzey_test_network  yezzey:1.0
 
