@@ -63,7 +63,7 @@ SELECT count() FROM regaotyvi;
  100000
 (1 row)
 
-SELECT yezzey_vacuum_relation('regaotyvi', true);
+SELECT yezzey_vacuum_relation('regaotyvi', false);
  yezzey_vacuum_relation 
 ------------------------
  
@@ -89,9 +89,60 @@ SELECT count() FROM regaotyvi;
  100000
 (1 row)
 
--- TODO: check
---SELECT segindex,external_bytes FROM yezzey_offload_relation_status('regaotyvi');
---SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('regaotyvi');
+SELECT segindex FROM yezzey_offload_relation_status('regaotyvi');
+ segindex 
+----------
+        0
+        1
+        2
+(3 rows)
+
+SELECT segindex,segfileindex FROM yezzey_offload_relation_status_per_filesegment('regaotyvi');
+ segindex | segfileindex 
+----------+--------------
+        0 |            1
+        0 |            2
+        1 |            1
+        1 |            2
+        2 |            1
+        2 |            2
+(6 rows)
+
+SELECT segindex,segfileindex FROM yezzey_relation_describe_external_storage_structure('regaotyvi');
+ segindex | segfileindex 
+----------+--------------
+        0 |            1
+        0 |            1
+        0 |            1
+        0 |            2
+        1 |            1
+        1 |            1
+        1 |            1
+        1 |            2
+        2 |            1
+        2 |            1
+        2 |            1
+        2 |            2
+(12 rows)
+
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('regaotyvi') WHERE offload_reloid='regaotyvi'::regclass::oid;
+ count |   sum   
+-------+---------
+     3 | 8013120
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('regaotyvi') WHERE offload_reloid='regaotyvi'::regclass::oid;
+ count |   sum   
+-------+---------
+     6 | 8013120
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaotyvi') WHERE offload_reloid='regaotyvi'::regclass::oid;
+ count |   sum   
+-------+---------
+    12 | 4006560
+(1 row)
+
 DROP TABLE regaotyvi;
 DROP EXTENSION yezzey;
 CHECKPOINT;
