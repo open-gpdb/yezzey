@@ -28,7 +28,9 @@ SELECT segindex FROM yezzey_offload_relation_status('regaoty');
 SELECT segindex,segfileindex FROM yezzey_offload_relation_status_per_filesegment('regaoty');
 SELECT segindex,segfileindex FROM yezzey_relation_describe_external_storage_structure('regaoty');
 
-SELECT sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('regaoty') WHERE offload_reloid='regaoty'::regclass::oid;
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('regaoty') WHERE offload_reloid='regaoty'::regclass::oid;
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty') WHERE offload_reloid='regaoty'::regclass::oid;
 
 DROP TABLE regaoty;
 

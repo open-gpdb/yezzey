@@ -161,10 +161,19 @@ SELECT segindex,segfileindex FROM yezzey_relation_describe_external_storage_stru
         2 |            1
 (88 rows)
 
-SELECT sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty');
-   sum    
-----------
- 30049136
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('regaoty') WHERE offload_reloid='regaoty'::regclass::oid;
+ count |   sum   
+-------+----------
+     3 | 30049136
+(1 row)
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('regaoty') WHERE offload_reloid='regaoty'::regclass::oid;
+ count |   sum   
+-------+----------
+     3 | 30049136
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty') WHERE offload_reloid='regaoty'::regclass::oid;
+ count |   sum   
+-------+----------
+     3 | 30049136
 (1 row)
 
 DROP TABLE regaoty;
