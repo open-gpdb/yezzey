@@ -2,62 +2,68 @@ CREATE EXTENSION yezzey;
 ALTER EXTENSION yezzey UPDATE TO '1.8.3';
 SET client_min_messages TO WARNING;
 -- AO
-CREATE TABLE regaoty(i INT) WITH (appendonly=true);
-INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaoty');
+CREATE TABLE regaotyvi(i INT) WITH (appendonly=true);
+INSERT INTO regaotyvi SELECT * FROM generate_series(1, 100000);
+SELECT * FROM yezzey_define_offload_policy('regaotyvi');
  yezzey_define_offload_policy 
 ------------------------------
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaoty'::regclass::oid;
+SELECT reltablespace FROM pg_class where oid = 'regaotyvi'::regclass::oid;
  reltablespace 
 ---------------
           8555
 (1 row)
 
-SELECT count(1) FROM yezzey_dump_virtual_index('regaoty');
+SELECT count(1) FROM yezzey_dump_virtual_index('regaotyvi');
  count 
 -------
      3
 (1 row)
 
-INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT count(1) FROM yezzey_dump_virtual_index('regaoty');
+INSERT INTO regaotyvi SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM yezzey_dump_virtual_index('regaotyvi');
  count 
 -------
      6
 (1 row)
 
-DELETE FROM regaoty;
-INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT count(1) FROM yezzey_dump_virtual_index('regaoty');
+DELETE FROM regaotyvi;
+INSERT INTO regaotyvi SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM yezzey_dump_virtual_index('regaotyvi');
  count 
 -------
      9
 (1 row)
 
 -- list external storage
-SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaotyvi');
  count 
 -------
-    71
+     9
 (1 row)
 
-VACUUM regaoty;
-SELECT count(1) FROM yezzey_dump_virtual_index('regaoty');
+VACUUM regaotyvi;
+SELECT count(1) FROM yezzey_dump_virtual_index('regaotyvi');
  count 
 -------
      3
 (1 row)
 
-SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaotyvi');
  count 
 -------
-    74
+    12
 (1 row)
 
-SELECT yezzey_vacuum_relation('regaoty', true);
+SELECT count() FROM regaotyvi;
+ count  
+--------
+ 100000
+(1 row)
+
+SELECT yezzey_vacuum_relation('regaotyvi', true);
  yezzey_vacuum_relation 
 ------------------------
  
@@ -65,21 +71,27 @@ SELECT yezzey_vacuum_relation('regaoty', true);
  
 (3 rows)
 
-SELECT count(1) FROM yezzey_dump_virtual_index('regaoty');
+SELECT count(1) FROM yezzey_dump_virtual_index('regaotyvi');
  count 
 -------
      3
 (1 row)
 
-SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count() FROM yezzey_relation_describe_external_storage_structure('regaotyvi');
  count 
 -------
      3
+(1 row)
+
+SELECT count() FROM regaotyvi;
+ count  
+--------
+ 100000
 (1 row)
 
 -- TODO: check
---SELECT segindex,external_bytes FROM yezzey_offload_relation_status('regaoty');
---SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('regaoty');
-DROP TABLE regaoty;
+--SELECT segindex,external_bytes FROM yezzey_offload_relation_status('regaotyvi');
+--SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('regaotyvi');
+DROP TABLE regaotyvi;
 DROP EXTENSION yezzey;
 CHECKPOINT;
