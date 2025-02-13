@@ -105,7 +105,7 @@ int YProxyWriter::readPutCompleteResponce(int client_fd_) {
 
   if (msgLen != MSG_HEADER_SIZE + PROTO_HEADER_SIZE + 2) {
     // protocol violation
-    return 1;
+    return -1;
   }
 
   // substract header
@@ -122,7 +122,7 @@ int YProxyWriter::readPutCompleteResponce(int client_fd_) {
   }
 
   if (data[0] != MessageTypePutComplete) {
-    return 2;
+    return -1;
   }
   uint16_t kv = uint8_t(data[4]) + (1 << 8) * uint16_t(data[5]);
   key_version = kv;
