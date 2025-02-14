@@ -44,7 +44,7 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('drop_column_
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('drop_column_regaotya');
  count |   sum   
 -------+---------
-     6 | 3604096
+     3 | 1802048
 (1 row)
 
 DROP TABLE drop_column_regaotya;
@@ -90,9 +90,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('drop_column_
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('drop_column_regaocstya');
- count |   sum   
--------+---------
-    12 | 1602624
+ count |  sum   
+-------+--------
+     6 | 801312
 (1 row)
 
 DROP TABLE drop_column_regaocstya;

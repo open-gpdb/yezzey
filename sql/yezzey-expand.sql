@@ -25,7 +25,7 @@ SELECT COUNT(1) FROM expand_regaoty;
 
 SELECT relfilenode FROM yezzey_dump_virtual_index('expand_regaoty') INTERSECT TABLE yezzey_ao_relfilenode_before_expand;
 
-DROP TABLE expand_expand_regaoty;
+DROP TABLE expand_regaoty;
 
 -- AOCS
 

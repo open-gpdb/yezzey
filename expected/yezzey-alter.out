@@ -28,9 +28,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaot
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaoty');
- count |   sum    
--------+----------
-    88 | 30049136
+ count |   sum   
+-------+---------
+     3 | 1001640
 (1 row)
 
 SELECT count(1) FROM alter_regaoty;
@@ -59,9 +59,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaot
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaoty');
- count |   sum    
--------+----------
-    88 | 30049136
+ count |   sum   
+-------+---------
+     6 | 2003280
 (1 row)
 
 DELETE FROM alter_regaoty;
@@ -93,9 +93,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaot
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaoty');
- count |   sum    
--------+----------
-    88 | 30049136
+ count |   sum   
+-------+---------
+    12 | 4006560
 (1 row)
 
 DROP TABLE alter_regaoty;
@@ -129,9 +129,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaoc
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaocsty');
- count |   sum    
--------+----------
-    90 | 19031064
+ count |  sum   
+-------+--------
+     3 | 400656
 (1 row)
 
 SELECT count(1) FROM alter_regaocsty;
@@ -160,9 +160,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaoc
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaocsty');
- count |   sum    
--------+----------
-    90 | 19031064
+ count |  sum   
+-------+--------
+     6 | 801312
 (1 row)
 
 DELETE FROM alter_regaocsty;
@@ -195,9 +195,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaoc
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaocsty');
- count |   sum    
--------+----------
-    90 | 19031064
+ count |   sum   
+-------+---------
+    12 | 1602624
 (1 row)
 
 DROP TABLE alter_regaocsty;

@@ -28,9 +28,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaot
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
- count |   sum    
--------+----------
-    88 | 30049136
+ count |   sum   
+-------+---------
+     3 | 1001640
 (1 row)
 
 SELECT count(1) FROM trunc_regaoty;
@@ -59,9 +59,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaot
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
- count |   sum    
--------+----------
-    88 | 30049136
+ count |   sum   
+-------+---------
+     6 | 2003280
 (1 row)
 
 DELETE FROM trunc_regaoty;
@@ -93,9 +93,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaot
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
- count |   sum    
--------+----------
-    88 | 30049136
+ count |   sum   
+-------+---------
+    12 | 4006560
 (1 row)
 
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
@@ -137,9 +137,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoc
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
- count |   sum    
--------+----------
-    90 | 19031064
+ count |  sum   
+-------+--------
+     3 | 400656
 (1 row)
 
 SELECT count(1) FROM trunc_regaocsty;
@@ -168,9 +168,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoc
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
- count |   sum    
--------+----------
-    90 | 19031064
+ count |  sum   
+-------+--------
+     6 | 801312
 (1 row)
 
 DELETE FROM trunc_regaocsty;
@@ -202,9 +202,9 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoc
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
- count |   sum    
--------+----------
-    90 | 19031064
+ count |   sum   
+-------+---------
+    12 | 1602624
 (1 row)
 
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
