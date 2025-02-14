@@ -61,7 +61,7 @@ int commonReadRFQResponce(int client_fd_) {
 
   if (msgLen != MSG_HEADER_SIZE + PROTO_HEADER_SIZE) {
     // protocol violation
-    return 1;
+    return -1;
   }
 
   // substract header
@@ -78,7 +78,7 @@ int commonReadRFQResponce(int client_fd_) {
   }
 
   if (data[0] != MessageTypeReadyForQuery) {
-    return 2;
+    return -1;
   }
   return 0;
 }
