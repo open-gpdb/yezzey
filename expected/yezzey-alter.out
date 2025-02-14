@@ -1,206 +1,206 @@
 CREATE EXTENSION yezzey;
 SET client_min_messages TO WARNING;
 -- AO
-CREATE TABLE regaoty(i INT) WITH (appendonly=true);
-INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaoty');
+CREATE TABLE alter_regaoty(i INT) WITH (appendonly=true);
+INSERT INTO alter_regaoty SELECT * FROM generate_series(1, 100000);
+SELECT * FROM yezzey_define_offload_policy('alter_regaoty');
  yezzey_define_offload_policy 
 ------------------------------
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaoty'::regclass::oid;
+SELECT reltablespace FROM pg_class where oid = 'alter_regaoty'::regclass::oid;
  reltablespace 
 ---------------
           8555
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status('regaoty');
+SELECT count() FROM yezzey_offload_relation_status('alter_regaoty');
  count 
 -------
      3
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaoty');
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaoty');
  count 
 -------
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaoty');
  count |   sum    
 -------+----------
     88 | 30049136
 (1 row)
 
-SELECT count(1) FROM regaoty;
+SELECT count(1) FROM alter_regaoty;
  count  
 --------
  100000
 (1 row)
 
-INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT count(1) FROM regaoty;
+INSERT INTO alter_regaoty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM alter_regaoty;
  count  
 --------
  200000
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status('regaoty');
+SELECT count() FROM yezzey_offload_relation_status('alter_regaoty');
  count 
 -------
      3
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaoty');
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaoty');
  count 
 -------
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaoty');
  count |   sum    
 -------+----------
     88 | 30049136
 (1 row)
 
-DELETE FROM regaoty;
-INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT count(1) FROM regaoty;
+DELETE FROM alter_regaoty;
+INSERT INTO alter_regaoty SELECT * FROM generate_series(1, 100000);
+INSERT INTO alter_regaoty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM alter_regaoty;
  count  
 --------
  200000
 (1 row)
 
-ALTER TABLE regaoty SET DISTRIBUTED RANDOMLY;
-SELECT count(1) FROM regaoty;
+ALTER TABLE alter_regaoty SET DISTRIBUTED RANDOMLY;
+SELECT count(1) FROM alter_regaoty;
  count  
 --------
  200000
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status('regaoty');
+SELECT count() FROM yezzey_offload_relation_status('alter_regaoty');
  count 
 -------
      3
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaoty');
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaoty');
  count 
 -------
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaoty');
  count |   sum    
 -------+----------
     88 | 30049136
 (1 row)
 
-DROP TABLE regaoty;
+DROP TABLE alter_regaoty;
 \! echo AO simple test OK
 AO simple test OK
 -- AOCS
-CREATE TABLE regaocsty(i INT) WITH (appendonly=true, orientation=column);
-INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaocsty');
+CREATE TABLE alter_regaocsty(i INT) WITH (appendonly=true, orientation=column);
+INSERT INTO alter_regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT * FROM yezzey_define_offload_policy('alter_regaocsty');
  yezzey_define_offload_policy 
 ------------------------------
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaocsty'::regclass::oid;
+SELECT reltablespace FROM pg_class where oid = 'alter_regaocsty'::regclass::oid;
  reltablespace 
 ---------------
           8555
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status('regaocsty');
+SELECT count() FROM yezzey_offload_relation_status('alter_regaocsty');
  count 
 -------
      3
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaocsty');
  count 
 -------
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaocsty');
  count |   sum    
 -------+----------
     90 | 19031064
 (1 row)
 
-SELECT count(1) FROM regaocsty;
+SELECT count(1) FROM alter_regaocsty;
  count  
 --------
  100000
 (1 row)
 
-INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT count(1) FROM regaocsty;
+INSERT INTO alter_regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM alter_regaocsty;
  count  
 --------
  200000
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status('regaocsty');
+SELECT count() FROM yezzey_offload_relation_status('alter_regaocsty');
  count 
 -------
      3
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaocsty');
  count 
 -------
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaocsty');
  count |   sum    
 -------+----------
     90 | 19031064
 (1 row)
 
-DELETE FROM regaocsty;
-INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
-INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT count(1) FROM regaocsty;
+DELETE FROM alter_regaocsty;
+INSERT INTO alter_regaocsty SELECT * FROM generate_series(1, 100000);
+INSERT INTO alter_regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM alter_regaocsty;
  count  
 --------
  200000
 (1 row)
 
-ALTER TABLE regaoty SET DISTRIBUTED RANDOMLY;
-ERROR:  relation "regaoty" does not exist
-SELECT count(1) FROM regaocsty;
+ALTER TABLE alter_regaoty SET DISTRIBUTED RANDOMLY;
+ERROR:  relation "alter_regaoty" does not exist
+SELECT count(1) FROM alter_regaocsty;
  count  
 --------
  200000
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status('regaocsty');
+SELECT count() FROM yezzey_offload_relation_status('alter_regaocsty');
  count 
 -------
      3
 (1 row)
 
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaocsty');
  count 
 -------
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('alter_regaocsty');
  count |   sum    
 -------+----------
     90 | 19031064
 (1 row)
 
-DROP TABLE regaocsty;
+DROP TABLE alter_regaocsty;
 \! echo AOCS simple test OK
 AOCS simple test OK
 DROP EXTENSION yezzey;

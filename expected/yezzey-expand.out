@@ -1,94 +1,94 @@
 CREATE EXTENSION yezzey;
 SET client_min_messages TO WARNING;
 -- AO
-CREATE TABLE regaoty(i INT) WITH (appendonly=true);
+CREATE TABLE expand_regaoty(i INT) WITH (appendonly=true);
 set allow_system_table_mods TO on;
-update gp_distribution_policy set numsegments = 2 where localoid = 'regaoty'::regclass::oid;
-SELECT * FROM yezzey_define_offload_policy('regaoty');
+update gp_distribution_policy set numsegments = 2 where localoid = 'expand_regaoty'::regclass::oid;
+SELECT * FROM yezzey_define_offload_policy('expand_regaoty');
  yezzey_define_offload_policy 
 ------------------------------
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaoty'::regclass::oid;
+SELECT reltablespace FROM pg_class where oid = 'expand_regaoty'::regclass::oid;
  reltablespace 
 ---------------
           8555
 (1 row)
 
-INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT COUNT(1) FROM regaoty;
+INSERT INTO expand_regaoty SELECT * FROM generate_series(1, 100000);
+SELECT COUNT(1) FROM expand_regaoty;
  count  
 --------
  100000
 (1 row)
 
 CREATE TEMP TABLE yezzey_ao_relfilenode_before_expand AS 
-SELECT relfilenode FROM yezzey_dump_virtual_index('regaoty') DISTRIBUTED RANDOMLY;
-ALTER TABLE regaoty EXPAND TABLE;
-SELECT reltablespace FROM pg_class where oid = 'regaoty'::regclass::oid;
+SELECT relfilenode FROM yezzey_dump_virtual_index('expand_regaoty') DISTRIBUTED RANDOMLY;
+ALTER TABLE expand_regaoty EXPAND TABLE;
+SELECT reltablespace FROM pg_class where oid = 'expand_regaoty'::regclass::oid;
  reltablespace 
 ---------------
           8555
 (1 row)
 
-INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT COUNT(1) FROM regaoty;
+INSERT INTO expand_regaoty SELECT * FROM generate_series(1, 100000);
+SELECT COUNT(1) FROM expand_regaoty;
  count  
 --------
  200000
 (1 row)
 
-SELECT relfilenode FROM yezzey_dump_virtual_index('regaoty') INTERSECT TABLE yezzey_ao_relfilenode_before_expand;
+SELECT relfilenode FROM yezzey_dump_virtual_index('expand_regaoty') INTERSECT TABLE yezzey_ao_relfilenode_before_expand;
  relfilenode 
 -------------
 (0 rows)
 
-DROP TABLE regaoty;
+DROP TABLE expand_regaoty;
 -- AOCS
-CREATE TABLE regaocsty(i INT) WITH (appendonly=true);
+CREATE TABLE expand_regaocsty(i INT) WITH (appendonly=true);
 set allow_system_table_mods TO on;
-update gp_distribution_policy set numsegments = 2 where localoid = 'regaocsty'::regclass::oid;
-SELECT * FROM yezzey_define_offload_policy('regaocsty');
+update gp_distribution_policy set numsegments = 2 where localoid = 'expand_regaocsty'::regclass::oid;
+SELECT * FROM yezzey_define_offload_policy('expand_regaocsty');
  yezzey_define_offload_policy 
 ------------------------------
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaocsty'::regclass::oid;
+SELECT reltablespace FROM pg_class where oid = 'expand_regaocsty'::regclass::oid;
  reltablespace 
 ---------------
           8555
 (1 row)
 
-INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT COUNT(1) FROM regaocsty;
+INSERT INTO expand_regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT COUNT(1) FROM expand_regaocsty;
  count  
 --------
  100000
 (1 row)
 
 CREATE TEMP TABLE yezzey_aocs_relfilenode_before_expand AS 
-SELECT relfilenode FROM yezzey_dump_virtual_index('regaocsty') DISTRIBUTED RANDOMLY;
-ALTER TABLE regaocsty EXPAND TABLE;
-SELECT reltablespace FROM pg_class where oid = 'regaocsty'::regclass::oid;
+SELECT relfilenode FROM yezzey_dump_virtual_index('expand_regaocsty') DISTRIBUTED RANDOMLY;
+ALTER TABLE expand_regaocsty EXPAND TABLE;
+SELECT reltablespace FROM pg_class where oid = 'expand_regaocsty'::regclass::oid;
  reltablespace 
 ---------------
           8555
 (1 row)
 
-INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT COUNT(1) FROM regaocsty;
+INSERT INTO expand_regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT COUNT(1) FROM expand_regaocsty;
  count  
 --------
  200000
 (1 row)
 
-SELECT relfilenode FROM yezzey_dump_virtual_index('regaocsty') INTERSECT TABLE yezzey_aocs_relfilenode_before_expand;
+SELECT relfilenode FROM yezzey_dump_virtual_index('expand_regaocsty') INTERSECT TABLE yezzey_aocs_relfilenode_before_expand;
  relfilenode 
 -------------
 (0 rows)
 
-DROP TABLE regaocsty;
+DROP TABLE expand_regaocsty;
 DROP EXTENSION yezzey;
 CHECKPOINT;
