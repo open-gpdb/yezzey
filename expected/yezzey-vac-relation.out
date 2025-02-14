@@ -63,7 +63,7 @@ SELECT count() FROM regaotyvi;
  100000
 (1 row)
 
-SELECT yezzey_vacuum_relation('regaotyvi', false);
+SELECT yezzey_vacuum_relation('regaotyvi', true);
  yezzey_vacuum_relation 
 ------------------------
  
@@ -125,19 +125,19 @@ SELECT segindex,segfileindex FROM yezzey_relation_describe_external_storage_stru
         2 |            2
 (12 rows)
 
-SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('regaotyvi') WHERE offload_reloid='regaotyvi'::regclass::oid;
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('regaotyvi');
  count |   sum   
 -------+---------
      3 | 8013120
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('regaotyvi') WHERE offload_reloid='regaotyvi'::regclass::oid;
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('regaotyvi');
  count |   sum   
 -------+---------
      6 | 8013120
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaotyvi') WHERE offload_reloid='regaotyvi'::regclass::oid;
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('regaotyvi');
  count |   sum   
 -------+---------
     12 | 4006560
