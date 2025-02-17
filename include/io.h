@@ -48,6 +48,8 @@ struct YIO {
   bool io_read(char *buffer, size_t *amount);
   bool io_write(char *buffer, size_t *amount);
   bool io_close();
+
+  bool use_kek();
 };
 
 #endif /* YEZZEY_IO_H */

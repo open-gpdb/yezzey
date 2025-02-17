@@ -35,4 +35,6 @@ public:
   std::string getExternalStoragePath() { return storage_path_; }
 
   XLogRecPtr getInsertionStorageLsn() { return insertion_rec_ptr_; }
+
+  bool getUseKEK() { return key_version == 2; }
 };

@@ -161,7 +161,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   YezzeyUpdateMetadataRelations(
       YezzeyFindAuxIndex(aorel->rd_id), ioadv->reloid, ioadv->coords_.filenode,
       ioadv->coords_.blkno /* blkno*/, offset_start, offset_finish,
-      ioadv->use_gpg_crypto /* encrypted */, 0 /* reused */, modcount,
+      iohandler.adv_->use_gpg_crypto + (iohandler.use_kek() << 1) /* encrypted */, 0 /* reused */, modcount,
       iohandler.writer_->getInsertionStorageLsn(),
       iohandler.writer_->getExternalStoragePath().c_str() /* path */,
       yezzey_fqrelname_md5(ioadv->nspname, ioadv->relname).c_str());
