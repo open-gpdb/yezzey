@@ -20,6 +20,9 @@
 #define YEZZEY_VIRTUAL_INDEX_RELATION 8500
 #define YEZZEY_VIRTUAL_INDEX_IDX_RELATION 8501
 
+#define YEZZEY_IS_ENC 0x1
+#define YEZZEY_ENC_KEK 0x2
+
 /* ----------------
  *		compiler constants for pg_database
  * ----------------

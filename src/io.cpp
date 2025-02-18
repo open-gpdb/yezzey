@@ -96,3 +96,10 @@ YIO::~YIO() { io_close(); }
 bool YIO::reader_empty() {
   return reader_.get() == nullptr ? true : reader_->empty();
 }
+
+bool YIO::use_kek() {
+  if (writer_.get()) {
+    return writer_->getUseKEK();
+  }
+  return false;
+}
