@@ -69,6 +69,7 @@ int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
   }
   return 0;
 }
+
 int yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
                                             bool confirm, bool crazyDrop) {
   try {
@@ -109,6 +110,7 @@ int yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
   }
   return 0;
 }
+
 int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
                                                 bool confirm, bool crazyDrop) {
   Relation rel = relation_open(reloid, NoLock);
