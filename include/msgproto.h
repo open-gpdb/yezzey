@@ -6,6 +6,8 @@
 
 const char DecryptRequest = 1;
 const char NoDecryptRequest = 0;
+const char UseKEK = 1;
+const char NoUseKEK = 0;
 const char ExtendedMessage = 1;
 const char EncryptRequest = 1;
 const char NoEncryptRequest = 0;

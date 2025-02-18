@@ -472,10 +472,13 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
   while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
     auto ytup = ((FormData_yezzey_virtual_index *)GETSTRUCT(tuple));
     // unpack text to str
+    auto flags = ytup->encrypted;
+    bool encrypted = flags & YEZZEY_IS_ENC;
+    bool kek = flags & YEZZEY_ENC_KEK;
     res.push_back(ChunkInfo(ytup->lsn, ytup->modcount,
                             text_to_cstring(&ytup->x_path),
                             ytup->finish_offset - ytup->start_offset,
-                            ytup->start_offset, ytup->encrypted));
+                            ytup->start_offset, encrypted, kek));
   }
 
   yezzey_endscan(desc);

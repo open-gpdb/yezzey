@@ -35,6 +35,7 @@ std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
 
   builder
       .addProto(MessageTypeCatV2, ci.enc ? DecryptRequest : NoDecryptRequest,
+                ci.kek ? UseKEK : NoUseKEK,
                 start_off != 0 ? ExtendedMessage : 0)
       .addString(ci.x_path)
       .addUInt64(start_off)
