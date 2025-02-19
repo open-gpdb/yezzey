@@ -6,7 +6,7 @@
 
 const char DecryptRequest = 1;
 const char NoDecryptRequest = 0;
-const char UseKEK = 1;
+const char UseKEK = 1; // Whether to use key encryption key
 const char NoUseKEK = 0;
 const char ExtendedMessage = 1;
 const char EncryptRequest = 1;
