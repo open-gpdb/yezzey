@@ -1196,22 +1196,22 @@ void yezzey_object_access_hook (ObjectAccessType access,
     return;  
   }
 
-  offRel = relation_open(objectId, AccessShareLock);
-  if (offRel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
-    relation_close(offRel, AccessShareLock);
-    return;
-  }
-
-
   if (access == OAT_DROP && subId == 0) {
+    offRel = relation_open(objectId, AccessShareLock);
+    if (offRel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
+      relation_close(offRel, AccessShareLock);
+      return;
+    }
+
     (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(offRel)), offRel->rd_node.relNode);
     (void)FixupOffloadMetadata(RelationGetRelid(offRel));
+    
+    relation_close(offRel, AccessShareLock);
   } else if (access == OAT_POST_ALTER) { 
     /* TODO: implement properly */
-    // (void)YezzeyFixupVirtualIndex(offRel);
+    /* XXX: what are use cases here? */
+    /* (void)YezzeyFixupVirtualIndex(offRel) */;
   }
-
-  relation_close(offRel, AccessShareLock);
 }
 
 
