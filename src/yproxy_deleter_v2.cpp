@@ -7,7 +7,7 @@ YProxyDeleterV2::YProxyDeleterV2(std::shared_ptr<IOadv> adv, ssize_t segindx,
 
 YProxyDeleterV2::YProxyDeleterV2(std::shared_ptr<IOadv> adv, ssize_t segindx,
                                  std::string dbname)
-    : YProxyConnector(adv, -1), crazy_drop_(false), dbname_(dbname) {}
+    : YProxyConnector(adv, segindx), crazy_drop_(false), dbname_(dbname) {}
 
 YProxyDeleterV2::~YProxyDeleterV2() { close(); }
 
