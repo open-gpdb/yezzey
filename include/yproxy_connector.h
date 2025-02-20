@@ -28,7 +28,7 @@ struct storageChunkMeta {
 
 
 /* in yproxy.cpp */
-extern std::vector<char> CommonCostructCommandCompleteRequest();
+extern std::vector<char> CommonCostructCopyDoneRequest();
 
 extern int commonWriteFull(int client_fd_, const std::vector<char> &msg);
 

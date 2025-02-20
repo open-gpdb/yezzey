@@ -101,8 +101,8 @@ int commonWriteFull(int client_fd_, const std::vector<char> &msg) {
 }
 
 
-std::vector<char> CommonCostructCommandCompleteRequest() {
+std::vector<char> CommonCostructCopyDoneRequest() {
   MsgBuilder builder = MsgBuilder().fieldProto().endDescription();
 
-  return builder.addProto(MessageTypeCommandComplete).get();
+  return builder.addProto(MessageTypeCopyDone).get();
 }
