@@ -20,7 +20,7 @@ bool YProxyWriter::close() {
   if (client_fd_ == -1) {
     return true;
   }
-  auto msg = CommonCostructCommandCompleteRequest();
+  auto msg = CommonCostructCopyDoneRequest();
 
   // signal that current chunk is full
   if (commonWriteFull(client_fd_, msg) == -1) {

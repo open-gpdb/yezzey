@@ -28,7 +28,7 @@ bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
   }
   // *amount does not need to change in case of successfull write
 
-  msg = CommonCostructCommandCompleteRequest();
+  msg = CommonCostructCopyDoneRequest();
   // signal that current chunk is full
   if (commonWriteFull(client_fd_, msg) == -1) {
     close();
