@@ -61,7 +61,6 @@
 #include "partition.h"
 
 #include "virtual_tablespace.h"
-#include "init.h"
 
 #include "storage.h"
 #include "yezzey.h"
@@ -125,7 +124,6 @@ PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_2_to_1_8_3);
-
 /* Create yezzey metadata tables */
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
   YezzeyInitMetadata();
@@ -486,10 +484,9 @@ Datum yezzey_binary_upgrade_1_8_to_1_8_1(PG_FUNCTION_ARGS) {
 
 /* Create yezzey metadata tables */
 Datum yezzey_binary_upgrade_1_8_2_to_1_8_3(PG_FUNCTION_ARGS) {
-  YezzeyBinaryUpdate183();
+  YezzeyBinaryUpgrade183();
   PG_RETURN_VOID();
 }
-
 
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;

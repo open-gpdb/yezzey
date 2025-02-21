@@ -2,6 +2,7 @@
 #include "pg.h"
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
+#include "offload_policy.h"
 
 void YezzeyBinaryUpgrade(void) {
   /**/
@@ -80,3 +81,10 @@ void YezzeyBinaryUpgrade(void) {
 
   allowSystemTableMods = prevAllowSystableMods;
 }
+
+void YezzeyInitMetadata(void) {
+  (void)YezzeyCreateOffloadPolicyRelation();
+  (void)YezzeyCreateVirtualIndex();
+}
+
+void YezzeyBinaryUpgrade183(void) { (void)YezzeyCreateVirtualIndexIdx(); }
