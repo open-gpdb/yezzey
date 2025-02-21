@@ -7,8 +7,7 @@
  * md5 produces a 16 byte (128 bit) hash; double it for hex
  */
 
-#define MD5_HASH_LEN  32
-
+#define MD5_HASH_LEN 32
 
 std::string yezzey_fqrelname_md5(const std::string &nspname,
                                  const std::string &relname) {
@@ -16,7 +15,7 @@ std::string yezzey_fqrelname_md5(const std::string &nspname,
   md[MD5_HASH_LEN] = 0;
   std::string full_name = nspname + "." + relname;
   /* compute AO/AOCS relation name, just like WAL-G does*/
-	if (!pg_md5_hash(full_name.c_str(), full_name.size(), md)) {
+  if (!pg_md5_hash(full_name.c_str(), full_name.size(), md)) {
     elog(ERROR, "failed to calculated RFQN md5 hash");
   }
 

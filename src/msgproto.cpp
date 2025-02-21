@@ -10,14 +10,14 @@ ssize_t MsgBuilder::putChar(char c, ssize_t padding) {
 ssize_t MsgBuilder::putUInt64(uint64_t val, ssize_t padding) {
   uint64_t cp = val;
   for (ssize_t i = UINT64_SZ - 1; i >= 0; --i) {
-    data[i+padding] = cp & ((1 << 8) - 1);
+    data[i + padding] = cp & ((1 << 8) - 1);
     cp >>= 8;
   }
   return UINT64_SZ;
 }
 
 ssize_t MsgBuilder::putString(std::string val, ssize_t padding) {
-  strncpy(data.data()+padding, val.c_str(), val.size());
+  strncpy(data.data() + padding, val.c_str(), val.size());
   return val.size() + CHAR_SZ;
 }
 ssize_t MsgBuilder::putProto(char farg, char sarg, char targ, char larg,

@@ -306,8 +306,9 @@ void yezzey_FileClose(SMGRFile file) {
             YezzeyFindAuxIndex(yfd.reloid), yfd.reloid, yfd.coord.filenode,
             yfd.coord.blkno /* blkno*/, yfd.op_start_offset,
             yfd.offset /* io operation finish offset */,
-            yfd.handler->adv_->use_gpg_crypto /* encrypted */, yfd.handler->use_kek(), 0 /* reused */,
-            yfd.modcount, yfd.handler->writer_->getInsertionStorageLsn(),
+            yfd.handler->adv_->use_gpg_crypto /* encrypted */,
+            yfd.handler->use_kek(), 0 /* reused */, yfd.modcount,
+            yfd.handler->writer_->getInsertionStorageLsn(),
             yfd.handler->writer_->getExternalStoragePath().c_str() /* path ? */,
             yezzey_fqrelname_md5(yfd.nspname, yfd.relname).c_str());
       }

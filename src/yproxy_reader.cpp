@@ -12,7 +12,6 @@ YProxyReader::~YProxyReader() { close(); }
 
 bool YProxyReader::close() { return YProxyConnector::close(); }
 
-
 std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
                                                     size_t start_off) {
 

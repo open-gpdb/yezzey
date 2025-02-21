@@ -84,8 +84,6 @@ int YProxyWriter::prepareYproxyConnection() {
   return 0;
 }
 
-
-
 int YProxyWriter::readPutCompleteResponce(int client_fd_) {
   int len = MSG_HEADER_SIZE;
   char buffer[len];
@@ -160,7 +158,6 @@ std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
 
   return builder.get();
 }
-
 
 std::vector<char> YProxyWriter::ConstructCopyDataRequest(const char *buffer,
                                                          size_t amount) {

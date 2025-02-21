@@ -26,7 +26,6 @@ struct storageChunkMeta {
   std::string chunkName;
 };
 
-
 /* in yproxy.cpp */
 extern std::vector<char> CommonCostructCopyDoneRequest();
 
