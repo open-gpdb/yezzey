@@ -155,6 +155,7 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #else
   if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
     /*do nothing */
+    
     return;
   }
 

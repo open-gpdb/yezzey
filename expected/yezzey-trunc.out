@@ -74,6 +74,12 @@ SELECT count(1) FROM trunc_regaoty;
 (1 row)
 
 TRUNCATE trunc_regaoty;
+SELECT count(1) from yezzey_dump_virtual_index('trunc_regaoty');
+ count 
+-------
+     0
+(1 row)
+
 SELECT count(1) FROM trunc_regaoty;
  count 
 -------
@@ -183,6 +189,12 @@ SELECT count(1) FROM trunc_regaocsty;
 (1 row)
 
 TRUNCATE trunc_regaocsty;
+SELECT count(1) from yezzey_dump_virtual_index('trunc_regaoty');
+ count 
+-------
+     0
+(1 row)
+
 SELECT count(1) FROM trunc_regaocsty;
  count 
 -------

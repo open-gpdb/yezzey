@@ -1320,6 +1320,12 @@ static void yezzey_define_gucs() {
                           PGC_SUSET, 0, NULL, NULL, NULL);
 }
 
+void yezzey_TrackObjDrop (Relation rel)
+{
+  if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID)
+    (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(rel)), rel->rd_node.relNode);
+}
+
 void _PG_init(void) {
   /* Allocate shared memory for yezzey workers */
 
@@ -1340,4 +1346,6 @@ void _PG_init(void) {
 
   ExecutorStart_hook = yezzey_ExecuterStartHook;
   ExecutorEnd_hook = yezzey_ExecuterEndHook;
+
+  TrackDropObject_hook = yezzey_TrackObjDrop;
 }
