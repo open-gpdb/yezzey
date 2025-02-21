@@ -68,13 +68,14 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
    */
 
   /* drop old relation, and close new one */
-  RelationDropStorage(aorel);
+  if (desttablespace_oid == YEZZEYTABLESPACE_OID)
+    RelationDropStorage(aorel);
 
   /* update the pg_class row */
-  if (desttablespace_oid != YEZZEYTABLESPACE_OID) {
+  if (desttablespace_oid != YEZZEYTABLESPACE_OID)
     rd_rel->relfilenode = GetNewRelFileNode(desttablespace_oid, NULL,
                                             aorel->rd_rel->relpersistence);
-  }
+
   rd_rel->reltablespace = desttablespace_oid;
 
 #if IsGreenplum6
