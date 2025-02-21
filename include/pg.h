@@ -14,13 +14,11 @@ extern "C" {
 #include "postmaster/interrupt.h"
 #endif
 
-
 #if PG_VERSION_NUM >= 100000
 #include "common/md5.h"
 #else
 #include "libpq/md5.h"
 #endif
-
 
 #include "utils/timestamp.h"
 #if PG_VERSION_NUM >= 100000
@@ -38,24 +36,19 @@ extern "C" {
 #include "access/htup_details.h"
 #include "access/xlog.h"
 
+#include "catalog/catalog.h"
+#include "catalog/dependency.h"
+#include "catalog/indexing.h"
+#include "catalog/objectaccess.h"
+#include "catalog/pg_extension.h"
 #include "catalog/pg_namespace.h"
 #include "catalog/pg_tablespace.h"
 #include "catalog/storage.h"
 #include "catalog/storage_xlog.h"
-#include "catalog/dependency.h"
-#include "catalog/pg_extension.h"
-#include "catalog/catalog.h"
-#include "catalog/objectaccess.h"
-#include "catalog/pg_tablespace.h"
-#include "catalog/storage.h"
-#include "catalog/indexing.h"
-
 
 #include "storage/smgr.h"
 
 #include "commands/extension.h"
-
-
 
 #include "common/relpath.h"
 #include "executor/spi.h"
@@ -64,10 +57,9 @@ extern "C" {
 
 #include "utils/builtins.h"
 #include "utils/catcache.h"
+#include "utils/elog.h"
 #include "utils/lsyscache.h"
 #include "utils/syscache.h"
-#include "utils/elog.h"
-
 
 #include "storage/bufmgr.h"
 #include "storage/fd.h"
