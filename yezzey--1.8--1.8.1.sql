@@ -3,7 +3,7 @@
 CREATE OR REPLACE FUNCTION yezzey_vacuum_garbage(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
-) RETURNS void
+) RETURNS VOID
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
@@ -13,7 +13,7 @@ CREATE OR REPLACE FUNCTION yezzey_vacuum_relation(
     reloid OID,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
-) RETURNS void
+) RETURNS VOID
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION yezzey_vacuum_relation(
     relname TEXT,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
-) RETURNS void
+) RETURNS VOID
 AS $$ SELECT yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop) $$
 LANGUAGE SQL;
 
@@ -33,7 +33,7 @@ CREATE OR REPLACE FUNCTION yezzey_vacuum_garbage_relation(
     i_offload_relname TEXT,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
-) RETURNS void
+) RETURNS VOID
 AS $$
 DECLARE
     v_reloid OID;
@@ -68,7 +68,7 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS void
+CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS VOID
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
 VOLATILE
 LANGUAGE C STRICT
