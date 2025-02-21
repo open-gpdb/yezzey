@@ -28,7 +28,6 @@ OBJS = \
 	src/partition.o \
 	src/xvacuum.o \
 	src/yproxy.o \
-	src/init.o \
 	src/meta.o \
 	src/binary_upgrade.o \
 	src/msgproto.o \
