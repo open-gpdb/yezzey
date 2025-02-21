@@ -6,14 +6,14 @@
 CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m() RETURNS void
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
 VOLATILE
-LANGUAGE C STRICT;
-EXECUTE ON MASTER
+LANGUAGE C STRICT
+EXECUTE ON MASTER;
 
 
 CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg() RETURNS void 
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
 VOLATILE
-LANGUAGE C STRICT;
+LANGUAGE C STRICT
 EXECUTE ON ALL SEGMENTS;
 
 SET allow_segment_dml TO ON;
