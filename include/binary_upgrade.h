@@ -9,3 +9,7 @@
 #endif
 
 EXTERNC void YezzeyBinaryUpgrade(void);
+
+EXTERNC void YezzeyInitMetadata(void);
+
+EXTERNC void YezzeyBinaryUpgrade183(void);
