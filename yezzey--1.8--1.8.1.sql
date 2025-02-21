@@ -68,13 +68,6 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1() RETURNS void
-AS 'MODULE_PATHNAME'
-VOLATILE
-EXECUTE ON ALL SEGMENTS
-LANGUAGE C STRICT;
-
-
 CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS void
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
 VOLATILE
@@ -83,11 +76,8 @@ LANGUAGE C STRICT;
 
 
 CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
-RETURNS VOID AS 
-$$
-SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1();
-$$ 
-LANGUAGE SQL 
+RETURNS VOID AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
+LANGUAGE C STRICT
 EXECUTE ON ALL SEGMENTS;
 
 SET allow_segment_dml TO ON;
