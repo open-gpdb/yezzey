@@ -333,7 +333,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   * Do not empty, just drop
   * Dropping yezzey virtual index for loaded relation allow to
   * remove extension dependecy on this object (relation)
-  * empty all track info **
+  * empty all track info
   */
  
   (void)emptyYezzeyIndex(yandexoid, origrelfilenode);
