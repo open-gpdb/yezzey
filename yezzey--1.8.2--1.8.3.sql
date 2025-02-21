@@ -22,12 +22,8 @@ $$
 LANGUAGE SQL 
 EXECUTE ON ALL SEGMENTS;
 
-SET allow_segment_dml TO ON;
-
 SELECT yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg();
 SELECT yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m();
-
-RESET allow_segment_DML;
 
 DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg();
 DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m();
