@@ -83,7 +83,6 @@ int commonReadRFQResponce(int client_fd_) {
   return 0;
 }
 
-
 int commonWriteFull(int client_fd_, const std::vector<char> &msg) {
   int len = msg.size();
   int sync_offset = 0;
@@ -99,7 +98,6 @@ int commonWriteFull(int client_fd_, const std::vector<char> &msg) {
   }
   return 0;
 }
-
 
 std::vector<char> CommonCostructCopyDoneRequest() {
   MsgBuilder builder = MsgBuilder().fieldProto().endDescription();
