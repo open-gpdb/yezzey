@@ -1,8 +1,15 @@
+
+/*
+* Yezzey.
+*/
+
+#include "pg.h"
+
 #include "binary_upgrade.h"
 #include "offload_policy.h"
-#include "pg.h"
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
+#include "yezzey_meta.h"
 
 void YezzeyBinaryUpgrade(void) {
   /**/
