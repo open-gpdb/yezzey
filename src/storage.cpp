@@ -20,6 +20,7 @@
 #include "offload_tablespace_map.h"
 #include "url.h"
 #include "virtual_index.h"
+#include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
 #include "ygpver.h"
 #include "yproxy.h"
@@ -282,7 +283,7 @@ bool ensureFileLocal(RelFileNode rnode, BackendId backend, ForkNumber forkNum,
                      BlockNumber blkno) {
   /* MDB-19689: do not consult catalog */
 
-#if ModernYezzey
+#if IsModernYezzey
   elog(yezzey_log_level, "ensuring %ld is local", rnode.relNode);
 #else
   elog(yezzey_log_level, "ensuring %d is local", rnode.relNode);
@@ -377,8 +378,9 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   return 0;
 }
 
-static Oid resolveTablespaceOidByName(std::string tablespacename) {
-
+static Oid
+resolveTablespaceOidByName(std::string tablespacename)
+{
   Relation rel;
   HeapScanDesc scan;
   HeapTuple tuple;
@@ -391,7 +393,7 @@ static Oid resolveTablespaceOidByName(std::string tablespacename) {
 
   ScanKeyInit(&entry[0], Anum_pg_tablespace_spcname, BTEqualStrategyNumber,
               F_NAMEEQ, CStringGetDatum(tablespacename.c_str()));
-  scan = heap_beginscan_catalog(rel, 1, entry);
+  scan = yezzey_beginscan_catalog(rel, 1, entry);
   tuple = heap_getnext(scan, ForwardScanDirection);
 
   if (!HeapTupleIsValid(tuple)) {
