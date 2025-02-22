@@ -2,6 +2,7 @@
 #define YEZZEY_VIRTUAL_TABLESPACE
 
 #include "pg.h"
+#include "yezzey_meta.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"

@@ -1344,5 +1344,9 @@ void _PG_init(void) {
   ExecutorStart_hook = yezzey_ExecuterStartHook;
   ExecutorEnd_hook = yezzey_ExecuterEndHook;
 
+#if IsModernYezzey
+  /* Support? */
+#else
   TrackDropObject_hook = yezzey_TrackObjDrop;
+#endif
 }

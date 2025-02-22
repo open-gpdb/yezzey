@@ -1,13 +1,18 @@
 #pragma once
 
 #include "pg.h"
-#include "url.h"
 #include "virtual_index.h"
+#include "ygpver.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
 #else
 #define EXTERNC
+#endif
+
+#if IsModernYezzey
+#define YEZZEY_AUX_NAMESPACE 8001
+#define YEZZEYTABLESPACE_OID 8555
 #endif
 
 EXTERNC void YezzeyUpdateMetadataRelations(
