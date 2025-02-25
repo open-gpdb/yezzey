@@ -18,7 +18,7 @@ static inline Oid yezzey_create_expire_hint_relation_internal(
 #endif
 
   TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_expire_hint_lsn, "lsn",
-                     INT8OID, -1, 0);
+                     LSNOID, -1, 0);
   TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_expire_hint_x_path,
                      "x_path", TEXTOID, -1, 0);
 #if IsGreenplum6
@@ -59,23 +59,20 @@ yezzey_create_expire_hint_idx_internal(Oid relid, const std::string &relname,
 
   /* ShareLock is not really needed here, but take it anyway */
   auto yezzey_rel = heap_open(YEZZEY_EXPIRE_HINT_RELATION, ShareLock);
-  char *colname_fn = "lsn";
-  char *colname_blkno = "x_path";
-  auto indexColNames = list_make2(colname_fn, colname_blkno);
+  char *colname_x_path = "x_path";
+  auto indexColNames = list_make1(colname_x_path);
 
   auto indexInfo = makeNode(IndexInfo);
 
-  Oid collationObjectId[2];
-  Oid classObjectId[2];
-  int16 coloptions[2];
+  Oid collationObjectId[1];
+  Oid classObjectId[1];
+  int16 coloptions[1];
 
-  indexInfo->ii_NumIndexAttrs = 2;
+  indexInfo->ii_NumIndexAttrs = 1;
 #if IsGreenplum6
-  indexInfo->ii_KeyAttrNumbers[0] = Anum_yezzey_expire_hint_lsn;
-  indexInfo->ii_KeyAttrNumbers[1] = Anum_yezzey_expire_hint_x_path;
+  indexInfo->ii_KeyAttrNumbers[0] = Anum_yezzey_expire_hint_x_path;
 #else
-  indexInfo->ii_IndexAttrNumbers[0] = Anum_yezzey_expire_hint_lsn;
-  indexInfo->ii_IndexAttrNumbers[1] = Anum_yezzey_expire_hint_x_path;
+  indexInfo->ii_IndexAttrNumbers[0] = Anum_yezzey_expire_hint_x_path;
   indexInfo->ii_NumIndexKeyAttrs = indexInfo->ii_NumIndexAttrs;
 #endif
   indexInfo->ii_Expressions = NIL;
@@ -89,14 +86,10 @@ yezzey_create_expire_hint_idx_internal(Oid relid, const std::string &relname,
   indexInfo->ii_Unique = false;
   indexInfo->ii_Concurrent = true;
 
-  collationObjectId[0] = InvalidOid;
-  collationObjectId[1] = DEFAULT_COLLATION_OID;
+  collationObjectId[0] = DEFAULT_COLLATION_OID;
 
-  classObjectId[0] = INT8_BTREE_OPS_OID;
+  classObjectId[0] = TEXT_BTREE_OPS_OID;
   coloptions[0] = 0;
-
-  classObjectId[1] = TEXT_BTREE_OPS_OID;
-  coloptions[1] = 0;
 
 #if IsGreenplum6
   (void)index_create(yezzey_rel, relname.c_str(), relid, InvalidOid, InvalidOid,
