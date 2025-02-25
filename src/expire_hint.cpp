@@ -5,13 +5,8 @@
 #include "yezzey_heap_api.h"
 #include <algorithm>
 
-
-
-
 // STAGE needed?
 Oid YezzeyFindAuxIndex_internal(Oid reloid);
-
-
 
 static inline Oid yezzey_create_expire_hint_relation_internal(
     Oid relid, const std::string &relname, Oid relowner, char relpersistence,
@@ -23,9 +18,9 @@ static inline Oid yezzey_create_expire_hint_relation_internal(
 #endif
 
   TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_expire_hint_lsn, "lsn",
-                     LSNOID, -1, 0);
-  TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_expire_hint_x_path, "x_path",
-                     TEXTOID, -1, 0);
+                     INT8OID, -1, 0);
+  TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_expire_hint_x_path,
+                     "x_path", TEXTOID, -1, 0);
 #if IsGreenplum6
   auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
       relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
@@ -56,8 +51,8 @@ static inline Oid yezzey_create_expire_hint_relation_internal(
 }
 
 static inline void
-yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
-                                         Oid relowner, char relpersistence) {
+yezzey_create_expire_hint_idx_internal(Oid relid, const std::string &relname,
+                                       Oid relowner, char relpersistence) {
 
   { /* check existed, if no, return */
   }
@@ -99,7 +94,7 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
 
   classObjectId[0] = INT8_BTREE_OPS_OID;
   coloptions[0] = 0;
-  
+
   classObjectId[1] = TEXT_BTREE_OPS_OID;
   coloptions[1] = 0;
 
@@ -129,54 +124,53 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
 }
 
 void YezzeyCreateExpireHintIdx() {
-    auto yezzey_ao_auxiliary_idxname = std::string("yezzey_expire_hint_idx");
-  
-    (void)yezzey_create_virtual_index_idx_internal(
-        YEZZEY_EXPIRE_HINT_IDX_RELATION, yezzey_ao_auxiliary_idxname,
-        GetUserId(), RELPERSISTENCE_PERMANENT);
-  
-    ObjectAddress baseobject;
-    ObjectAddress yezzey_ao_auxiliaryobject;
-  
-    baseobject.classId = ExtensionRelationId;
-    baseobject.objectId = get_extension_oid("yezzey", false);
-    baseobject.objectSubId = 0;
-    yezzey_ao_auxiliaryobject.classId = RelationRelationId;
-    yezzey_ao_auxiliaryobject.objectId = YEZZEY_EXPIRE_HINT_IDX_RELATION;
-    yezzey_ao_auxiliaryobject.objectSubId = 0;
-  
-    recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
-                       DEPENDENCY_INTERNAL);
-  
-    /*
-     * Make changes visible
-     */
-    CommandCounterIncrement();
-  }
+  auto yezzey_ao_auxiliary_idxname = std::string("yezzey_expire_hint_idx");
+
+  (void)yezzey_create_expire_hint_idx_internal(
+      YEZZEY_EXPIRE_HINT_IDX_RELATION, yezzey_ao_auxiliary_idxname, GetUserId(),
+      RELPERSISTENCE_PERMANENT);
+
+  ObjectAddress baseobject;
+  ObjectAddress yezzey_ao_auxiliaryobject;
+
+  baseobject.classId = ExtensionRelationId;
+  baseobject.objectId = get_extension_oid("yezzey", false);
+  baseobject.objectSubId = 0;
+  yezzey_ao_auxiliaryobject.classId = RelationRelationId;
+  yezzey_ao_auxiliaryobject.objectId = YEZZEY_EXPIRE_HINT_IDX_RELATION;
+  yezzey_ao_auxiliaryobject.objectSubId = 0;
+
+  recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
+                     DEPENDENCY_INTERNAL);
+
+  /*
+   * Make changes visible
+   */
+  CommandCounterIncrement();
+}
 
 void YezzeyCreateExpireHint() {
-    auto yezzey_ao_auxiliary_relname = std::string("yezzey_expire_hint");
-  
-    (void)yezzey_create_expire_hint_relation_internal(
-        YEZZEY_EXPIRE_HINT_RELATION, yezzey_ao_auxiliary_relname, GetUserId(),
-        RELPERSISTENCE_PERMANENT, false, false);
-  
-    ObjectAddress baseobject;
-    ObjectAddress yezzey_ao_auxiliaryobject;
-  
-    baseobject.classId = ExtensionRelationId;
-    baseobject.objectId = get_extension_oid("yezzey", false);
-    baseobject.objectSubId = 0;
-    yezzey_ao_auxiliaryobject.classId = RelationRelationId;
-    yezzey_ao_auxiliaryobject.objectId = YEZZEY_EXPIRE_HINT_RELATION;
-    yezzey_ao_auxiliaryobject.objectSubId = 0;
-  
-    recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
-                       DEPENDENCY_INTERNAL);
-  
-    /*
-     * Make changes visible
-     */
-    CommandCounterIncrement();
-  }
-  
+  auto yezzey_ao_auxiliary_relname = std::string("yezzey_expire_hint");
+
+  (void)yezzey_create_expire_hint_relation_internal(
+      YEZZEY_EXPIRE_HINT_RELATION, yezzey_ao_auxiliary_relname, GetUserId(),
+      RELPERSISTENCE_PERMANENT, false, false);
+
+  ObjectAddress baseobject;
+  ObjectAddress yezzey_ao_auxiliaryobject;
+
+  baseobject.classId = ExtensionRelationId;
+  baseobject.objectId = get_extension_oid("yezzey", false);
+  baseobject.objectSubId = 0;
+  yezzey_ao_auxiliaryobject.classId = RelationRelationId;
+  yezzey_ao_auxiliaryobject.objectId = YEZZEY_EXPIRE_HINT_RELATION;
+  yezzey_ao_auxiliaryobject.objectSubId = 0;
+
+  recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
+                     DEPENDENCY_INTERNAL);
+
+  /*
+   * Make changes visible
+   */
+  CommandCounterIncrement();
+}
