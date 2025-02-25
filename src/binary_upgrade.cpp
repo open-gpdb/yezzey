@@ -9,6 +9,7 @@
 #include "offload_policy.h"
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
+#include "expire_hint.h"
 #include "yezzey_meta.h"
 
 void YezzeyBinaryUpgrade(void) {
@@ -92,6 +93,11 @@ void YezzeyBinaryUpgrade(void) {
 void YezzeyInitMetadata(void) {
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
+  (void)YezzeyCreateExpireHint();
 }
 
 void YezzeyBinaryUpgrade183(void) { (void)YezzeyCreateVirtualIndexIdx(); }
+
+void YezzeyBinaryUpgrade184(void) { 
+  (void)YezzeyCreateExpireHintIdx(); 
+}

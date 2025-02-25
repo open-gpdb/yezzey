@@ -13,3 +13,5 @@ EXTERNC void YezzeyBinaryUpgrade(void);
 EXTERNC void YezzeyInitMetadata(void);
 
 EXTERNC void YezzeyBinaryUpgrade183(void);
+
+EXTERNC void YezzeyBinaryUpgrade184(void);
