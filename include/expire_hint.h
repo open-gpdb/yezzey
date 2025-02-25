@@ -17,8 +17,8 @@
 #define EXTERNC
 #endif
 
-#define YEZZEY_EXPIRE_HINT_RELATION 8500
-#define YEZZEY_EXPIRE_HINT_IDX_RELATION 8501
+#define YEZZEY_EXPIRE_HINT_RELATION 8502
+#define YEZZEY_EXPIRE_HINT_IDX_RELATION 8503
 
 /* ----------------
  *		compiler constants for pg_database
