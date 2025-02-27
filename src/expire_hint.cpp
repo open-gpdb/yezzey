@@ -147,7 +147,7 @@ void YezzeyCreateExpireHint() {
 
   (void)yezzey_create_expire_hint_relation_internal(
       YEZZEY_EXPIRE_HINT_RELATION, yezzey_ao_auxiliary_relname, GetUserId(),
-      RELPERSISTENCE_PERMANENT, false, false);
+      RELKIND_RELATION, false, false);
 
   ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
