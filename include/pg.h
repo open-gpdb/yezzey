@@ -128,7 +128,7 @@ extern "C" {
 #include "commands/tablespace.h"
 
 #include "catalog/pg_collation.h"
-
+#include "commands/dbcommands.h"
 #ifdef __cplusplus
 }
 #endif
