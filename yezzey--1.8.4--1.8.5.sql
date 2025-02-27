@@ -1,4 +1,4 @@
-
+/* Bloat files deletion */
 
 CREATE OR REPLACE FUNCTION yezzey_delete_obsolette(
     crazyDrop BOOLEAN DEFAULT FALSE
