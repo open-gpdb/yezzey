@@ -124,6 +124,7 @@ PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_2_to_1_8_3);
+PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_3_to_1_8_4);
 /* Create yezzey metadata tables */
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
   YezzeyInitMetadata();
@@ -488,6 +489,11 @@ Datum yezzey_binary_upgrade_1_8_2_to_1_8_3(PG_FUNCTION_ARGS) {
   PG_RETURN_VOID();
 }
 
+/* Create expire hint table */
+Datum yezzey_binary_upgrade_1_8_3_to_1_8_4(PG_FUNCTION_ARGS) {
+  YezzeyBinaryUpgrade184();
+  PG_RETURN_VOID();
+}
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   Relation aorel;
