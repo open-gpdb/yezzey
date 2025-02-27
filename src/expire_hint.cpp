@@ -27,7 +27,7 @@ static inline Oid yezzey_create_expire_hint_relation_internal(
       0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
       InvalidOid /* reloftypeid */, relowner /* owner */,
       tupdesc /* rel tuple */, NIL, InvalidOid /* relam */,
-      RELKIND_YEZZEYINDEX /*relkind*/, relpersistence, RELSTORAGE_HEAP,
+      RELKIND_RELATION /*relkind*/, relpersistence, RELSTORAGE_HEAP,
       shared_relation, mapped_relation, true, 0, ONCOMMIT_NOOP,
       NULL /* GP Policy */, (Datum)0, false /* use_user_acl */, true, true,
       false /* valid_opts */, false /* is_part_child */,
