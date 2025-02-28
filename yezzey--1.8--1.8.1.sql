@@ -1,6 +1,6 @@
 
 -- New utilities & functions
-CREATE OR REPLACE FUNCTION yezzey_vacuum_garbage(
+CREATE FUNCTION yezzey_vacuum_garbage(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 ) RETURNS VOID
@@ -9,7 +9,7 @@ VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION yezzey_vacuum_relation(
+CREATE FUNCTION yezzey_vacuum_relation(
     reloid OID,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
@@ -20,7 +20,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE OR REPLACE FUNCTION yezzey_vacuum_relation(
+CREATE FUNCTION yezzey_vacuum_relation(
     relname TEXT,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
@@ -28,7 +28,7 @@ CREATE OR REPLACE FUNCTION yezzey_vacuum_relation(
 AS $$ SELECT yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop) $$
 LANGUAGE SQL;
 
-CREATE OR REPLACE FUNCTION yezzey_vacuum_garbage_relation(
+CREATE FUNCTION yezzey_vacuum_garbage_relation(
     i_offload_nspname TEXT,
     i_offload_relname TEXT,
     confirm BOOLEAN DEFAULT FALSE,
@@ -54,7 +54,7 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_vacuum_garbage_relation(
     i_offload_relname TEXT,
     confirm BOOLEAN DEFAULT FALSE,
@@ -68,25 +68,21 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS VOID
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS VOID
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
 VOLATILE
 LANGUAGE C STRICT
 EXECUTE ON MASTER;
 
 
-CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
 RETURNS VOID AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
 VOLATILE
 LANGUAGE C STRICT
 EXECUTE ON ALL SEGMENTS;
 
-SET allow_segment_dml TO ON;
-
 SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
 SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
-
-RESET allow_segment_DML;
 
 DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
 DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
