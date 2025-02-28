@@ -26,8 +26,8 @@ const char MessageTypePutComplete = 57;
 
 const char MessageTypeDelete = 47;
 
-const char MessageTypeCollectObsolette = 64;
-const char MessageTypeDeleteObsolette = 65;
+const char MessageTypeCollectObsolete = 64;
+const char MessageTypeDeleteObsolete = 65;
 
 const size_t MSG_HEADER_SIZE = 8;
 const size_t PROTO_HEADER_SIZE = 4;

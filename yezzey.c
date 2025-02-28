@@ -125,8 +125,8 @@ PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_2_to_1_8_3);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_3_to_1_8_4);
 
-PG_FUNCTION_INFO_V1(yezzey_delete_obsolette);
-PG_FUNCTION_INFO_V1(yezzey_collect_obsolette);
+PG_FUNCTION_INFO_V1(yezzey_delete_obsolete);
+PG_FUNCTION_INFO_V1(yezzey_collect_obsolete);
 
 /* Create yezzey metadata tables */
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
@@ -1361,15 +1361,16 @@ void _PG_init(void) {
 }
 
 
-Datum yezzey_delete_obsolette(PG_FUNCTION_ARGS) {
+Datum yezzey_delete_obsolete(PG_FUNCTION_ARGS) {
   bool crazyDrop;
-  crazyDrop = PG_GETARG_BOOL(0);
+  crazyDrop = PG_GETARG_BOOL(0);/* not supported */
   if (crazyDrop && !superuser()) {
+
     elog(ERROR, "crazyDrop forbidden for non-superuser");
   }
 
   if (GpIdentity.segindex == -1) {
-    elog(ERROR, "yezzey_vacuum_garbage_internal should be executed on SEGMENT");
+    elog(ERROR, "yezzey_delete_obsolete should be executed on SEGMENT");
   }
 
   Name		db;
@@ -1378,13 +1379,13 @@ Datum yezzey_delete_obsolette(PG_FUNCTION_ARGS) {
   
   
   int rc;
-  rc = yezzey_delele_obsolette_internal(GpIdentity.segindex,crazyDrop,db->data,MyDatabaseTableSpace, MyDatabaseId);
+  rc = yezzey_delele_obsolete_internal(GpIdentity.segindex,crazyDrop,db->data,MyDatabaseTableSpace, MyDatabaseId);
   PG_RETURN_VOID();
 }
 
-Datum yezzey_collect_obsolette(PG_FUNCTION_ARGS) {
+Datum yezzey_collect_obsolete(PG_FUNCTION_ARGS) {
 	if (GpIdentity.segindex == -1) {
-    elog(ERROR, "yezzey_vacuum_garbage_internal should be executed on SEGMENT");
+    elog(ERROR, "yezzey_collect_obsolete should be executed on SEGMENT");
   }
   
   Name		db;
@@ -1392,7 +1393,7 @@ Datum yezzey_collect_obsolette(PG_FUNCTION_ARGS) {
 	namestrcpy(db, get_database_name(MyDatabaseId));
 
   int rc;
-  rc = yezzey_collect_obsolette_internal(GpIdentity.segindex,db->data,MyDatabaseTableSpace, MyDatabaseId);
+  rc = yezzey_collect_obsolete_internal(GpIdentity.segindex,db->data,MyDatabaseTableSpace, MyDatabaseId);
   pfree(db);
 
   PG_RETURN_VOID();

@@ -120,7 +120,7 @@ int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
   return rc;
 }
 
-int yezzey_delele_obsolette_internal(int segindx, bool crazy_drop, char *dbname,
+int yezzey_delele_obsolete_internal(int segindx, bool crazy_drop, char *dbname,
                                      Oid nspoid, Oid dboid) {
   try {
     auto ioadv = std::make_shared<IOadv>(
@@ -145,7 +145,7 @@ int yezzey_delele_obsolette_internal(int segindx, bool crazy_drop, char *dbname,
   return 0;
 }
 
-int yezzey_collect_obsolette_internal(int segindx, char *dbname, Oid nspoid,
+int yezzey_collect_obsolete_internal(int segindx, char *dbname, Oid nspoid,
                                       Oid dboid) {
   try {
     auto ioadv = std::make_shared<IOadv>(
@@ -164,7 +164,7 @@ int yezzey_collect_obsolette_internal(int segindx, char *dbname, Oid nspoid,
 
     return -1;
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage obsolette");
+    elog(ERROR, "failed to prepare x-storage obsolete");
     return 0;
   }
   return 0;

@@ -96,7 +96,7 @@ YProxyDeleterV2::ConstructDeleteRequest(std::string fileName) {
                            .fieldString(fileName.size())
                            .endDescription();
 
-  builder.addProto(MessageTypeDeleteObsolette, crazy_drop_)
+  builder.addProto(MessageTypeDeleteObsolete, crazy_drop_)
       .addUInt64(segindx_)
       .addUInt64(PostPortNumber)
       .addString(dbname_)
@@ -115,7 +115,7 @@ YProxyDeleterV2::ConstructCollectRequest(std::string fileName) {
                            .fieldString(fileName.size())
                            .endDescription();
 
-  builder.addProto(MessageTypeCollectObsolette)
+  builder.addProto(MessageTypeCollectObsolete)
       .addUInt64(segindx_)
       .addUInt64(PostPortNumber)
       .addString(dbname_)

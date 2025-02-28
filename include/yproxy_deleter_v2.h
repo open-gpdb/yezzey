@@ -2,7 +2,7 @@
 
 #include "yproxy_connector.h"
 
-/* Collect and delete obsolette files */
+/* Collect and delete obsolete files */
 class YProxyDeleterV2 : YProxyConnector {
 public:
   /*
