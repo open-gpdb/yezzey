@@ -17,6 +17,7 @@ OBJS = \
 	$(WIN32RES) \
 	src/storage.o src/proxy.o \
 	src/virtual_index.o \
+	src/expire_hint.o \
 	src/util.o \
 	src/url.o \
 	src/io.o \
@@ -36,10 +37,11 @@ OBJS = \
 	src/yproxy_lister.o \
 	src/yproxy_reader.o \
 	src/yproxy_writer.o \
+	src/yproxy_deleter_v2.o\
 	smgr.o yezzey.o
 
 EXTENSION = yezzey
-DATA = yezzey--1.0.sql yezzey--1.0--1.8.sql yezzey--1.8--1.8.1.sql yezzey--1.8.1--1.8.2.sql yezzey--1.8.2--1.8.3.sql yezzey--1.8.3--1.8.4.sql
+DATA = yezzey--1.0.sql yezzey--1.0--1.8.sql yezzey--1.8--1.8.1.sql yezzey--1.8.1--1.8.2.sql yezzey--1.8.2--1.8.3.sql yezzey--1.8.3--1.8.4.sql yezzey--1.8.4--1.8.5.sql
 PGFILEDESC = "yezzey - external storage tables offloading extension"
 
 REGRESS = \

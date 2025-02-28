@@ -44,7 +44,7 @@ std::string make_yezzey_url(const std::string &prefix, int64_t modcounts,
 std::vector<int64_t> parseModcounts(const std::string &prefix,
                                     std::string name);
 
-std::string resolve_temp_relname(char *tempname);
+std::string resolve_temp_relname(const char *tempname);
 #endif
 
 EXTERNC void

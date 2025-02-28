@@ -3,6 +3,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 const char DecryptRequest = 1;
 const char NoDecryptRequest = 0;
@@ -24,6 +25,9 @@ const char MessageTypeObjectMeta = 49;
 const char MessageTypePutComplete = 57;
 
 const char MessageTypeDelete = 47;
+
+const char MessageTypeCollectObsolete = 64;
+const char MessageTypeDeleteObsolete = 65;
 
 const size_t MSG_HEADER_SIZE = 8;
 const size_t PROTO_HEADER_SIZE = 4;

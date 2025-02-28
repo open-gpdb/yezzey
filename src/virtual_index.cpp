@@ -1,8 +1,9 @@
 
 #include "virtual_index.h"
-
-#include "yezzey_heap_api.h"
 #include <algorithm>
+#include "yezzey_heap_api.h"
+
+#include "yezzey_meta.h"
 
 Oid YezzeyFindAuxIndex_internal(Oid reloid);
 

@@ -1,7 +1,9 @@
 
 #include "postgres.h"
 
-#include "miscadmin.h"
+// For GpIdentity
+#include "c.h"
+#include "cdb/cdbvars.h"
 
 #if PG_VERSION_NUM >= 130000
 #include "postmaster/interrupt.h"
@@ -9,10 +11,9 @@
 
 #include "catalog/pg_tablespace.h"
 
-
-// For GpIdentity
-#include "c.h"
-#include "cdb/cdbvars.h"
+#if IsModernYezzey
+#include "access/aomd.h"
+#endif
 
 #include "storage/ipc.h"
 #include "storage/lwlock.h"
@@ -29,9 +30,7 @@
 #include "utils/elog.h"
 #include "utils/snapmgr.h"
 
-#if IsModernYezzey
-#include "access/aomd.h"
-#endif
+#include "miscadmin.h"
 
 #include "storage.h"
 #include "proxy.h"
