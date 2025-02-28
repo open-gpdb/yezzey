@@ -72,7 +72,6 @@
 #include "binary_upgrade.h"
 
 #include "xvacuum.h"
-
 // options for yezzey logging
 static const struct config_enum_entry loglevel_options[] = {
     {"debug5", DEBUG5, false},   {"debug4", DEBUG4, false},
@@ -125,6 +124,10 @@ PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_2_to_1_8_3);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_3_to_1_8_4);
+
+PG_FUNCTION_INFO_V1(yezzey_delete_obsolete);
+PG_FUNCTION_INFO_V1(yezzey_collect_obsolete);
+
 /* Create yezzey metadata tables */
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
   YezzeyInitMetadata();
@@ -1355,4 +1358,43 @@ void _PG_init(void) {
 #else
   TrackDropObject_hook = yezzey_TrackObjDrop;
 #endif
+}
+
+
+Datum yezzey_delete_obsolete(PG_FUNCTION_ARGS) {
+  bool crazyDrop;
+  crazyDrop = PG_GETARG_BOOL(0);/* not supported */
+  if (crazyDrop && !superuser()) {
+
+    elog(ERROR, "crazyDrop forbidden for non-superuser");
+  }
+
+  if (GpIdentity.segindex == -1) {
+    elog(ERROR, "yezzey_delete_obsolete should be executed on SEGMENT");
+  }
+
+  Name		db;
+	db = (Name) palloc(NAMEDATALEN);
+	namestrcpy(db, get_database_name(MyDatabaseId));
+  
+  
+  int rc;
+  rc = yezzey_delele_obsolete_internal(GpIdentity.segindex,crazyDrop,db->data,MyDatabaseTableSpace, MyDatabaseId);
+  PG_RETURN_VOID();
+}
+
+Datum yezzey_collect_obsolete(PG_FUNCTION_ARGS) {
+	if (GpIdentity.segindex == -1) {
+    elog(ERROR, "yezzey_collect_obsolete should be executed on SEGMENT");
+  }
+  
+  Name		db;
+	db = (Name) palloc(NAMEDATALEN);
+	namestrcpy(db, get_database_name(MyDatabaseId));
+
+  int rc;
+  rc = yezzey_collect_obsolete_internal(GpIdentity.segindex,db->data,MyDatabaseTableSpace, MyDatabaseId);
+  pfree(db);
+
+  PG_RETURN_VOID();
 }
