@@ -103,7 +103,7 @@ const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode, SMgrImpl which);
 void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which, Relation rel);
 #endif
 
-#if IsGreenplum6 || IsModernYezzey
+#if IsGreenplum6
 const f_smgr_ao *smgrao_yezzey(void);
 #endif
 void smgr_init_yezzey(void);

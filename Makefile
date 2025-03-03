@@ -26,6 +26,7 @@ OBJS = \
 	src/offload_policy.o \
 	src/offload.o \
 	src/virtual_tablespace.o \
+	src/virtual_schema.o \
 	src/partition.o \
 	src/xvacuum.o \
 	src/yproxy.o \

@@ -1,13 +1,5 @@
 \echo Use "CREATE EXTENSION yezzey" to load this file. \quit
 
--- database to track various db-indepemdent metadata.
---CREATE DATABASE YEZZEY;
-
--- this creates schema yezzey with pre-defined oid
--- 8001
-CREATE SCHEMA yezzey;
-
-GRANT USAGE ON SCHEMA yezzey to public;
 
 -- since GP uses segment-file discovery technique
 -- in can fail to remove some AO/AOCS relation files locally
@@ -108,9 +100,13 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 -- manually/automatically relocated relations
-
+-- this creates schema yezzey with pre-defined oid
+-- 8001, virtual index relation, etc
 SELECT yezzey_init_metadata();
 SELECT yezzey_init_metadata_seg();
+
+
+GRANT USAGE ON SCHEMA yezzey to public;
 
 GRANT SELECT ON yezzey.offload_metadata TO PUBLIC;
 
@@ -181,36 +177,15 @@ BEGIN
 	RETURN;
     END IF;
 
-    SELECT parrelid 
-         FROM pg_partition
-    INTO v_par_reloid 
-    WHERE parrelid = v_reloid;
 
-    IF NOT FOUND THEN
-        -- non-partitioned relation
-        PERFORM yezzey_define_relation_offload_policy_internal_seg(
-            v_reloid
-        );
-        PERFORM yezzey_define_relation_offload_policy_internal(
-            v_reloid
-        );
-    ELSE 
-
-         FOR v_tmprow IN 
-             SELECT (i_offload_nspname||'.'||partitiontablename)::regclass::oid FROM pg_partitions WHERE schemaname = i_offload_nspname AND tablename = i_offload_relname
-         LOOP
-
-             RAISE NOTICE 'offloading partition oid %', v_tmprow;
-             -- offload each part
-             PERFORM yezzey_define_relation_offload_policy_internal_seg(
-                 v_tmprow
-             );
-             PERFORM yezzey_define_relation_offload_policy_internal(
-                 v_tmprow
-             );
-         END LOOP;
-
-    END IF;
+    -- non-partitioned relation
+    PERFORM yezzey_define_relation_offload_policy_internal_seg(
+        v_reloid
+    );
+    PERFORM yezzey_define_relation_offload_policy_internal(
+        v_reloid
+    );
+    
 END;
 $$
 LANGUAGE PLPGSQL;

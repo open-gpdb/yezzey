@@ -187,12 +187,12 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, char *nspname,
       YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
       // memset(&YVirtFD_cache[file], 0, sizeof(YVirtFD));
       yfd.filepath = std::string(fileName);
-      std::string spcPref = "";
-      if (strlen(fileName) >= 6) {
-        spcPref = std::string(fileName, 6);
-      }
       bool offloaded = false;
-      if (spcPref == "yezzey") {
+
+#define GPDB6YEZZEYPREF "yezzey"
+#define GPDB7YEZZEYPREF "pg_tblspc/8555/"
+
+      if (strncmp(GPDB6YEZZEYPREF, fileName, strlen(GPDB6YEZZEYPREF)) == 0 || strncmp(GPDB7YEZZEYPREF, fileName, strlen(GPDB7YEZZEYPREF)) == 0) {
         offloaded = true;
         if (relname == NULL || nspname == NULL) {
           /* Should be possible only in recovery */
