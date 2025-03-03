@@ -56,11 +56,11 @@ EXTERNC int yezzey_FileTruncate(SMGRFile file, int64 offset);
 #endif
 
 #if IsModernYezzey
-EXTERNC int yezzey_FileDiskSize(SMGRFile file);
+EXTERNC off_t yezzey_FileDiskSize(File file);
 #endif
 
 #if IsModernYezzey
-EXTERNC int yezzey_FileSize(SMGRFile file);
+EXTERNC off_t yezzey_FileSize(File file);
 #endif
 
 #endif /* YEZZEY_PROXY_H */

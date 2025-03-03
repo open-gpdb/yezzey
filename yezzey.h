@@ -35,15 +35,18 @@ void yezzey_init(void);
 /*
  * SMGR - related functions
  */
-#if IsGreenplum6 || IsModernYezzey
+#if IsModernYezzey
 void yezzey_open(SMgrRelation reln);
 #endif
+
 void yezzey_close(SMgrRelation reln, ForkNumber forkNum);
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo);
+
 #if IsGreenplum6 || IsModernYezzey
 void yezzey_create_ao(RelFileNodeBackend rnode, int32 segmentFileNum,
                       bool isRedo);
 #endif
+
 bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum);
 
 #if IsModernYezzey
@@ -94,8 +97,10 @@ void processTables(void);
 
 #if IsGreenplum6
 const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode);
-#else
+#elif IsGreenplum7
 const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode, SMgrImpl which);
+#else
+void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which, Relation rel);
 #endif
 
 #if IsGreenplum6 || IsModernYezzey
