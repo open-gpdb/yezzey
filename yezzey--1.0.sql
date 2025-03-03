@@ -1,13 +1,5 @@
 \echo Use "CREATE EXTENSION yezzey" to load this file. \quit
 
--- database to track various db-indepemdent metadata.
---CREATE DATABASE YEZZEY;
-
--- this creates schema yezzey with pre-defined oid
--- 8001
-CREATE SCHEMA yezzey;
-
-GRANT USAGE ON SCHEMA yezzey to public;
 
 -- since GP uses segment-file discovery technique
 -- in can fail to remove some AO/AOCS relation files locally
@@ -108,9 +100,13 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 -- manually/automatically relocated relations
-
+-- this creates schema yezzey with pre-defined oid
+-- 8001, virtual index relation, etc
 SELECT yezzey_init_metadata();
 SELECT yezzey_init_metadata_seg();
+
+
+GRANT USAGE ON SCHEMA yezzey to public;
 
 GRANT SELECT ON yezzey.offload_metadata TO PUBLIC;
 

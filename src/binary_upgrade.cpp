@@ -10,6 +10,7 @@
 #include "offload_policy.h"
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
+#include "virtual_schema.h"
 #include "yezzey_meta.h"
 
 void YezzeyBinaryUpgrade(void) {
@@ -98,6 +99,7 @@ void YezzeyBinaryUpgrade(void) {
 }
 
 void YezzeyInitMetadata(void) {
+  (void)YezzeyCreateVirtualSchema();
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
 }
