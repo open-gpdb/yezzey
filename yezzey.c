@@ -807,9 +807,6 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
   AttInMetadata *attinmeta;
   int32 call_cntr;
   yezzeyChunkMetaInfo *chunkInfo;
-#if IsModernYezzey
-  Oid segrelid;
-#endif
 
   reloid = PG_GETARG_OID(0);
 
@@ -1256,10 +1253,17 @@ yezzey_ProcessUtility_hook(Node *parsetree,
                             {
 
 #if IsModernYezzey
-	switch (nodeTag(pstmt->planTree))
-#else
-	switch (nodeTag(parsetree))
+  Node * parsetree;
+  if (pstmt->utilityStmt) {
+    parsetree = pstmt->utilityStmt;
+  } else {
+    /*  when?  */
+    return standard_ProcessUtility(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
+  }
 #endif
+
+	switch (nodeTag(parsetree))
+
 	{
 			/*
 			 * ******************** yezzey vacuum ********************

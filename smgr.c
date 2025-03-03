@@ -324,6 +324,7 @@ static const f_smgr yezzey_smgrsw[] = {
 	/* magnetic disk */
 	{
 		.smgr_init = yezzey_init,
+    .smgr_open = yezzey_open,
 		.smgr_shutdown = NULL,
 		.smgr_close = yezzey_close,
 		.smgr_create = yezzey_create,
@@ -347,6 +348,7 @@ static const f_smgr yezzey_smgrsw[] = {
 	 */
 	{
 		.smgr_init = NULL,
+    .smgr_open = yezzey_open,
 		.smgr_shutdown = NULL,
 		.smgr_close = yezzey_close,
 		.smgr_create = yezzey_create,
@@ -387,9 +389,13 @@ static const struct f_smgr_ao yezzey_smgr_ao = {
 const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode) {
   return &yezzey_smgr;
 }
-#else
+#elif IsGreenplum7
 const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode, SMgrImpl which) {
   return &yezzey_smgrsw[which];
+}
+#else
+void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which, Relation rel) {
+  reln->smgr = &yezzey_smgrsw[which];
 }
 #endif
 
