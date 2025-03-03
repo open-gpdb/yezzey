@@ -431,7 +431,6 @@ void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,
   /* if gp6 insert tuples locally */
   simple_heap_insert(yandxrel, yandxtuple);
   CatalogUpdateIndexes(yandxrel, yandxtuple);
-
 #endif
 
   heap_freetuple(yandxtuple);
