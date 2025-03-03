@@ -169,10 +169,7 @@ EXTERNC int yezzey_FileSync(SMGRFile file)
 }
 
 #if IsModernYezzey
-EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, const char *nspname,
-                                         const char *relname,
-                                         const char *fileName, int fileFlags,
-                                         int64 modcount)
+EXTERNC SMGRFile yezzey_AORelOpenSegFile(const char *fileName, int fileFlags)
 #else
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
                                          char *relname, FileName *fName,
@@ -180,12 +177,28 @@ EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
                                          int64 modcount)
 #endif
 {
-  auto fileName = (char *)fName;
 
+#if IsModernYezzey
+  int64 modcount = 0;
+  char *relname = NULL;
+  char *nspname = NULL;
+  Oid reloid = InvalidOid;
+  
+  /* filter-out crash recovery and RO cases. */
+  if (!RecoveryInProgress())
+  {
+
+  }
+
+
+#else
+  auto fileName = (char *)fName;
   if (modcount != -1) {
     /* advance modcount to the value it will be after commit */
     ++modcount;
   }
+#endif
+
 
   /* lookup for virtual file desc entry */
   for (SMGRFile yezzey_fd = YEZZEY_NOT_OPENED + 1;; ++yezzey_fd) {

@@ -5,6 +5,9 @@
 #include "c.h"
 #include "cdb/cdbvars.h"
 
+/* for IsModernYezzey */
+#include "ygpver.h"
+
 #if PG_VERSION_NUM >= 130000
 #include "postmaster/interrupt.h"
 #endif
@@ -35,7 +38,6 @@
 #include "storage.h"
 #include "proxy.h"
 #include "yezzey.h"
-#include "ygpver.h"
 
 /*
  * Construct external storage filepath.

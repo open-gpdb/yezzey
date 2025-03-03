@@ -382,19 +382,22 @@ static Oid
 resolveTablespaceOidByName(std::string tablespacename)
 {
   Relation rel;
-  HeapScanDesc scan;
+  SysScanDesc scan;
   HeapTuple tuple;
   ScanKeyData entry[1];
   Oid resOid;
   /*
    * Find the target tuple
    */
-  rel = heap_open(TableSpaceRelationId, RowExclusiveLock);
+  rel = yezzey_relation_open(TableSpaceRelationId, RowExclusiveLock);
+
+  auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
   ScanKeyInit(&entry[0], Anum_pg_tablespace_spcname, BTEqualStrategyNumber,
               F_NAMEEQ, CStringGetDatum(tablespacename.c_str()));
-  scan = yezzey_beginscan_catalog(rel, 1, entry);
-  tuple = heap_getnext(scan, ForwardScanDirection);
+  scan = yezzey_systable_beginscan(rel, InvalidOid, false, snap, 1, entry);
+
+  tuple = yezzey_systable_getnext(scan);
 
   if (!HeapTupleIsValid(tuple)) {
     ereport(ERROR, (errcode(ERRCODE_UNDEFINED_OBJECT),
@@ -404,10 +407,16 @@ resolveTablespaceOidByName(std::string tablespacename)
     return InvalidOid;
   }
 
-  resOid = HeapTupleGetOid(tuple);
 
-  heap_endscan(scan);
-  heap_close(rel, RowExclusiveLock);
+#if PG_VERSION_NUM >= 120000
+  resOid = ((Form_pg_class) GETSTRUCT(tuple))->oid;
+#else
+  resOid = HeapTupleGetOid(tuple);
+#endif
+
+  yezzey_systable_endscan(scan);
+  UnregisterSnapshot(snap);
+  yezzey_relation_close(rel, RowExclusiveLock);
 
   return resOid;
 }

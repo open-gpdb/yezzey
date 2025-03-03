@@ -5,22 +5,28 @@
 
 #if PG_VERSION_NUM >= 120000
 #define yezzey_relation_open table_open
-#define yezzey_systable_beginscan table_beginscan
+#define yezzey_relation_open table_open
+#define yezzey_relation_close table_close
 #define yezzey_beginscan table_beginscan
 #define yezzey_endscan table_endscan
 
 /* catalog */
 
-#define yezzey_beginscan_catalog table_beginscan_catalog
+#define yezzey_systable_beginscan systable_beginscan
+#define yezzey_systable_getnext systable_getnext
+#define yezzey_systable_endscan systable_endscan
 
 #else
 #define yezzey_relation_open heap_open
-#define yezzey_systable_beginscan systable_beginscan
+#define yezzey_heap_getnext heap_getnext
+#define yezzey_relation_close heap_close
 #define yezzey_beginscan heap_beginscan
 #define yezzey_endscan heap_endscan
 
-/* catalog */
-#define yezzey_beginscan_catalog heap_beginscan_catalog 
+/* catalog */ 
+#define yezzey_systable_beginscan systable_beginscan
+#define yezzey_systable_getnext systable_getnext
+#define yezzey_systable_endscan systable_endscan
 
 #endif
 

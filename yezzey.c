@@ -1224,15 +1224,42 @@ void yezzey_object_access_hook (ObjectAccessType access,
 /*
  * Hook ProcessUtility to do external storage vacuum
  */
+
+/*
+* For Modern yezzey
+* (PlannedStmt *pstmt, const char *queryString,
+									bool readOnlyTree,
+									ProcessUtilityContext context, ParamListInfo params,
+									QueryEnvironment *queryEnv,
+									DestReceiver *dest, QueryCompletion *qc);
+*/
+
+#if IsModernYezzey
+static void
+yezzey_ProcessUtility_hook(PlannedStmt *pstmt,
+                            const char *queryString,
+                            bool readOnlyTree,
+                            ProcessUtilityContext context,
+                            ParamListInfo params,
+                            QueryEnvironment *queryEnv,
+                            DestReceiver *dest,
+                            QueryCompletion *qc)
+#else
 static void
 yezzey_ProcessUtility_hook(Node *parsetree,
                             const char *queryString,
                             ProcessUtilityContext context,
                             ParamListInfo params,
                             DestReceiver *dest,
-                            char *completionTag) {
+                            char *completionTag)
+#endif
+                            {
 
+#if IsModernYezzey
+	switch (nodeTag(pstmt->planTree))
+#else
 	switch (nodeTag(parsetree))
+#endif
 	{
 			/*
 			 * ******************** yezzey vacuum ********************
@@ -1259,7 +1286,12 @@ yezzey_ProcessUtility_hook(Node *parsetree,
     default:
       break;
     }
-    return standard_ProcessUtility(parsetree, queryString, context, params, dest, completionTag);  
+
+#if IsModernYezzey
+    return standard_ProcessUtility(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
+#else
+    return standard_ProcessUtility(parsetree, queryString, context, params, dest, completionTag);
+#endif
 }
 
 static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
@@ -1281,7 +1313,11 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
         if (queryDesc->plannedstmt->relationOids->length != 1) {
           elog(ERROR, "unexpected plan relation size for yezzey alter: %d", queryDesc->plannedstmt->relationOids->length);
         }
+#if !IsModernYezzey
         sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids->head);
+#else
+        sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids);
+#endif
         /* so, target relation is yezzey. This should be expand or alter table reorg; */
         YezzeyCopyOTM(iclause->rel, sourceOid);
       }
@@ -1326,11 +1362,13 @@ static void yezzey_define_gucs() {
                           PGC_SUSET, 0, NULL, NULL, NULL);
 }
 
+#if IsGreenplum6
 void yezzey_TrackObjDrop (Relation rel)
 {
   if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID)
     (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(rel)), rel->rd_node.relNode);
 }
+#endif
 
 void _PG_init(void) {
   /* Allocate shared memory for yezzey workers */

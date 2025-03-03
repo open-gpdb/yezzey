@@ -26,8 +26,8 @@
  */
 
 typedef struct {
-  text x_path;    /* external path */
   XLogRecPtr lsn; /* Chunk lsn */
+  text x_path;    /* external path */
 } FormData_yezzey_expire_hint;
 
 typedef FormData_yezzey_expire_hint *Form_yezzey_expire_hint;
