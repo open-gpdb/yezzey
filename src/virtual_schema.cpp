@@ -31,7 +31,7 @@ void YezzeyCreateVirtualSchema(void)
                                     InvalidOid);
 
 
-	nspdesc = table_open(NamespaceRelationId, RowExclusiveLock);
+	nspdesc = yezzey_relation_open(NamespaceRelationId, RowExclusiveLock);
 	tupDesc = nspdesc->rd_att;
 
 	/* initialize nulls and values */
@@ -58,7 +58,7 @@ void YezzeyCreateVirtualSchema(void)
 	CatalogTupleInsert(nspdesc, tup);
 	Assert(OidIsValid(nspoid));
 
-	table_close(nspdesc, RowExclusiveLock);
+	yezzey_relation_close(nspdesc, RowExclusiveLock);
 
 	/* Record dependencies */
 	myself.classId = NamespaceRelationId;

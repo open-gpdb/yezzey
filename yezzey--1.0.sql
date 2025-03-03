@@ -177,36 +177,15 @@ BEGIN
 	RETURN;
     END IF;
 
-    SELECT parrelid 
-         FROM pg_partition
-    INTO v_par_reloid 
-    WHERE parrelid = v_reloid;
 
-    IF NOT FOUND THEN
-        -- non-partitioned relation
-        PERFORM yezzey_define_relation_offload_policy_internal_seg(
-            v_reloid
-        );
-        PERFORM yezzey_define_relation_offload_policy_internal(
-            v_reloid
-        );
-    ELSE 
-
-         FOR v_tmprow IN 
-             SELECT (i_offload_nspname||'.'||partitiontablename)::regclass::oid FROM pg_partitions WHERE schemaname = i_offload_nspname AND tablename = i_offload_relname
-         LOOP
-
-             RAISE NOTICE 'offloading partition oid %', v_tmprow;
-             -- offload each part
-             PERFORM yezzey_define_relation_offload_policy_internal_seg(
-                 v_tmprow
-             );
-             PERFORM yezzey_define_relation_offload_policy_internal(
-                 v_tmprow
-             );
-         END LOOP;
-
-    END IF;
+    -- non-partitioned relation
+    PERFORM yezzey_define_relation_offload_policy_internal_seg(
+        v_reloid
+    );
+    PERFORM yezzey_define_relation_offload_policy_internal(
+        v_reloid
+    );
+    
 END;
 $$
 LANGUAGE PLPGSQL;

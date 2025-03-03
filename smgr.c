@@ -396,12 +396,15 @@ const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode, SMgrImpl which) 
 #else
 void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which, Relation rel) {
   reln->smgr = &yezzey_smgrsw[which];
+  reln->smgr_ao = &yezzey_smgr_ao;
 }
 #endif
 
+#if IsGreenplum6
 const f_smgr_ao *smgrao_yezzey(void) { 
   return &yezzey_smgr_ao;
 }
+#endif
 
 void smgr_init_yezzey(void) {
 #if IsGreenplum6

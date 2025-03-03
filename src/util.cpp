@@ -39,7 +39,20 @@ relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
 
   auto len = fileName.size();
 
-  for (size_t it = 0; it < len;) {
+  size_t start_off = len - 1;
+  int slash_cntr = 0;
+  while (start_off >= 0) {
+    if (fileName[start_off] == '/') {
+      ++slash_cntr;
+      if (slash_cntr == 2) break;
+    }
+    --start_off;
+  }
+  if (slash_cntr != 2) {
+    elog(ERROR, "yezzey: corrupted data file path %s", fileName.c_str());
+  }
+
+  for (size_t it = start_off; it < len;) {
     if (!isdigit(fileName[it])) {
       ++it;
       continue;
