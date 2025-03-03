@@ -33,23 +33,28 @@ static Oid YezzeyResolveTablespaceMapOid() {
               F_OIDEQ, ObjectIdGetDatum(YEZZEY_AUX_NAMESPACE));
 
   auto scan =
-      systable_beginscan(classrel, ClassNameNspIndexId, true, snap, 2, skey);
+      yezzey_systable_beginscan(classrel, ClassNameNspIndexId, true, snap, 2, skey);
 
-  auto oldtuple = systable_getnext(scan);
+  auto oldtuple = yezzey_systable_getnext(scan);
 
   /* No map relation created. return invalid oid */
   if (!HeapTupleIsValid(oldtuple)) {
-    systable_endscan(scan);
+    yezzey_systable_endscan(scan);
     UnregisterSnapshot(snap);
-    heap_close(classrel, RowExclusiveLock);
+    yezzey_relation_close(classrel, RowExclusiveLock);
     return InvalidOid;
   }
 
-  Oid yezzey_tablespace_map_oid = HeapTupleGetOid(oldtuple);
 
-  systable_endscan(scan);
+#if PG_VERSION_NUM >= 120000
+  Oid yezzey_tablespace_map_oid = ((Form_pg_class) GETSTRUCT(oldtuple))->oid;
+#else
+  Oid yezzey_tablespace_map_oid = HeapTupleGetOid(oldtuple);
+#endif
+
+  yezzey_systable_endscan(scan);
   UnregisterSnapshot(snap);
-  heap_close(classrel, RowExclusiveLock);
+  yezzey_relation_close(classrel, RowExclusiveLock);
 
   return yezzey_tablespace_map_oid;
 }

@@ -201,7 +201,7 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
-  auto offrel = heap_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
+  auto offrel = yezzey_relation_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
 
   /* INSERT INTO yezzey.offload_metadata VALUES(v_reloid, 1, NULL, NOW()); */
 
@@ -224,7 +224,7 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     if (meta->relpolicy == i_relpolicy) {
       elog(NOTICE, "relation policy is already same as requested");
 
-      heap_close(offrel, RowExclusiveLock);
+      yezzey_relation_close(offrel, RowExclusiveLock);
 
       yezzey_endscan(scan);
       UnregisterSnapshot(snap);
@@ -248,7 +248,7 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     heap_freetuple(offtuple);
   }
 
-  heap_close(offrel, RowExclusiveLock);
+  yezzey_relation_close(offrel, RowExclusiveLock);
 
   yezzey_endscan(scan);
   UnregisterSnapshot(snap);

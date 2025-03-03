@@ -34,24 +34,31 @@ void YezzeyBinaryUpgrade(void) {
   ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(YEZZEY_AUX_NAMESPACE));
 
-  auto scan = yezzey_beginscan(classrel, snap, 2, skey);
-  auto systuple = heap_getnext(scan, ForwardScanDirection);
+  auto scan = yezzey_systable_beginscan(classrel, 
+                ClassNameNspIndexId, true, snap, 2, skey);
+
+  auto systuple = yezzey_systable_getnext(scan);
 
   /* No map relation created. return invalid oid */
   if (!HeapTupleIsValid(systuple)) {
-    yezzey_endscan(scan);
+    yezzey_systable_endscan(scan);
     UnregisterSnapshot(snap);
-    heap_close(classrel, RowExclusiveLock);
+    yezzey_relation_close(classrel, RowExclusiveLock);
 
     allowSystemTableMods = prevAllowSystableMods;
     elog(ERROR, "failed to upgrade yezzey virtual index relation");
   }
 
+#if PG_VERSION_NUM >= 120000
+  Oid yezzey_vi_oid = ((Form_pg_class) GETSTRUCT(systuple))->oid;
+#else
   Oid yezzey_vi_oid = HeapTupleGetOid(systuple);
+#endif
+
   if (yezzey_vi_oid != YEZZEY_VIRTUAL_INDEX_RELATION) {
-    yezzey_endscan(scan);
+    yezzey_systable_endscan(scan);
     UnregisterSnapshot(snap);
-    heap_close(classrel, RowExclusiveLock);
+    yezzey_relation_close(classrel, RowExclusiveLock);
 
     allowSystemTableMods = prevAllowSystableMods;
     elog(ERROR, "wrong oid when upgrade yezzey virtual index relation");
@@ -80,9 +87,9 @@ void YezzeyBinaryUpgrade(void) {
   CatalogTupleUpdate(classrel, &newTuple->t_self, newTuple);
 #endif
 
-  yezzey_endscan(scan);
+  yezzey_systable_endscan(scan);
   UnregisterSnapshot(snap);
-  heap_close(classrel, RowExclusiveLock);
+  yezzey_relation_close(classrel, RowExclusiveLock);
 
   /* make changes visible*/
   CommandCounterIncrement();

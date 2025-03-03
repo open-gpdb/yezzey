@@ -2,6 +2,8 @@
 
 #include "expire_hint.h"
 
+#include "yezzey_meta.h"
+
 #include "yezzey_heap_api.h"
 #include <algorithm>
 

@@ -226,7 +226,7 @@ Oid YezzeyFindAuxIndex_internal(Oid reloid) {
 #if IsGreenplum6
     yezzey_virtual_index_oid = HeapTupleGetOid(tup);
 #else
-    auto ytup = ((FormData_pg_class *)GETSTRUCT(tup));
+    auto ytup = ((Form_pg_class)GETSTRUCT(tup));
     yezzey_virtual_index_oid = ytup->oid;
 #endif
   } else {
