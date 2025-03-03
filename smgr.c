@@ -335,7 +335,7 @@ static const f_smgr yezzey_smgrsw[] = {
 		.smgr_write = yezzey_write,
 		.smgr_writeback = yezzey_writeback,
 		.smgr_nblocks = mdnblocks,
-		.smgr_truncate = yezzey_nblocks,
+		.smgr_truncate = yezzey_truncate,
 		.smgr_immedsync = yezzey_immedsync,
 	},
 	/*
