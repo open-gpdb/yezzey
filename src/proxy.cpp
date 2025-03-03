@@ -168,36 +168,15 @@ EXTERNC int yezzey_FileSync(SMGRFile file)
 #endif
 }
 
-#if IsModernYezzey
-EXTERNC SMGRFile yezzey_AORelOpenSegFile(const char *fileName, int fileFlags)
-#else
-EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
-                                         char *relname, FileName *fName,
+static File yezzey_AORelOpenSegFile_internal(Oid reloid, char *nspname,
+                                         char *relname, const char *fileName,
                                          int fileFlags, int fileMode,
                                          int64 modcount)
-#endif
 {
-
-#if IsModernYezzey
-  int64 modcount = 0;
-  char *relname = NULL;
-  char *nspname = NULL;
-  Oid reloid = InvalidOid;
-  
-  /* filter-out crash recovery and RO cases. */
-  if (!RecoveryInProgress())
-  {
-
-  }
-
-
-#else
-  auto fileName = (char *)fName;
   if (modcount != -1) {
     /* advance modcount to the value it will be after commit */
     ++modcount;
   }
-#endif
 
 
   /* lookup for virtual file desc entry */
@@ -288,6 +267,36 @@ EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
     }
   }
 }
+
+
+#if IsModernYezzey
+
+EXTERNC	File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum, int fileFlags) {
+  return yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, NULL, 0, 0, -1);
+}
+	
+EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName, int fileFlags) {
+  Assert(reloid != InvalidOid);
+  auto rel = relation_open(reloid, NoLock);
+
+	auto nspname = get_namespace_name(rel->rd_rel->relnamespace);
+  
+  auto rv = yezzey_AORelOpenSegFile_internal(reloid, nspname, RelationGetRelationName(rel), fileName, fileFlags, 0, 1);
+
+  relation_close(rel, NoLock);
+
+  return rv;
+}
+
+#else
+EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
+                                         char *relname, FileName *fName,
+                                         int fileFlags, int fileMode,
+                                         int64 modcount)
+{
+  return yezzey_AORelOpenSegFile_internal(reloid, nspname, relname, fName, fileFlags, fileMode, modcount);
+}
+#endif
 
 void yezzey_FileClose(SMGRFile file) {
   if (!YVirtFD_cache.count(file)) {

@@ -1316,7 +1316,7 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
 #if !IsModernYezzey
         sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids->head);
 #else
-        sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids);
+        sourceOid = lfirst_oid(list_head(queryDesc->plannedstmt->relationOids));
 #endif
         /* so, target relation is yezzey. This should be expand or alter table reorg; */
         YezzeyCopyOTM(iclause->rel, sourceOid);
