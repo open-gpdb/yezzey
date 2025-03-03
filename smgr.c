@@ -367,6 +367,9 @@ static const f_smgr yezzey_smgrsw[] = {
 static const struct f_smgr_ao yezzey_smgr_ao = {
     .smgr_FileClose = yezzey_FileClose,
     .smgr_AORelOpenSegFile = yezzey_AORelOpenSegFile,
+#if IsModernYezzey
+    .smgr_AORelOpenSegFileXlog = yezzey_AORelOpenSegFileXlog,
+#endif
     .smgr_FileWrite = yezzey_FileWrite,
     .smgr_FileRead = yezzey_FileRead,
     .smgr_FileSync = yezzey_FileSync,
