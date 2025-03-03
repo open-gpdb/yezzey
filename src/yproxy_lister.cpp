@@ -63,10 +63,27 @@ std::vector<std::string> YProxyLister::list_chunk_names() {
 }
 
 std::vector<char> YProxyLister::ConstructListRequest(std::string fileName) {
-  MsgBuilder builder =
-      MsgBuilder().fieldProto().fieldString(fileName.size()).endDescription();
 
-  builder.addProto(MessageTypeList).addString(fileName);
+  uint64_t settingsCnt = 1;
+  std::vector<std::pair<std::string, std::string>> settings = {
+      {"TableSpace", adv_->tableSpace},
+  };
+
+  MsgBuilder builder =
+      MsgBuilder().fieldProto().fieldString(fileName.size()).fieldUInt64();
+
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
+    builder.fieldString(settings[j].first.size())
+        .fieldString(settings[j].second.size());
+  }
+  builder.endDescription();
+
+  builder.addProto(MessageTypeListV2).addString(fileName).addUInt64(settingsCnt);
+
+  for (uint64_t j = 0; j < settingsCnt; ++j) {
+    builder.addString(settings[j].first).addString(settings[j].second);
+  }
+
 
   return builder.get();
 }

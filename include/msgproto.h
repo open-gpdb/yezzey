@@ -21,6 +21,7 @@ const char MessageTypeCopyDone = 44;
 const char MessageTypeReadyForQuery = 45;
 const char MessageTypeCopyData = 46;
 const char MessageTypeList = 48;
+const char MessageTypeListV2 = 61;
 const char MessageTypeObjectMeta = 49;
 const char MessageTypePutComplete = 57;
 
