@@ -290,11 +290,11 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName, int fileF
 
 #else
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
-                                         char *relname, FileName *fName,
+                                         char *relname, FileName fName,
                                          int fileFlags, int fileMode,
                                          int64 modcount)
 {
-  return yezzey_AORelOpenSegFile_internal(reloid, nspname, relname, fName, fileFlags, fileMode, modcount);
+  return yezzey_AORelOpenSegFile_internal(reloid, nspname, relname, (const char*)fName, fileFlags, fileMode, modcount);
 }
 #endif
 

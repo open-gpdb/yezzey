@@ -33,7 +33,7 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName, int fileF
 EXTERNC	File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum, int fileFlags);
 #else
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
-                                         char *relname, FileName *fName,
+                                         char *relname, FileName fName,
                                          int fileFlags, int fileMode,
                                          int64 modcount);
 #endif
