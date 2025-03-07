@@ -4,3 +4,6 @@ INSERT INTO yezzey.yezzey_virtual_index (filenode,blkno,modcount) VALUES (1,1,1)
 INSERT INTO yezzey.yezzey_virtual_index (filenode,blkno,modcount) VALUES (1,1,1);
 ERROR:  duplicate key value violates unique constraint "yezzey_virtual_index_idx"
 DETAIL:  Key (filenode, blkno, modcount)=(1, 1, 1) already exists.
+TRUNCATE yezzey.yezzey_virtual_index;
+DROP EXTENSION yezzey;
+CHECKPOINT;
