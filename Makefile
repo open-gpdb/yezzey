@@ -56,7 +56,8 @@ REGRESS = \
 	  load_offload_load \
 	  yezzey-reorg \
 	  yezzey-vac-relation \
-	  yezzey-otm-feat
+	  yezzey-otm-feat \
+	  yezzey-vi-eh-unique
 
 ifdef USE_PGXS
 PG_CONFIG = pg_config

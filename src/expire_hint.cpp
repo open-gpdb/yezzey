@@ -85,7 +85,7 @@ yezzey_create_expire_hint_idx_internal(Oid relid, const std::string &relname,
 #else
   indexInfo->ii_PredicateState = NULL;
 #endif
-  indexInfo->ii_Unique = false;
+  indexInfo->ii_Unique = true;
   indexInfo->ii_Concurrent = true;
 
   collationObjectId[0] = DEFAULT_COLLATION_OID;

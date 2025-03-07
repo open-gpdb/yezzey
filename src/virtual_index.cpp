@@ -83,21 +83,24 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
   auto yezzey_rel = heap_open(YEZZEY_VIRTUAL_INDEX_RELATION, ShareLock);
   char *colname_fn = "filenode";
   char *colname_blkno = "blkno";
-  auto indexColNames = list_make2(colname_fn, colname_blkno);
+  char *colname_modcount = "modcount";
+  auto indexColNames = list_make3(colname_fn, colname_blkno,colname_modcount);
 
   auto indexInfo = makeNode(IndexInfo);
 
-  Oid collationObjectId[2];
-  Oid classObjectId[2];
-  int16 coloptions[2];
+  Oid collationObjectId[3];
+  Oid classObjectId[3];
+  int16 coloptions[3];
 
-  indexInfo->ii_NumIndexAttrs = 2;
+  indexInfo->ii_NumIndexAttrs = 3;
 #if IsGreenplum6
   indexInfo->ii_KeyAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
   indexInfo->ii_KeyAttrNumbers[1] = Anum_yezzey_virtual_index_blkno;
+  indexInfo->ii_KeyAttrNumbers[2] = Anum_yezzey_virtual_modcount;
 #else
   indexInfo->ii_IndexAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
   indexInfo->ii_IndexAttrNumbers[1] = Anum_yezzey_virtual_index_blkno;
+  indexInfo->ii_KeyAttrNumbers[2] = Anum_yezzey_virtual_modcount;
   indexInfo->ii_NumIndexKeyAttrs = indexInfo->ii_NumIndexAttrs;
 #endif
   indexInfo->ii_Expressions = NIL;
@@ -108,17 +111,20 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
 #else
   indexInfo->ii_PredicateState = NULL;
 #endif
-  indexInfo->ii_Unique = false;
+  indexInfo->ii_Unique = true;
   indexInfo->ii_Concurrent = true;
 
   collationObjectId[0] = InvalidOid;
   collationObjectId[1] = InvalidOid;
+  collationObjectId[2] = InvalidOid;
 
   classObjectId[0] = OID_BTREE_OPS_OID;
   coloptions[0] = 0;
 
   classObjectId[1] = INT4_BTREE_OPS_OID;
   coloptions[1] = 0;
+
+  classObjectId[2] = INT8_BTREE_OPS_OID;
 
 #if IsGreenplum6
   (void)index_create(yezzey_rel, relname.c_str(), relid, InvalidOid, InvalidOid,
