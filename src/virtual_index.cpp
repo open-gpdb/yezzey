@@ -124,7 +124,7 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
   (void)index_create(yezzey_rel, relname.c_str(), relid, InvalidOid, InvalidOid,
                      InvalidOid, indexInfo, indexColNames, BTREE_AM_OID,
                      0 /* tablespace */, collationObjectId, classObjectId,
-                     coloptions, (Datum)0, true, true, false, false, true,
+                     coloptions, (Datum)0, true, false, false, false, true,
                      false, false, true, NULL);
 #else
   bits16 flags, constr_flags;
