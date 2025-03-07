@@ -1,0 +1,6 @@
+CREATE EXTENSION yezzey ;
+ALTER EXTENSION yezzey UPDATE TO '1.8.3';
+INSERT INTO yezzey.yezzey_virtual_index (filenode,blkno) VALUES (1,1);
+INSERT INTO yezzey.yezzey_virtual_index (filenode,blkno) VALUES (1,1);
+ERROR:  duplicate key value violates unique constraint "yezzey_virtual_index_idx"
+DETAIL:  Key (filenode, blkno)=(1, 1) already exists.
