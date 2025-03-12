@@ -363,7 +363,12 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
 
   /* we dont need to interact with s3 while in recovery*/
 
-  auto virtual_sz = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
+  int64_t virtual_sz = 0;
+
+#if 0
+  if (/* support this feature */)
+    virtual_sz = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
+#endif
 
   if (virtual_sz == -1) {
     elog(ERROR, "yezzey: failed to stat size of relation %s",
