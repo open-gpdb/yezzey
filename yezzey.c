@@ -128,6 +128,11 @@ PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_3_to_1_8_4);
 PG_FUNCTION_INFO_V1(yezzey_delete_obsolete);
 PG_FUNCTION_INFO_V1(yezzey_collect_obsolete);
 
+static ExecutorStart_hook_type prev_ExecutorStart_hook = NULL;
+static ExecutorEnd_hook_type prev_ExecutorEnd_hook = NULL;
+static object_access_hook_type prev_object_access_hook = NULL;
+static ProcessUtility_hook_type prev_ProcessUtility_hook = NULL;
+
 /* Create yezzey metadata tables */
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
   YezzeyInitMetadata();
@@ -1194,6 +1199,9 @@ void yezzey_object_access_hook (ObjectAccessType access,
 													 Oid objectId,
 													 int subId,
 													 void *arg) {
+  if (prev_object_access_hook) {
+    (void) prev_object_access_hook(access, classId, objectId, subId, arg);
+  }
   Relation offRel;
   if (classId != RelationRelationId) {
     return;  
@@ -1258,7 +1266,7 @@ yezzey_ProcessUtility_hook(Node *parsetree,
     parsetree = pstmt->utilityStmt;
   } else {
     /*  when?  */
-    return standard_ProcessUtility(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
+    return prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
   }
 #endif
 
@@ -1292,21 +1300,21 @@ yezzey_ProcessUtility_hook(Node *parsetree,
     }
 
 #if IsModernYezzey
-    return standard_ProcessUtility(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
+    return prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
 #else
-    return standard_ProcessUtility(parsetree, queryString, context, params, dest, completionTag);
+    return prev_ProcessUtility_hook(parsetree, queryString, context, params, dest, completionTag);
 #endif
 }
 
 static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
-  (void) standard_ExecutorEnd(queryDesc);
+  (void) prev_ExecutorEnd_hook(queryDesc);
 
   YezzeyTruncateOTMHint();
 }
 
 
 static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
-    (void) standard_ExecutorStart(queryDesc, eflags);
+    (void) prev_ExecutorStart_hook(queryDesc, eflags);
 
     IntoClause *iclause;
     Oid sourceOid;
@@ -1387,6 +1395,12 @@ void _PG_init(void) {
   smgrao_hook = smgrao_yezzey;
 #endif
   smgr_init_hook = smgr_init_yezzey;
+
+  /* save old hooks  */
+  prev_ProcessUtility_hook = ProcessUtility_hook ? ProcessUtility_hook : standard_ProcessUtility;
+  prev_ExecutorStart_hook = ExecutorStart_hook ? ExecutorStart_hook : standard_ExecutorStart;
+  prev_ExecutorEnd_hook = ExecutorEnd_hook ? ExecutorEnd_hook : standard_ExecutorEnd;
+  prev_object_access_hook = object_access_hook;
 
   /* set drop hook  */
   ProcessUtility_hook = yezzey_ProcessUtility_hook;
