@@ -166,7 +166,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       iohandler.writer_->getExternalStoragePath().c_str() /* path */,
       yezzey_fqrelname_md5(ioadv->nspname, ioadv->relname).c_str());
 
-  if (!iohandler.io_close()) {
+  if (!iohandler.io_close() ) {
     elog(ERROR, "yezzey: failed to complete %s offloading", localPath.c_str());
   } else {
     // debug output
