@@ -472,10 +472,24 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
   ScanKeyInit(&skey[1], Anum_yezzey_virtual_index_blkno, BTEqualStrategyNumber,
               F_INT4EQ, Int32GetDatum(blkno));
 
-  /* TBD: Read index */
-  auto desc = yezzey_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
+  auto use_y_index = false;
 
-  while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
+
+  {
+    auto tmprel = try_relation_open(YEZZEY_VIRTUAL_INDEX_IDX_RELATION, NoLock, false);
+
+    if (tmprel != NULL) {
+      use_y_index = true;
+      relation_close(tmprel, NoLock);
+    }
+  }
+
+  /* TBD: Read index */
+  auto desc =
+      yezzey_systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION, use_y_index, snap, 2, skey);
+
+
+  while (HeapTupleIsValid(tuple = yezzey_systable_getnext(desc))) {
     auto ytup = ((FormData_yezzey_virtual_index *)GETSTRUCT(tuple));
     // unpack text to str
     auto flags = ytup->encrypted;
@@ -487,7 +501,7 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
                             ytup->start_offset, encrypted, kek));
   }
 
-  yezzey_endscan(desc);
+  yezzey_systable_endscan(desc);
   heap_close(rel, RowExclusiveLock);
 
   UnregisterSnapshot(snap);
