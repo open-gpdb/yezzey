@@ -951,7 +951,7 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
 
     /* cleanup */
     for (int j = 0; j < funcctx->max_calls; ++ j) {
-      free(chunkInfo[j].external_storage_filepath);
+      free((char*)chunkInfo[j].external_storage_filepath);
     }
 
     free(chunkInfo);

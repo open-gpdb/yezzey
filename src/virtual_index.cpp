@@ -81,10 +81,10 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
 
   /* ShareLock is not really needed here, but take it anyway */
   auto yezzey_rel = heap_open(YEZZEY_VIRTUAL_INDEX_RELATION, ShareLock);
-  char *colname_fn = "filenode";
-  char *colname_blkno = "blkno";
-  char *colname_modcount = "modcount";
-  auto indexColNames = list_make3(colname_fn, colname_blkno,colname_modcount);
+  const char *colname_fn = "filenode";
+  const char *colname_blkno = "blkno";
+  const char *colname_modcount = "modcount";
+  auto indexColNames = list_make3((void*)colname_fn, (void*)colname_blkno, (void*)colname_modcount);
 
   auto indexInfo = makeNode(IndexInfo);
 
