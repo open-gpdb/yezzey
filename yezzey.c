@@ -143,6 +143,11 @@ Datum yezzey_init_metadata_seg(PG_FUNCTION_ARGS) {
   return yezzey_init_metadata(fcinfo);
 }
 
+
+#if IsGreenplum6
+void yezzey_TrackObjDrop (Relation rel);
+#endif
+
 int yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
                                      const char *external_storage_path);
 
