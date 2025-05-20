@@ -15,6 +15,12 @@ public:
   explicit YProxyDeleter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                          bool confirm_);
 
+  /*
+   * For segments execution, claanup garbage workhorse
+   */
+  explicit YProxyDeleter(std::shared_ptr<IOadv> adv, ssize_t segindx,
+                         bool confirm_, bool crazy_drop_);
+
   virtual ~YProxyDeleter();
 
   virtual bool deleteChunk(const std::string &chunkName);
@@ -30,4 +36,5 @@ protected:
 private:
   bool garbage_cleanup_{false};
   bool confirm_{false};
+  bool crazy_drop_{false};
 };

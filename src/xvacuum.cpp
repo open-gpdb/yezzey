@@ -56,7 +56,7 @@ int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
     std::string storage_path(yezzey_block_namespace_path(segindx));
 
     auto deleter =
-        std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx), confirm);
+        std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx), confirm, crazyDrop);
 
     if (deleter->deleteChunk(storage_path)) {
       return 0;
