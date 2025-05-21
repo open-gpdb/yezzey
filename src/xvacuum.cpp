@@ -96,7 +96,7 @@ int yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
         yezzey_block_db_file_path(nspname, relname, coords, segindx));
 
     auto deleter =
-        std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx), confirm);
+        std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx), confirm, crazyDrop);
     ReleaseSysCache(tp);
 
     if (deleter->deleteChunk(storage_path)) {
