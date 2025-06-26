@@ -284,7 +284,7 @@ bool ensureFileLocal(RelFileNode rnode, BackendId backend, ForkNumber forkNum,
   /* MDB-19689: do not consult catalog */
 
 #if IsModernYezzey
-  elog(yezzey_log_level, "ensuring %ld is local", rnode.relNode);
+  elog(yezzey_log_level, "ensuring %u is local", rnode.relNode);
 #else
   elog(yezzey_log_level, "ensuring %d is local", rnode.relNode);
 #endif

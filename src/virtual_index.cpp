@@ -100,7 +100,7 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
 #else
   indexInfo->ii_IndexAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
   indexInfo->ii_IndexAttrNumbers[1] = Anum_yezzey_virtual_index_blkno;
-  indexInfo->ii_KeyAttrNumbers[2] = Anum_yezzey_virtual_modcount;
+  indexInfo->ii_IndexAttrNumbers[2] = Anum_yezzey_virtual_modcount;
   indexInfo->ii_NumIndexKeyAttrs = indexInfo->ii_NumIndexAttrs;
 #endif
   indexInfo->ii_Expressions = NIL;

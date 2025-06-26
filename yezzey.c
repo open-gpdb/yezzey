@@ -223,7 +223,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
    */
 
 #if IsModernYezzey
-  elog(yezzey_log_level, "loading relnode %ld", aorel->rd_node.relNode);
+  elog(yezzey_log_level, "loading relnode %u", aorel->rd_node.relNode);
 #else
   elog(yezzey_log_level, "loading relnode %d", aorel->rd_node.relNode);
 #endif
