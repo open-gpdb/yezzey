@@ -8,6 +8,8 @@
 #include "yezzey_heap_api.h"
 #include <unistd.h>
 
+#include "gucs.h"
+
 #include <map>
 
 #include "cdb/cdbvars.h"
@@ -17,6 +19,9 @@
 const std::string offload_tablespace_map_relname = "offload_tablespace_map";
 
 static Oid YezzeyResolveTablespaceMapOid() {
+  if (!use_otm_feature) {
+    return InvalidOid;
+  }
 
   /* SELECT FROM pg_catalog.pg_class WHERE relname = 'offload_tablespace_map'
    * and relnamespace = 8001; */
