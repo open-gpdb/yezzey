@@ -1363,7 +1363,7 @@ static void yezzey_define_gucs() {
                            NULL);
 
   DefineCustomBoolVariable("yezzey.use_otm_feature", "use OTM feature", NULL,
-                           &use_gpg_crypto, false, PGC_POSTMASTER, 0, NULL, NULL,
+                           &use_otm_feature, false, PGC_POSTMASTER, 0, NULL, NULL,
                            NULL);
 
   DefineCustomBoolVariable(
