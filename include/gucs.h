@@ -5,6 +5,7 @@ extern int yezzey_log_level;
 extern int yezzey_ao_log_level;
 
 extern bool use_gpg_crypto;
+extern bool use_otm_feature;
 
 /* ----- STORAGE -----  */
 extern char *storage_class;
