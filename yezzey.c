@@ -1277,12 +1277,27 @@ yezzey_ProcessUtility_hook(Node *parsetree,
   }
 #endif
 
+  newTOASTTableSpace = InvalidOid;
+
 	switch (nodeTag(parsetree))
 
 	{
-			/*
-			 * ******************** yezzey vacuum ********************
-			 */
+    case T_AlterTableStmt:
+      {
+        ListCell  *lcmd;
+        AlterTableStmt *stmt = (AlterTableStmt *) parsetree;
+
+        Relation rel = relation_openrv(stmt->relation, NoLock);
+
+        if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID) {
+          foreach(lcmd, stmt->cmds)
+          {
+            newTOASTTableSpace = DEFAULTTABLESPACE_OID;
+          }
+        }
+
+        relation_close(rel,NoLock);
+      }
       break;
 		case T_VacuumStmt:
 #if IsGreenplum6
