@@ -7,6 +7,7 @@ make destroy-demo-cluster && make create-demo-cluster
 source gpAux/gpdemo/gpdemo-env.sh
 
 gpconfig -c yezzey.use_gpg_crypto -v "false"
+gpconfig -c yezzey.use_otm_feature -v "true"
 gpconfig -c shared_preload_libraries -v yezzey
 
 gpstop -a -i && gpstart -a

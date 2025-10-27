@@ -208,6 +208,12 @@ void YezzeyRegisterRelationOriginTablespace(Oid i_reloid, Oid i_reltablespace) {
             (errcode(ERRCODE_UNDEFINED_OBJECT),
              errmsg("tablespace with OID %u does not exist", i_reltablespace)));
 
+  if (!use_otm_feature && i_reltablespace != DEFAULTTABLESPACE_OID)
+    ereport(ERROR,
+            (errcode(ERRCODE_UNDEFINED_OBJECT),
+             errmsg("tablespace with OID %u is non-default, offload rejrected", i_reltablespace),
+             errdetail("turn yezzey.use_otm_feature GUC on")));
+
   auto spcname = &((Form_pg_tablespace)GETSTRUCT(spctuple))->spcname;
 
   YezzeyRegisterRelationOriginTablespaceName(i_reloid, spcname);
