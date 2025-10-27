@@ -50,6 +50,7 @@ REGRESS = \
 	  versions \
 	  drop-column \
 	  yezzey-alter\
+	  yezzey-alter-toast\
 	  yezzey-vacuum \
 	  yezzey-trunc \
 	  yezzey-expand \
