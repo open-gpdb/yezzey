@@ -90,4 +90,4 @@ Need to change relfilenode while vacuuming yezzey relations, since yezzey does n
 
 
 Install:
-see dev-scrupt folder
+see dev-script folder
