@@ -243,8 +243,6 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
 
   Oid loadSpcOid = YezzeyGetRelationOriginTablespaceOid(NULL, NULL, RelationGetRelid(aorel));
 
-  elog(WARNING, "laoding into %d",loadSpcOid );
-
   /* Perform actual deletion of yezzey virtual index and metadata changes */
   (void)YezzeyATExecSetTableSpace(aorel, reloid, loadSpcOid);
 
