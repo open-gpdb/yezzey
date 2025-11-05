@@ -12,6 +12,9 @@ SELECT * FROM yezzey_define_offload_policy('y_a_toast_t');
 
 ALTER TABLE y_a_toast_t ADD COLUMN z text;
 
+-- test multiple columns
+ALTER TABLE y_a_toast_t ADD COLUMN z2 text, add column z3 text;
+
 DROP TABLE y_a_toast_t;
 
 \! echo AO TOAST ALTER test OK

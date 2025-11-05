@@ -243,6 +243,8 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
 
   Oid loadSpcOid = YezzeyGetRelationOriginTablespaceOid(NULL, NULL, RelationGetRelid(aorel));
 
+  elog(WARNING, "laoding into %d",loadSpcOid );
+
   /* Perform actual deletion of yezzey virtual index and metadata changes */
   (void)YezzeyATExecSetTableSpace(aorel, reloid, loadSpcOid);
 
@@ -1322,10 +1324,13 @@ yezzey_ProcessUtility_hook(Node *parsetree,
     }
 
 #if IsModernYezzey
-    return prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
+    prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
 #else
-    return prev_ProcessUtility_hook(parsetree, queryString, context, params, dest, completionTag);
+    prev_ProcessUtility_hook(parsetree, queryString, context, params, dest, completionTag);
 #endif
+
+	/* Reset it */
+	newTOASTTableSpace = InvalidOid;
 }
 
 static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
