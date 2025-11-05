@@ -1322,10 +1322,13 @@ yezzey_ProcessUtility_hook(Node *parsetree,
     }
 
 #if IsModernYezzey
-    return prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
+    prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params, queryEnv, dest, qc);
 #else
-    return prev_ProcessUtility_hook(parsetree, queryString, context, params, dest, completionTag);
+    prev_ProcessUtility_hook(parsetree, queryString, context, params, dest, completionTag);
 #endif
+
+	/* Reset it */
+	newTOASTTableSpace = InvalidOid;
 }
 
 static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
