@@ -1,42 +1,11 @@
+/* Fixes OTM feature */
 
-CREATE TABLE yezzey.offload_tablespace_map(
-    reloid                 OID PRIMARY KEY,
-    origin_tablespace_name NAME
-) DISTRIBUTED REPLICATED;
-
-SET allow_segment_DML to on;
-
-CREATE OR REPLACE FUNCTION
-yezzey_upgrade_function() RETURNS VOID
-AS $$ 
-BEGIN
-
-    -- SET gp_session_role to 'utility';
-    INSERT INTO 
-        yezzey.offload_tablespace_map
-    SELECT 
-        reloid, 'pg_default'
-    FROM 
-        yezzey.offload_metadata
-    WHERE 
-        relpolicy = 1
-    ;
-
-    -- RESET gp_session_role;
-END;
-$$ 
-EXECUTE ON ALL SEGMENTS
-LANGUAGE PLPGSQL;
-
-SELECT yezzey_upgrade_function();
-
-RESET allow_segment_DML;
-
-CREATE OR REPLACE FUNCTION yezzey_define_relation_offload_policy_internal_prepare(reloid OID) RETURNS void
-AS 'MODULE_PATHNAME'
+CREATE OR REPLACE FUNCTION yezzey_define_relation_offload_policy_internal_prepare_master(reloid OID) RETURNS void
+AS 'MODULE_PATHNAME','yezzey_define_relation_offload_policy_internal_prepare'
 VOLATILE
-EXECUTE ON ALL SEGMENTS
+EXECUTE ON MASTER
 LANGUAGE C STRICT;
+
 
 CREATE OR REPLACE FUNCTION
 yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
@@ -76,6 +45,10 @@ BEGIN
         v_reloid
     );
 
+    PERFORM yezzey_define_relation_offload_policy_internal_prepare_master(
+        v_reloid
+    );
+
     SELECT parrelid 
          FROM pg_partition
     INTO v_par_reloid 
@@ -109,5 +82,3 @@ BEGIN
 END;
 $$
 LANGUAGE PLPGSQL;
-
-DROP FUNCTION yezzey_upgrade_function();
