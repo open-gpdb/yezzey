@@ -1292,7 +1292,7 @@ yezzey_ProcessUtility_hook(Node *parsetree,
         if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID) {
           foreach(lcmd, stmt->cmds)
           {
-            newTOASTTableSpace = DEFAULTTABLESPACE_OID;
+            newTOASTTableSpace = YezzeyGetRelationOriginTablespaceOid(NULL, NULL, RelationGetRelid(rel));
           }
         }
 
