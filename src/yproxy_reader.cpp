@@ -73,6 +73,7 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
   // preparing done, read data
 
   while (1) {
+    CHECK_FOR_INTERRUPTS();
     if (current_chunk_remaining_bytes_ == 0) {
       // no more data to read
       if (order_ptr_ == order_.size()) {

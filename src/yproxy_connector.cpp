@@ -87,6 +87,7 @@ int commonWriteFull(int client_fd_, const std::vector<char> &msg) {
   int len = msg.size();
   int sync_offset = 0;
   while (len > 0) {
+    CHECK_FOR_INTERRUPTS();
     auto rc = ::write(client_fd_, msg.data() + sync_offset, len);
 
     if (rc <= 0) {
