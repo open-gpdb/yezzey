@@ -192,6 +192,12 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
                                    values, nulls);
 
   simple_heap_insert(offload_tablespace_map_rel, nofftuple);
+#if IsGreenplum6
+    CatalogUpdateIndexes(offload_tablespace_map_rel, nofftuple);
+#else
+	CatalogTupleInsert(offload_tablespace_map_rel, nofftuple);
+#endif
+
   heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
   heap_freetuple(nofftuple);
