@@ -238,12 +238,22 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     auto offtuple = heap_form_tuple(RelationGetDescr(offrel), values, nulls);
 
     simple_heap_update(offrel, &oldtuple->t_self, offtuple);
+#if IsGreenplum6
+    CatalogUpdateIndexes(offrel, offtuple);
+#else
+    CatalogTupleUpdate(offrel, &oldtuple->t_self, offtuple);
+#endif
 
     heap_freetuple(offtuple);
   } else {
     auto offtuple = heap_form_tuple(RelationGetDescr(offrel), values, nulls);
 
     simple_heap_insert(offrel, offtuple);
+#if IsGreenplum6
+    CatalogUpdateIndexes(offrel, offtuple);
+#else
+    CatalogTupleUpdate(offrel, &oldtuple->t_self, offtuple);
+#endif
 
     heap_freetuple(offtuple);
   }
@@ -393,7 +403,12 @@ void YezzeyLoadRelation(Oid i_reloid) {
 
     auto offtuple = heap_form_tuple(RelationGetDescr(rel), values, nulls);
 
+#if IsGreenplum6
     simple_heap_update(rel, &oldtuple->t_self, offtuple);
+    CatalogUpdateIndexes(rel, offtuple);
+#else
+    CatalogTupleUpdate(rel, &oldtuple->t_self, offtuple);
+#endif
 
     heap_freetuple(offtuple);
   } else {
