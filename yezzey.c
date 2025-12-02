@@ -1277,11 +1277,13 @@ yezzey_ProcessUtility_hook(Node *parsetree,
   }
 #endif
 
+#if IsGreenplum6
   newTOASTTableSpace = InvalidOid;
+#endif
 
-	switch (nodeTag(parsetree))
-
-	{
+  switch (nodeTag(parsetree))
+  {
+#if IsGreenplum6
     case T_AlterTableStmt:
       {
         ListCell  *lcmd;
@@ -1299,10 +1301,11 @@ yezzey_ProcessUtility_hook(Node *parsetree,
         relation_close(rel,NoLock);
       }
       break;
-		case T_VacuumStmt:
+#endif
+      case T_VacuumStmt:
 #if IsGreenplum6
-			{
-				VacuumStmt *stmt = (VacuumStmt *) parsetree;
+      {
+        VacuumStmt *stmt = (VacuumStmt *) parsetree;
         if(!stmt->relation){
           break;
         }
@@ -1314,9 +1317,9 @@ yezzey_ProcessUtility_hook(Node *parsetree,
           }
         }
         relation_close(rel,NoLock);
-			}
+      }
 #endif
-			break;
+      break;
     default:
       break;
     }
@@ -1327,8 +1330,10 @@ yezzey_ProcessUtility_hook(Node *parsetree,
     prev_ProcessUtility_hook(parsetree, queryString, context, params, dest, completionTag);
 #endif
 
-	/* Reset it */
-	newTOASTTableSpace = InvalidOid;
+#if IsGreenplum6
+    /* Reset it */
+    newTOASTTableSpace = InvalidOid;
+#endif	
 }
 
 static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
