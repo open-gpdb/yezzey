@@ -241,7 +241,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
     elog(ERROR, "attempted to load non-offloaded relation");
   }
 
-  Oid loadSpcOid = YezzeyGetRelationOriginTablespaceOid(NULL, NULL, RelationGetRelid(aorel));
+  Oid loadSpcOid = YezzeyGetRelationOriginTablespaceOid(get_namespace_name(aorel->rd_rel->relnamespace), RelationGetRelationName(aorel), RelationGetRelid(aorel));
 
   /* Perform actual deletion of yezzey virtual index and metadata changes */
   (void)YezzeyATExecSetTableSpace(aorel, reloid, loadSpcOid);
@@ -1294,7 +1294,7 @@ yezzey_ProcessUtility_hook(Node *parsetree,
         if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID) {
           foreach(lcmd, stmt->cmds)
           {
-            newTOASTTableSpace = YezzeyGetRelationOriginTablespaceOid(NULL, NULL, RelationGetRelid(rel));
+            newTOASTTableSpace = YezzeyGetRelationOriginTablespaceOid(get_namespace_name(rel->rd_rel->relnamespace), RelationGetRelationName(rel), RelationGetRelid(rel));
           }
         }
 

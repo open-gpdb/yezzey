@@ -240,6 +240,11 @@ SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_clas
  tab2
 (1 row)
 
+-- test simple reorgnaze & vacuum 
+ALTER TABLE yezzey_otm_regaoty_1 SET WITH (reorganize=TRUE);
+VACUUM FULL yezzey_otm_regaoty_1;
+ALTER TABLE yezzey_otm_regaoty_2 SET WITH (reorganize=TRUE);
+VACUUM FULL yezzey_otm_regaoty_2;
 DROP TABLE yezzey_otm_regaoty_1;
 DROP TABLE yezzey_otm_regaoty_2;
 DROP TABLESPACE tab1;

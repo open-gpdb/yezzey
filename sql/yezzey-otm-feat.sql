@@ -25,10 +25,8 @@ INSERT INTO yezzey_otm_regaoty_1 VALUES (1111, repeat('a', 2323323));
 CREATE TABLE yezzey_otm_regaoty_2(i INT, s TEXT) WITH (appendonly=true) TABLESPACE tab2;
 INSERT INTO yezzey_otm_regaoty_2 SELECT i, 'dssd' FROM generate_series(1, 100000) i;
 
-
 ALTER TABLE yezzey_otm_regaoty_2 ALTER COLUMN s SET STORAGE EXTERNAL;
 INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
-
 
 SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
 
@@ -89,6 +87,13 @@ SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_clas
 SELECT yezzey_load_relation('yezzey_otm_regaoty_2');
 
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_2');
+
+-- test simple reorgnaze & vacuum 
+ALTER TABLE yezzey_otm_regaoty_1 SET WITH (reorganize=TRUE);
+VACUUM FULL yezzey_otm_regaoty_1;
+
+ALTER TABLE yezzey_otm_regaoty_2 SET WITH (reorganize=TRUE);
+VACUUM FULL yezzey_otm_regaoty_2;
 
 DROP TABLE yezzey_otm_regaoty_1;
 DROP TABLE yezzey_otm_regaoty_2;
