@@ -37,8 +37,8 @@ static Oid YezzeyResolveTablespaceMapOid() {
   ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(YEZZEY_AUX_NAMESPACE));
 
-  auto scan =
-      yezzey_systable_beginscan(classrel, ClassNameNspIndexId, true, snap, 2, skey);
+  auto scan = yezzey_systable_beginscan(classrel, ClassNameNspIndexId, true,
+                                        snap, 2, skey);
 
   auto oldtuple = yezzey_systable_getnext(scan);
 
@@ -50,9 +50,8 @@ static Oid YezzeyResolveTablespaceMapOid() {
     return InvalidOid;
   }
 
-
 #if PG_VERSION_NUM >= 120000
-  Oid yezzey_tablespace_map_oid = ((Form_pg_class) GETSTRUCT(oldtuple))->oid;
+  Oid yezzey_tablespace_map_oid = ((Form_pg_class)GETSTRUCT(oldtuple))->oid;
 #else
   Oid yezzey_tablespace_map_oid = HeapTupleGetOid(oldtuple);
 #endif
@@ -125,7 +124,8 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
       return "pg_default";
     }
 
-    elog(ERROR, "failed to map relation %d to its origin tablespace", i_reloid);
+    elog(ERROR, "failed to map relation %d (%s.%s) to its origin tablespace",
+         i_reloid, nspname, relname);
   }
 
   auto rv = ((Form_offload_tablespace_map)GETSTRUCT(offtuple))
@@ -193,9 +193,9 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
 
   simple_heap_insert(offload_tablespace_map_rel, nofftuple);
 #if IsGreenplum6
-    CatalogUpdateIndexes(offload_tablespace_map_rel, nofftuple);
+  CatalogUpdateIndexes(offload_tablespace_map_rel, nofftuple);
 #else
-	CatalogTupleInsert(offload_tablespace_map_rel, nofftuple);
+  CatalogTupleInsert(offload_tablespace_map_rel, nofftuple);
 #endif
 
   heap_close(offload_tablespace_map_rel, RowExclusiveLock);
@@ -217,7 +217,8 @@ void YezzeyRegisterRelationOriginTablespace(Oid i_reloid, Oid i_reltablespace) {
   if (!use_otm_feature && i_reltablespace != DEFAULTTABLESPACE_OID)
     ereport(ERROR,
             (errcode(ERRCODE_UNDEFINED_OBJECT),
-             errmsg("tablespace with OID %u is non-default, offload rejrected", i_reltablespace),
+             errmsg("tablespace with OID %u is non-default, offload rejrected",
+                    i_reltablespace),
              errdetail("turn yezzey.use_otm_feature GUC on")));
 
   auto spcname = &((Form_pg_tablespace)GETSTRUCT(spctuple))->spcname;
@@ -233,7 +234,15 @@ void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
 
   auto key = y_stringify_rv(rv->schemaname, rv->relname);
 
+  auto r = relation_open(sourceRelationOid, NoLock);
+
+  auto key_origin = y_stringify_rv(get_namespace_name(r->rd_rel->relnamespace),
+                                   RelationGetRelationName(r));
+  yezzey_otm_hint[key_origin] = val;
+
   yezzey_otm_hint[key] = val;
+
+  relation_close(r, NoLock);
 }
 
 void YezzeyTruncateOTMHint(void) { yezzey_otm_hint.clear(); }
