@@ -202,8 +202,8 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   size_t position = 0;
 
   RelFileNode rnode;
-  /* coords does not contain tablespace */
-  rnode.spcNode = DEFAULTTABLESPACE_OID;
+  /* coords does contain origin tablespace */
+  rnode.spcNode = coords.spcNode;
   rnode.dbNode = rel->rd_node.dbNode;
   rnode.relNode = rel->rd_node.relNode;
 
