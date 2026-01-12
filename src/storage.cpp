@@ -251,12 +251,12 @@ int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
 
     if (!HeapTupleIsValid(tp)) {
       elog(ERROR, "yezzey: failed to get namescape name of relation %s",
-           aorel->rd_rel->relname.data);
+           RelationGetRelationName(aorel));
     }
 
     Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
     nspname = std::string(NameStr(nsptup->nspname));
-    relname = std::string(aorel->rd_rel->relname.data);
+    relname = std::string(RelationGetRelationName(aorel));
     ReleaseSysCache(tp);
   }
 
@@ -337,12 +337,12 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
 
   if (!HeapTupleIsValid(tp)) {
     elog(ERROR, "yezzey: failed to get namescape name of relation %s",
-         aorel->rd_rel->relname.data);
+         RelationGetRelationName(aorel));
   }
 
   auto nsptup = (Form_pg_namespace)GETSTRUCT(tp);
   auto nspname = std::string(NameStr(nsptup->nspname));
-  auto relname = std::string(aorel->rd_rel->relname.data);
+  auto relname = std::string(RelationGetRelationName(aorel));
   auto storage_path =
       !external_storage_path ? "" : std::string(external_storage_path);
   ReleaseSysCache(tp);
@@ -372,7 +372,7 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
 
   if (virtual_sz == -1) {
     elog(ERROR, "yezzey: failed to stat size of relation %s",
-         aorel->rd_rel->relname.data);
+         RelationGetRelationName(aorel));
   }
 
   elog(NOTICE,
@@ -438,7 +438,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   if (!HeapTupleIsValid(tp)) {
     elog(ERROR, "yezzey: failed to get namescape name of relation %s",
-         aorel->rd_rel->relname.data);
+         RelationGetRelationName(aorel));
   }
 
   Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
@@ -455,7 +455,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   auto coords = relnodeCoord(spcNode, rnode.dbNode, rnode.relNode, segno);
 
   auto ioadv = std::make_shared<IOadv>(
-      nspname, std::string(aorel->rd_rel->relname.data),
+      nspname, std::string(RelationGetRelationName(aorel)),
       std::string(storage_class /*storage_class*/), multipart_chunksize,
       coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
       yproxy_socket);
@@ -464,7 +464,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   auto virtual_sz = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
   if (virtual_sz == -1) {
     elog(ERROR, "yezzey: failed to stat size of relation %s",
-         aorel->rd_rel->relname.data);
+         RelationGetRelationName(aorel));
   }
 
   *external_bytes = virtual_sz;
@@ -503,7 +503,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
   if (!HeapTupleIsValid(tp)) {
     elog(ERROR, "yezzey: failed to get namescape name of relation %s",
-         aorel->rd_rel->relname.data);
+         RelationGetRelationName(aorel));
   }
 
   auto nsptup = (Form_pg_namespace)GETSTRUCT(tp);
@@ -512,7 +512,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   ReleaseSysCache(tp);
 
   auto ioadv = std::make_shared<IOadv>(
-      nspname, std::string(aorel->rd_rel->relname.data),
+      nspname, std::string(RelationGetRelationName(aorel)),
       std::string(storage_class /*storage_class*/), multipart_chunksize,
       coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
       yproxy_socket);

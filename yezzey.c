@@ -535,11 +535,11 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
     ReleaseSysCache(tp);
   } else {
     elog(ERROR, "yezzey: failed to get namescape name of relation %s",
-         aorel->rd_rel->relname.data);
+        RelationGetRelationName(aorel));
   }
 
   (void)getYezzeyExternalStoragePathByCoords(
-      nspname, aorel->rd_rel->relname.data, rnode.spcNode, rnode.dbNode,
+      nspname, RelationGetRelationName(aorel), rnode.spcNode, rnode.dbNode,
       rnode.relNode, segno, GpIdentity.segindex, &ptr);
 
   pgptr = pstrdup(ptr);
