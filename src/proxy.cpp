@@ -280,16 +280,8 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName, int fileF
   auto aorel = relation_open(reloid, NoLock);
 
 	auto nspname = get_namespace_name(aorel->rd_rel->relnamespace);
-  int total_segfiles;
-  Oid segrelid;
-
-  auto appendOnlyMetaDataSnapshot = SnapshotSelf;
-
-  auto segfile_array =
-        GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles, &segrelid);
-
   
-  auto rv = yezzey_AORelOpenSegFile_internal(reloid, nspname, RelationGetRelationName(aorel), fileName, fileFlags, 0, segfile_array[0]->modcount);
+  auto rv = yezzey_AORelOpenSegFile_internal(reloid, nspname, RelationGetRelationName(aorel), fileName, fileFlags, 0, 1);
 
   relation_close(aorel, NoLock);
 
@@ -366,6 +358,7 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
 
 #if IsModernYezzey
   yfd.op_start_offset = offset;
+  yfd.modcount = offset + 1;
   yfd.offset = offset;
 #endif
 
