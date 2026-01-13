@@ -1,0 +1,58 @@
+CREATE EXTENSION yezzey;
+ALTER EXTENSION yezzey UPDATE TO '1.8.7';
+SET client_min_messages TO WARNING;
+-- AO
+CREATE TABLE regaotylol187(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
+INSERT INTO regaotylol187 SELECT * FROM generate_series(1, 100000);
+SELECT * FROM yezzey_define_offload_policy('regaotylol187');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT yezzey_load_relation('regaotylol187');
+              yezzey_load_relation              
+------------------------------------------------
+ loaded relation regaotylol187 to local storage
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
+ reltablespace 
+---------------
+          1663
+(1 row)
+
+SELECT * FROM yezzey_define_offload_policy('regaotylol187');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT count(1) FROM regaotylol187;
+ count  
+--------
+ 100000
+(1 row)
+
+INSERT INTO regaotylol187 SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM regaotylol187;
+ count  
+--------
+ 200000
+(1 row)
+
+DROP TABLE regaotylol187;
+DROP EXTENSION yezzey;
+CHECKPOINT;
