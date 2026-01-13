@@ -67,3 +67,59 @@ BEGIN
 END;
 $$
 LANGUAGE PLPGSQL;
+
+DROP FUNCTION yezzey_init_metadata();
+
+CREATE FUNCTION yezzey_init_metadata()
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON MASTER
+LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_init_metadata_seg();
+
+CREATE FUNCTION yezzey_init_metadata_seg()
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_offload_relation_to_external_path(OID, BOOLEAN, TEXT);
+
+DROP FUNCTION yezzey_offload_relation(OID, BOOLEAN);
+
+CREATE FUNCTION 
+yezzey_offload_relation(reloid OID, remove_locally BOOLEAN)
+RETURNS TABLE (status OID)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_set_relation_expirity_seg(OID, INT, TIMESTAMP);
+
+CREATE FUNCTION yezzey_set_relation_expirity_seg(
+    i_reloid OID,
+    i_relpolicy INT,
+    i_relexp TIMESTAMP
+)
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_relation_expirity_seg(OID, INT, TIMESTAMP);
+
+CREATE FUNCTION yezzey_relation_expirity_seg(
+    i_reloid OID,
+    i_relpolicy INT,
+    i_relexp TIMESTAMP
+)
+RETURNS TABLE (status BOOLEAN)
+AS $$ 
+SELECT yezzey_set_relation_expirity_seg(i_reloid, i_relpolicy, i_relexp);
+$$
+EXECUTE ON ALL SEGMENTS
+LANGUAGE SQL;
