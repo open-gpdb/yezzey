@@ -575,14 +575,11 @@ $$
 EXECUTE ON ALL SEGMENTS
 LANGUAGE PLPGSQL;
 
-
-
 CREATE TABLE yezzey.auto_offload_relations(
     reloid OID,
     expire_date DATE
 )
 DISTRIBUTED REPLICATED;
-
 
 CREATE FUNCTION yezzey_auto_offload_relation(offload_nspname TEXT, offload_relname TEXT, expire_date DATE) RETURNS VOID
 AS $$
