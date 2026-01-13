@@ -498,8 +498,7 @@ BEGIN
         reloid = v_reloid AND relpolicy = 1;
 
     IF FOUND THEN
-        RAISE NOTICE 'relation % already offloaded', i_offload_relname;
-	RETURN;
+	    RETURN QUERY SELECT 'relation ' || i_offload_relname || ' already offloaded';
     END IF;
 
     PERFORM yezzey_define_relation_offload_policy_internal_prepare(
@@ -510,21 +509,26 @@ BEGIN
         v_reloid
     );
 
+/*
     SELECT parrelid 
          FROM pg_partition
     INTO v_par_reloid 
     WHERE parrelid = v_reloid;
+*/
+
+    -- non-partitioned relation
+    PERFORM yezzey_define_relation_offload_policy_internal_seg(
+        v_reloid
+    );
+    PERFORM yezzey_define_relation_offload_policy_internal(
+        v_reloid
+    );
 
     IF NOT FOUND THEN
-        -- non-partitioned relation
-        PERFORM yezzey_define_relation_offload_policy_internal_seg(
-            v_reloid
-        );
-        PERFORM yezzey_define_relation_offload_policy_internal(
-            v_reloid
-        );
+
     ELSE 
 
+    /*
          FOR v_tmprow IN 
              SELECT (i_offload_nspname||'.'||partitiontablename)::regclass::oid FROM pg_partitions WHERE schemaname = i_offload_nspname AND tablename = i_offload_relname
          LOOP
@@ -538,6 +542,8 @@ BEGIN
                  v_tmprow
              );
          END LOOP;
+
+    */
 
     END IF;
 
