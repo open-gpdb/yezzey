@@ -213,3 +213,110 @@ BEGIN
 END;
 $$
 LANGUAGE PLPGSQL;
+
+DROP FUNCTION yezzey_delete_obsolete(BOOLEAN);
+
+CREATE FUNCTION yezzey_delete_obsolete(
+    crazyDrop BOOLEAN DEFAULT FALSE
+)
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_collect_obsolete();
+
+CREATE FUNCTION yezzey_collect_obsolete()
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+
+DROP FUNCTION yezzey_vacuum_garbage(BOOLEAN, BOOLEAN);
+
+-- New utilities & functions
+CREATE FUNCTION yezzey_vacuum_garbage(
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE
+)
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_vacuum_relation(OID, BOOLEAN, BOOLEAN);
+
+CREATE FUNCTION yezzey_vacuum_relation(
+    reloid OID,
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE
+)
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_vacuum_relation(TEXT, BOOLEAN, BOOLEAN);
+
+CREATE FUNCTION yezzey_vacuum_relation(
+    relname TEXT,
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE
+)
+RETURNS TABLE (status BOOLEAN)
+AS $$ 
+BEGIN
+SELECT yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop);
+END;
+$$
+LANGUAGE PLPGSQL;
+
+
+DROP FUNCTION yezzey_vacuum_garbage_relation(TEXT, TEXT, BOOLEAN, BOOLEAN);
+
+CREATE FUNCTION yezzey_vacuum_garbage_relation(
+    i_offload_nspname TEXT,
+    i_offload_relname TEXT,
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE
+)
+RETURNS TABLE (status BOOLEAN)
+AS $$
+DECLARE
+    v_reloid OID;
+BEGIN
+    SELECT 
+        oid
+    FROM 
+        pg_catalog.pg_class
+    INTO v_reloid 
+    WHERE 
+        relname = i_offload_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_offload_nspname);
+
+    RETURN QUERY SELECT yezzey_vacuum_relation(
+        v_reloid,confirm,crazyDrop
+    );
+END;
+$$
+LANGUAGE PLPGSQL;
+
+
+DROP FUNCTION yezzey_vacuum_garbage_relation(TEXT, BOOLEAN, BOOLEAN);
+
+CREATE FUNCTION
+yezzey_vacuum_garbage_relation(
+    i_offload_relname TEXT,
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE)
+RETURNS TABLE (status BOOLEAN)
+AS $$
+BEGIN
+    RETURN QUERY SELECT yezzey_vacuum_garbage_relation('public', i_offload_relname, confirm, crazyDrop);
+END;
+$$
+LANGUAGE PLPGSQL;
