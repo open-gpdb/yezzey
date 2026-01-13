@@ -5,7 +5,7 @@ CREATE TABLE yezzey.yezzey_virtual_index_stale AS
 CREATE TABLE yezzey.offload_metadata_stale AS
     SELECT * FROM yezzey.offload_metadata LIMIT 0;
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey.yezzey_fixup_stale_metadata() RETURNS VOID
 AS
 $$

@@ -1,13 +1,13 @@
 /* Fixes OTM feature */
 
-CREATE OR REPLACE FUNCTION yezzey_define_relation_offload_policy_internal_prepare_master(reloid OID) RETURNS void
+CREATE FUNCTION yezzey_define_relation_offload_policy_internal_prepare_master(reloid OID) RETURNS void
 AS 'MODULE_PATHNAME','yezzey_define_relation_offload_policy_internal_prepare'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
 RETURNS VOID
 AS $$

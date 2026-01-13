@@ -7,7 +7,7 @@
 -- see ao_foreach_extent_file
 -- 
 
-CREATE OR REPLACE FUNCTION 
+CREATE FUNCTION 
 yezzey_offload_relation(reloid OID, remove_locally BOOLEAN) RETURNS void
 AS 'MODULE_PATHNAME'
 VOLATILE
@@ -15,7 +15,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_load_relation_seg(reloid OID, dest_path TEXT)
 RETURNS void
 AS 'MODULE_PATHNAME'
@@ -23,7 +23,7 @@ VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_load_relation(reloid OID, dest_path TEXT)
 RETURNS void
 AS 'MODULE_PATHNAME'
@@ -31,7 +31,7 @@ VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION yezzey_offload_relation_to_external_path(
+CREATE FUNCTION yezzey_offload_relation_to_external_path(
     reloid OID, 
     remove_locally BOOLEAN, 
     external_storage_path TEXT
@@ -41,7 +41,7 @@ VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION yezzey_delete_chunk(
+CREATE FUNCTION yezzey_delete_chunk(
     external_storage_path TEXT
 ) RETURNS void
 AS 'MODULE_PATHNAME'
@@ -50,7 +50,7 @@ EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
 
-CREATE OR REPLACE FUNCTION yezzey_show_relation_external_path(
+CREATE FUNCTION yezzey_show_relation_external_path(
     reloid OID,
     segno INT
 ) RETURNS TEXT
@@ -59,7 +59,7 @@ VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION yezzey_show_relation_external_path(
+CREATE FUNCTION yezzey_show_relation_external_path(
     offload_relname TEXT,
     segno INT
 ) RETURNS TEXT
@@ -73,13 +73,13 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE SQL;
 
 
-CREATE OR REPLACE FUNCTION yezzey_define_relation_offload_policy_internal(reloid OID) RETURNS void
+CREATE FUNCTION yezzey_define_relation_offload_policy_internal(reloid OID) RETURNS void
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION yezzey_define_relation_offload_policy_internal_seg(reloid OID) RETURNS void
+CREATE FUNCTION yezzey_define_relation_offload_policy_internal_seg(reloid OID) RETURNS void
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
@@ -87,13 +87,13 @@ LANGUAGE C STRICT;
 
 CREATE TYPE offload_policy AS ENUM ('remote_always', 'cache_writes');
 
-CREATE OR REPLACE FUNCTION yezzey_init_metadata() RETURNS void
+CREATE FUNCTION yezzey_init_metadata() RETURNS void
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION yezzey_init_metadata_seg() RETURNS void
+CREATE FUNCTION yezzey_init_metadata_seg() RETURNS void
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
@@ -111,7 +111,7 @@ GRANT USAGE ON SCHEMA yezzey to public;
 GRANT SELECT ON yezzey.offload_metadata TO PUBLIC;
 
 -- same as below but without partitions checks
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_define_offload_policy_s(i_offload_nspname TEXT, i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
 RETURNS VOID
 AS $$
@@ -143,7 +143,7 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
 RETURNS VOID
 AS $$
@@ -190,7 +190,7 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
-CREATE OR REPLACE FUNCTION yezzey_set_relation_expirity_seg(
+CREATE FUNCTION yezzey_set_relation_expirity_seg(
     i_reloid OID,
     i_relpolicy INT,
     i_relexp TIMESTAMP
@@ -201,7 +201,7 @@ VOLATILE
 LANGUAGE C STRICT;
 
 
-CREATE OR REPLACE FUNCTION yezzey_relation_expirity_seg(
+CREATE FUNCTION yezzey_relation_expirity_seg(
     i_reloid OID,
     i_relpolicy INT,
     i_relexp TIMESTAMP
@@ -214,7 +214,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE SQL;
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_set_relation_expirity(i_offload_nspname TEXT, i_offload_relname TEXT, i_relexp TIMESTAMP, 
     i_relpolicy offload_policy DEFAULT 'remote_always')
 RETURNS VOID
@@ -244,7 +244,7 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_define_offload_policy(i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
 RETURNS VOID
 AS $$
@@ -254,7 +254,7 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_offload_relation(offload_nspname TEXT, offload_relname TEXT, remove_locally BOOLEAN DEFAULT TRUE)
 RETURNS VOID
 AS $$
@@ -283,7 +283,7 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_offload_relation(offload_relname TEXT, remove_locally BOOLEAN DEFAULT TRUE)
 RETURNS VOID
 AS $$
@@ -294,7 +294,7 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_offload_relation_to_external_path(
     offload_nspname TEXT,
     offload_relname TEXT, 
@@ -328,7 +328,7 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_offload_relation_to_external_path(
     offload_relname TEXT, 
     remove_locally BOOLEAN DEFAULT TRUE, 
@@ -343,7 +343,7 @@ LANGUAGE PLPGSQL;
 
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_load_relation(load_nspname TEXT, load_relname TEXT)
 RETURNS VOID
 AS $$
@@ -379,7 +379,7 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_load_relation(load_relname TEXT)
 RETURNS VOID
 AS $$
@@ -398,7 +398,7 @@ LANGUAGE PLPGSQL;
 
 -- external bytes always commited
 
-CREATE OR REPLACE FUNCTION yezzey_offload_relation_status_internal(reloid OID) 
+CREATE FUNCTION yezzey_offload_relation_status_internal(reloid OID) 
 RETURNS TABLE (reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS 'MODULE_PATHNAME'
 VOLATILE
@@ -406,21 +406,21 @@ LANGUAGE C STRICT;
 
 
 -- more detailed debug about relations file segments
-CREATE OR REPLACE FUNCTION yezzey_offload_relation_status_per_filesegment(reloid OID) 
+CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(reloid OID) 
 RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS 'MODULE_PATHNAME'
 VOLATILE
 LANGUAGE C STRICT;
 
 -- even more detailed debug about relations file segments
-CREATE OR REPLACE FUNCTION yezzey_relation_describe_external_storage_structure_internal(reloid OID) 
+CREATE FUNCTION yezzey_relation_describe_external_storage_structure_internal(reloid OID) 
 RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS 'MODULE_PATHNAME'
 VOLATILE
 LANGUAGE C STRICT;
 
 
-CREATE OR REPLACE FUNCTION yezzey_offload_relation_status(
+CREATE FUNCTION yezzey_offload_relation_status(
     i_nspname TEXT,
     i_relname TEXT
 ) 
@@ -455,7 +455,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION yezzey_offload_relation_status(i_relname TEXT) 
+CREATE FUNCTION yezzey_offload_relation_status(i_relname TEXT) 
 RETURNS TABLE (offload_reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS $$
 BEGIN
@@ -472,7 +472,7 @@ LANGUAGE PLPGSQL;
 
 
 
-CREATE OR REPLACE FUNCTION yezzey_offload_relation_status_per_filesegment(
+CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(
     i_nspname TEXT,
     i_relname TEXT
     ) 
@@ -508,7 +508,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION yezzey_offload_relation_status_per_filesegment(i_relname TEXT) 
+CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(i_relname TEXT) 
 RETURNS TABLE (offload_reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS $$
 DECLARE
@@ -527,7 +527,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION yezzey_relation_describe_external_storage_structure(
+CREATE FUNCTION yezzey_relation_describe_external_storage_structure(
     i_nspname TEXT, i_relname TEXT) 
 RETURNS TABLE (offload_reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS $$
@@ -560,7 +560,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE PLPGSQL;
 
 
-CREATE OR REPLACE FUNCTION yezzey_relation_describe_external_storage_structure(i_relname TEXT) 
+CREATE FUNCTION yezzey_relation_describe_external_storage_structure(i_relname TEXT) 
 RETURNS TABLE (offload_reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS $$
 BEGIN
@@ -584,19 +584,19 @@ CREATE TABLE yezzey.auto_offload_relations(
 DISTRIBUTED REPLICATED;
 
 
-CREATE OR REPLACE FUNCTION yezzey_auto_offload_relation(offload_nspname TEXT, offload_relname TEXT, expire_date DATE) RETURNS VOID
+CREATE FUNCTION yezzey_auto_offload_relation(offload_nspname TEXT, offload_relname TEXT, expire_date DATE) RETURNS VOID
 AS $$
     INSERT INTO yezzey.auto_offload_relations (reloid, expire_date) VALUES ((select oid from pg_class where relname=offload_relname), expire_date);
 $$
 LANGUAGE SQL;
 
-CREATE OR REPLACE FUNCTION yezzey_auto_offload_relation(offload_relname TEXT, expire_date DATE) RETURNS VOID
+CREATE FUNCTION yezzey_auto_offload_relation(offload_relname TEXT, expire_date DATE) RETURNS VOID
 AS $$
     SELECT yezzey_auto_offload_relation('public', offload_relname, expire_date);
 $$
 LANGUAGE SQL;
 
-CREATE OR REPLACE FUNCTION yezzey_part_date_eval(expression text) RETURNS DATE
+CREATE FUNCTION yezzey_part_date_eval(expression text) RETURNS DATE
 AS
 $$
 declare
@@ -608,7 +608,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION yezzey_dump_virtual_index(i_relname text) 
+CREATE FUNCTION yezzey_dump_virtual_index(i_relname text) 
 RETURNS 
     TABLE(
         reloid OID,
@@ -633,7 +633,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION yezzey_check_part_exr(
+CREATE FUNCTION yezzey_check_part_exr(
     i_node pg_node_tree
 )
 RETURNS BOOLEAN
