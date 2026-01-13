@@ -245,6 +245,18 @@ VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
+
+DROP FUNCTION yezzey_delete_chunk(TEXT);
+
+CREATE FUNCTION yezzey_delete_chunk(
+    external_storage_path TEXT
+)
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
 DROP FUNCTION yezzey_collect_obsolete();
 
 CREATE FUNCTION yezzey_collect_obsolete()

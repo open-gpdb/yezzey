@@ -36,8 +36,8 @@ static inline Oid yezzey_create_expire_hint_relation_internal(
       false /* is part parent */, NULL);
 #else
   auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
-      relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
-      0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
+      relname.c_str() /* relname */, PG_EXTAUX_NAMESPACE /* namespace */,
+      0 /* tablespace */, relid /* relid */, InvalidOid /* reltype oid */,
       InvalidOid /* reloftypeid */, relowner /* owner */,
       HEAP_TABLE_AM_OID /* access method*/, tupdesc /* rel tuple */, NIL,
       RELKIND_RELATION /*relkind*/, RELPERSISTENCE_PERMANENT, false /*shared*/,

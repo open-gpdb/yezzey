@@ -27,47 +27,14 @@ LANGUAGE C STRICT;
 SELECT yezzey_init_metadata();
 SELECT yezzey_init_metadata_seg();
 
-CREATE FUNCTION yezzey_offload_relation_to_external_path(
-    reloid OID, 
-    remove_locally BOOLEAN, 
-    external_storage_path TEXT
-) RETURNS void
-AS 'MODULE_PATHNAME'
-VOLATILE
-EXECUTE ON ALL SEGMENTS
-LANGUAGE C STRICT;
-
 CREATE FUNCTION yezzey_delete_chunk(
     external_storage_path TEXT
-) RETURNS void
+)
+RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
-
-
-CREATE FUNCTION yezzey_show_relation_external_path(
-    reloid OID,
-    segno INT
-) RETURNS TEXT
-AS 'MODULE_PATHNAME'
-VOLATILE
-EXECUTE ON ALL SEGMENTS
-LANGUAGE C STRICT;
-
-CREATE FUNCTION yezzey_show_relation_external_path(
-    offload_relname TEXT,
-    segno INT
-) RETURNS TEXT
-AS $$
-    SELECT * FROM yezzey_show_relation_external_path(
-        (SELECT OID FROM pg_class WHERE relname=offload_relname),
-        segno
-    )
-$$
-EXECUTE ON ALL SEGMENTS
-LANGUAGE SQL;
-
 
 CREATE TYPE offload_policy AS ENUM ('remote_always', 'cache_writes');
 
@@ -289,36 +256,9 @@ CREATE TABLE yezzey.offload_tablespace_map(
     origin_tablespace_name NAME
 ) DISTRIBUTED REPLICATED;
 
-SET allow_segment_DML to on;
 
-CREATE FUNCTION
-yezzey_upgrade_function() RETURNS VOID
-AS $$ 
-BEGIN
-
-    -- SET gp_session_role to 'utility';
-    INSERT INTO 
-        yezzey.offload_tablespace_map
-    SELECT 
-        reloid, 'pg_default'
-    FROM 
-        yezzey.offload_metadata
-    WHERE 
-        relpolicy = 1
-    ;
-
-    -- RESET gp_session_role;
-END;
-$$ 
-EXECUTE ON ALL SEGMENTS
-LANGUAGE PLPGSQL;
-
-SELECT yezzey_upgrade_function();
-
-RESET allow_segment_DML;
-
-
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS VOID
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m()
+RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
 VOLATILE
 LANGUAGE C STRICT
@@ -326,7 +266,8 @@ EXECUTE ON MASTER;
 
 
 CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
-RETURNS VOID AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
 VOLATILE
 LANGUAGE C STRICT
 EXECUTE ON ALL SEGMENTS;
@@ -344,7 +285,8 @@ CREATE TABLE yezzey.offload_metadata_stale AS
     SELECT * FROM yezzey.offload_metadata LIMIT 0;
 
 CREATE FUNCTION
-yezzey.yezzey_fixup_stale_metadata() RETURNS VOID
+yezzey.yezzey_fixup_stale_metadata()
+RETURNS TABLE (status BOOLEAN)
 AS
 $$
     WITH stale_data AS (
@@ -371,14 +313,16 @@ $$
 
 $$ LANGUAGE SQL
 EXECUTE ON ALL SEGMENTS;
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m() RETURNS VOID
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m()
+RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
 VOLATILE
 LANGUAGE C STRICT
 EXECUTE ON MASTER;
 
 
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg() RETURNS VOID 
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg()
+RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
 VOLATILE
 LANGUAGE C STRICT
@@ -394,14 +338,16 @@ DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m();
 -- create yezzey hint index here
 
 
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m() RETURNS void
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m()
+RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg() RETURNS void  
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg()
+RETURNS TABLE (status BOOLEAN) 
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
