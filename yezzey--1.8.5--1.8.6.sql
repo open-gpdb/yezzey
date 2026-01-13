@@ -7,6 +7,8 @@ EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
 
+DROP FUNCTION yezzey_define_offload_policy(TEXT, TEXT, offload_policy);
+
 CREATE FUNCTION
 yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
 RETURNS VOID
