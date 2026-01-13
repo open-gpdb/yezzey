@@ -60,6 +60,7 @@ REGRESS = \
 	  yezzey-alter\
 	  yezzey-alter-toast\
 	  yezzey-vacuum \
+	  yezzey-vacuum-garbage \
 	  yezzey-trunc \
 	  yezzey-expand \
 	  load_offload_load \
