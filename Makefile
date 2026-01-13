@@ -42,7 +42,7 @@ OBJS = \
 	smgr.o yezzey.o
 
 EXTENSION = yezzey
-DATA = yezzey--1.0.sql \
+DATA = yezzey--1.0.sql yezzey--1.8.7.sql \
 		 yezzey--1.0--1.8.sql \
 		 yezzey--1.8--1.8.1.sql \
 		 yezzey--1.8.1--1.8.2.sql \

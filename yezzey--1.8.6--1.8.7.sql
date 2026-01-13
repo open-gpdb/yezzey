@@ -100,16 +100,6 @@ LANGUAGE C STRICT;
 
 DROP FUNCTION yezzey_set_relation_expirity_seg(OID, INT, TIMESTAMP);
 
-CREATE FUNCTION yezzey_set_relation_expirity_seg(
-    i_reloid OID,
-    i_relpolicy INT,
-    i_relexp TIMESTAMP
-)
-RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
-VOLATILE
-LANGUAGE C STRICT;
-
 DROP FUNCTION yezzey_relation_expirity_seg(OID, INT, TIMESTAMP);
 
 DROP FUNCTION yezzey_define_relation_offload_policy_internal_prepare_master(OID);
@@ -120,6 +110,36 @@ AS 'MODULE_PATHNAME','yezzey_define_relation_offload_policy_internal_prepare'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_define_relation_offload_policy_internal_prepare(OID);
+
+CREATE FUNCTION yezzey_define_relation_offload_policy_internal_prepare(reloid OID)
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+
+DROP FUNCTION yezzey_define_relation_offload_policy_internal(OID);
+
+CREATE FUNCTION yezzey_define_relation_offload_policy_internal(reloid OID)
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON MASTER
+LANGUAGE C STRICT;
+
+
+DROP FUNCTION yezzey_define_relation_offload_policy_internal_seg(OID);
+
+CREATE FUNCTION yezzey_define_relation_offload_policy_internal_seg(reloid OID)
+RETURNS TABLE (status BOOLEAN)
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
 
 DROP FUNCTION yezzey_define_offload_policy(TEXT, TEXT, offload_policy);
 
