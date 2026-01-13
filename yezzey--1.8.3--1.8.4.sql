@@ -3,14 +3,14 @@
 -- create yezzey hint index here
 
 
-CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m() RETURNS void
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m() RETURNS void
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
 
-CREATE OR REPLACE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg() RETURNS void  
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg() RETURNS void  
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'
 VOLATILE
 EXECUTE ON ALL SEGMENTS

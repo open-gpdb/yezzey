@@ -6,7 +6,7 @@ CREATE TABLE yezzey.offload_tablespace_map(
 
 SET allow_segment_DML to on;
 
-CREATE OR REPLACE FUNCTION
+CREATE FUNCTION
 yezzey_upgrade_function() RETURNS VOID
 AS $$ 
 BEGIN
@@ -32,13 +32,15 @@ SELECT yezzey_upgrade_function();
 
 RESET allow_segment_DML;
 
-CREATE OR REPLACE FUNCTION yezzey_define_relation_offload_policy_internal_prepare(reloid OID) RETURNS void
+CREATE FUNCTION yezzey_define_relation_offload_policy_internal_prepare(reloid OID) RETURNS void
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION
+DROP FUNCTION yezzey_define_offload_policy(TEXT, TEXT, offload_policy);
+
+CREATE FUNCTION
 yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
 RETURNS VOID
 AS $$

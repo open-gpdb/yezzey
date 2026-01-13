@@ -1,6 +1,6 @@
 /* Bloat files deletion */
 
-CREATE OR REPLACE FUNCTION yezzey_delete_obsolete(
+CREATE FUNCTION yezzey_delete_obsolete(
     crazyDrop BOOLEAN DEFAULT FALSE
 ) RETURNS void
 AS 'MODULE_PATHNAME'
@@ -9,7 +9,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE OR REPLACE FUNCTION yezzey_collect_obsolete(
+CREATE FUNCTION yezzey_collect_obsolete(
 ) RETURNS void
 AS 'MODULE_PATHNAME'
 VOLATILE
