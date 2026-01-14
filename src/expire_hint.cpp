@@ -62,7 +62,7 @@ yezzey_create_expire_hint_idx_internal(Oid relid, const std::string &relname,
   /* ShareLock is not really needed here, but take it anyway */
   auto yezzey_rel = heap_open(YEZZEY_EXPIRE_HINT_RELATION, ShareLock);
   const char *colname_x_path = "x_path";
-  auto indexColNames = list_make1((void *) colname_x_path);
+  auto indexColNames = list_make1((void *)colname_x_path);
 
   auto indexInfo = makeNode(IndexInfo);
 

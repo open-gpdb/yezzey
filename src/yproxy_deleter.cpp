@@ -7,8 +7,8 @@ YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv, ssize_t segindx,
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                              bool confirm, bool crazyDrop)
-    : YProxyConnector(adv, segindx), garbage_cleanup_(true), confirm_(confirm), crazy_drop_(crazyDrop) {
-}
+    : YProxyConnector(adv, segindx), garbage_cleanup_(true), confirm_(confirm),
+      crazy_drop_(crazyDrop) {}
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv)
     : YProxyConnector(adv, -1), garbage_cleanup_(false), confirm_(true) {}

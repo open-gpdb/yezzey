@@ -44,7 +44,8 @@ relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
   while (start_off >= 0) {
     if (fileName[start_off] == '/') {
       ++slash_cntr;
-      if (slash_cntr == 2) break;
+      if (slash_cntr == 2)
+        break;
     }
     --start_off;
   }
