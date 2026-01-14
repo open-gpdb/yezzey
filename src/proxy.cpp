@@ -277,13 +277,13 @@ EXTERNC	File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum,
 	
 EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName, int fileFlags) {
   Assert(reloid != InvalidOid);
-  auto rel = relation_open(reloid, NoLock);
+  auto aorel = relation_open(reloid, NoLock);
 
-	auto nspname = get_namespace_name(rel->rd_rel->relnamespace);
+	auto nspname = get_namespace_name(aorel->rd_rel->relnamespace);
   
-  auto rv = yezzey_AORelOpenSegFile_internal(reloid, nspname, RelationGetRelationName(rel), fileName, fileFlags, 0, 1);
+  auto rv = yezzey_AORelOpenSegFile_internal(reloid, nspname, RelationGetRelationName(aorel), fileName, fileFlags, 0, 1);
 
-  relation_close(rel, NoLock);
+  relation_close(aorel, NoLock);
 
   return rv;
 }
@@ -358,6 +358,8 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
 
 #if IsModernYezzey
   yfd.op_start_offset = offset;
+  yfd.modcount = offset + 1;
+  yfd.offset = offset;
 #endif
 
   File actual_fd = yfd.y_vfd;
@@ -414,6 +416,7 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
 
 #if IsModernYezzey
   yfd.op_start_offset = offset;
+  yfd.offset = offset;
 #endif
 
   File actual_fd = yfd.y_vfd;

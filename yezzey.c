@@ -1385,9 +1385,15 @@ static void yezzey_define_gucs() {
                            &use_gpg_crypto, true, PGC_SUSET, 0, NULL, NULL,
                            NULL);
 
+#if IsModernYezzey 
+  DefineCustomBoolVariable("yezzey.use_otm_feature", "use OTM feature", NULL,
+                           &use_otm_feature, false, PGC_BACKEND, 0, NULL, NULL,
+                           NULL);
+#else
   DefineCustomBoolVariable("yezzey.use_otm_feature", "use OTM feature", NULL,
                            &use_otm_feature, false, PGC_POSTMASTER, 0, NULL, NULL,
                            NULL);
+#endif
 
   DefineCustomBoolVariable(
       "yezzey.autooffload", "enable auto-offloading worker", NULL,

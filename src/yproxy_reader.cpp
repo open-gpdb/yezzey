@@ -99,6 +99,9 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
       elog(WARNING, "reacquiring connection on offset %lu",
            current_chunk_offset_);
 
+      ::close(client_fd_);
+      client_fd_ = -1;
+
       if (++this->current_retry < this->retry_limit) {
         auto rrc = this->prepareYproxyConnection(order_[order_ptr_],
                                                  current_chunk_offset_);
