@@ -38,6 +38,25 @@ WHERE x_path LIKE '/segments_005/seg2/basebackups_005/yezzey/17654%';
 
 UPDATE yezzey_otm_regaoty_1 SET i = i + 1;
 
+SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1') 
+WHERE x_path LIKE '/segments_005/seg2/basebackups_005/yezzey/17654%';
+
+DELETE FROM yezzey_otm_regaoty_2 WHERE i < 50501;
+
+SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1') 
+WHERE x_path LIKE '/segments_005/seg2/basebackups_005/yezzey/17654%';
+
+VACUUM FULL yezzey_otm_regaoty_2;
+
+SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1') 
+WHERE x_path LIKE '/segments_005/seg2/basebackups_005/yezzey/17654%';
+
+SELECT yezzey_vacuum_garbage_relation('tab2','yezzey_otm_regaoty_2');
+
+SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1') 
+WHERE x_path LIKE '/segments_005/seg2/basebackups_005/yezzey/17654%';
+
+SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
 
 
 
@@ -50,7 +69,6 @@ SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
 INSERT INTO yezzey_otm_regaoty_2 SELECT * FROM generate_series(1, 100000);
 
 SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
-
 
 UPDATE yezzey_otm_regaoty_2 SET i = i + 1;
 
@@ -68,6 +86,7 @@ SELECT yezzey_vacuum_garbage_relation('tab2','yezzey_otm_regaoty_2');
 
 SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
 
+SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
 
 SELECT yezzey_load_relation('yezzey_otm_regaoty_1');
 
