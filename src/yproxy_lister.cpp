@@ -78,12 +78,13 @@ std::vector<char> YProxyLister::ConstructListRequest(std::string fileName) {
   }
   builder.endDescription();
 
-  builder.addProto(MessageTypeListV2).addString(fileName).addUInt64(settingsCnt);
+  builder.addProto(MessageTypeListV2)
+      .addString(fileName)
+      .addUInt64(settingsCnt);
 
   for (uint64_t j = 0; j < settingsCnt; ++j) {
     builder.addString(settings[j].first).addString(settings[j].second);
   }
-
 
   return builder.get();
 }

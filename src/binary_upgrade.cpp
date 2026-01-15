@@ -1,7 +1,7 @@
 
 /*
-* Yezzey.
-*/
+ * Yezzey.
+ */
 
 #include "pg.h"
 
@@ -9,8 +9,8 @@
 #include "expire_hint.h"
 #include "offload_policy.h"
 #include "virtual_index.h"
-#include "yezzey_heap_api.h"
 #include "virtual_schema.h"
+#include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
 
 void YezzeyBinaryUpgrade(void) {
@@ -35,8 +35,8 @@ void YezzeyBinaryUpgrade(void) {
   ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(YEZZEY_AUX_NAMESPACE));
 
-  auto scan = yezzey_systable_beginscan(classrel, 
-                ClassNameNspIndexId, true, snap, 2, skey);
+  auto scan = yezzey_systable_beginscan(classrel, ClassNameNspIndexId, true,
+                                        snap, 2, skey);
 
   auto systuple = yezzey_systable_getnext(scan);
 
@@ -51,7 +51,7 @@ void YezzeyBinaryUpgrade(void) {
   }
 
 #if PG_VERSION_NUM >= 120000
-  Oid yezzey_vi_oid = ((Form_pg_class) GETSTRUCT(systuple))->oid;
+  Oid yezzey_vi_oid = ((Form_pg_class)GETSTRUCT(systuple))->oid;
 #else
   Oid yezzey_vi_oid = HeapTupleGetOid(systuple);
 #endif

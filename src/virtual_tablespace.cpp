@@ -1,7 +1,7 @@
 
 /*
-* Yezzey
-*/
+ * Yezzey
+ */
 
 #include "virtual_tablespace.h"
 #include "yezzey_meta.h"

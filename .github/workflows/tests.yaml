@@ -27,10 +27,12 @@ jobs:
       - name: set PR ref
         if: ${{github.event_name == 'pull_request'}}
         run: echo "GITHUB_REF=${{github.head_ref}}" >> $GITHUB_ENV
+        run: echo "YEZZEY_GITHUB_REF=${{github.head_ref}}" >> $GITHUB_ENV
 
       - name: set push ref
         if: ${{github.event_name == 'push'}}
         run: echo "GITHUB_REF=${{github.ref_name}}" >> $GITHUB_ENV
+        run: echo "YEZZEY_GITHUB_REF=${{github.ref_name}}" >> $GITHUB_ENV
 
       - name: Build
         run: docker compose -f docker/yezzey/docker-compose.yaml build
