@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>
-#include <cstdint>
 
 const char DecryptRequest = 1;
 const char NoDecryptRequest = 0;

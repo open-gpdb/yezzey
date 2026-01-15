@@ -29,8 +29,10 @@ EXTERNC int yezzey_FileSync(SMGRFile file);
 #endif
 
 #if IsModernYezzey
-EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName, int fileFlags);
-EXTERNC	File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum, int fileFlags);
+EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
+                                     int fileFlags);
+EXTERNC File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum,
+                                         int fileFlags);
 #else
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
                                          char *relname, FileName fName,
