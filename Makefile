@@ -29,7 +29,6 @@ OBJS = \
 	src/virtual_schema.o \
 	src/partition.o \
 	src/xvacuum.o \
-	src/yproxy.o \
 	src/meta.o \
 	src/binary_upgrade.o \
 	src/msgproto.o \
