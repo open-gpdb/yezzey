@@ -383,7 +383,7 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   return 0;
 }
 
-static Oid resolveTablespaceOidByName(std::string tablespacename) {
+Oid resolveTablespaceOidByName(std::string tablespacename) {
   Relation rel;
   SysScanDesc scan;
   HeapTuple tuple;

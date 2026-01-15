@@ -9,7 +9,8 @@
 #include <string>
 #include <url.h>
 #include <util.h>
-
+#include "storage.h"
+#include "offload_tablespace_map.h"
 /*
  * yezzey_delete_chunk_internal:
  * Given external chunk path, remove it from external storage
@@ -85,21 +86,28 @@ int yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
       elog(ERROR, "yezzey: failed to get namescape name of relation %d",
            RelationGetNamespace(rel));
     }
+    auto spcNode = resolveTablespaceOidByName(
+      YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(rel)));
 
-    relnodeCoord coords{DEFAULTTABLESPACE_OID, rel->rd_node.dbNode,
+    relnodeCoord coords{spcNode, rel->rd_node.dbNode,
                         rel->rd_node.relNode, segindx};
+    relnodeCoord coords_old{spcNode, rel->rd_node.dbNode,
+                        rel->rd_node.relNode, segindx};
+
     Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
     auto nspname = std::string(nsptup->nspname.data);
     std::string relname = RelationGetRelationName(rel);
 
     std::string storage_path(
         yezzey_block_db_file_path(nspname, relname, coords, segindx));
+    std::string storage_path_old(
+        yezzey_block_db_file_path(nspname, relname, coords_old, segindx));
 
     auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
                                                    confirm, crazyDrop);
     ReleaseSysCache(tp);
 
-    if (deleter->deleteChunk(storage_path)) {
+    if (deleter->deleteChunk(storage_path) && deleter->deleteChunk(storage_path_old)) {
       return 0;
     }
 

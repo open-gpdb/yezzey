@@ -88,6 +88,8 @@ SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
 
 SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
 
+
+
 SELECT yezzey_load_relation('yezzey_otm_regaoty_1');
 
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_1');
