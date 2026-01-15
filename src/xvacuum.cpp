@@ -103,7 +103,7 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     std::string storage_path_old(
         yezzey_block_db_file_path(nspname, relname, coords_old, segindx));
     elog(NOTICE, "storage_path: %s", storage_path.c_str());
-    elog(NOTICE, "yezzey: relation virtual size calculated: %s", storage_path_old.c_str());
+    elog(NOTICE, "storage_path_old: %s", storage_path_old.c_str());
     auto ioadv = std::make_shared<IOadv>(
         nspname, relname, std::string(storage_class),
         multipart_chunksize, coords, aorel->rd_id, use_gpg_crypto, yproxy_socket);
