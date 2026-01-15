@@ -73,6 +73,8 @@ int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
 
 int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
                                             bool confirm, bool crazyDrop) {
+  elog(NOTICE, "yezzey_vacuum_garbage_relation_internal");
+
   try {
     auto rnode = aorel->rd_node;
 
