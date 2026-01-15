@@ -69,6 +69,7 @@ REGRESS = \
 	  yezzey-reorg \
 	  yezzey-vac-relation \
 	  yezzey-otm-feat \
+	  yezzey-otm-deletion \
 	  yezzey-vi-eh-unique
 
 ifdef USE_PGXS
