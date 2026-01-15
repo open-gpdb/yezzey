@@ -168,8 +168,8 @@ EXTERNC int yezzey_FileSync(SMGRFile file)
 #endif
 }
 
-static File yezzey_AORelOpenSegFile_internal(Oid reloid, char *nspname,
-                                             char *relname,
+static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
+                                             const char *relname,
                                              const char *fileName,
                                              int fileFlags, int fileMode,
                                              int64 modcount) {
@@ -293,8 +293,8 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
 }
 
 #else
-EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
-                                         char *relname, FileName fName,
+EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, const char *nspname,
+                                         const char *relname, FileName fName,
                                          int fileFlags, int fileMode,
                                          int64 modcount) {
   return yezzey_AORelOpenSegFile_internal(reloid, nspname, relname,

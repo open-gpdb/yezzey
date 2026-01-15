@@ -35,10 +35,6 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
 
   /* We do not take care of TOAST relations here */
 
-  // /* Get the bitmap sub objects */
-  // if (RelationIsBitmapIndex(rel))
-  // 	GetBitmapIndexAuxOids(rel, &relbmrelid, &relbmidxid);
-
   /* Get a modifiable copy of the relation's pg_class row */
   auto pg_class = heap_open(RelationRelationId, RowExclusiveLock);
 
