@@ -94,9 +94,6 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
                         rnode.relNode, segindx};
     relnodeCoord coords_old{rnode.spcNode, rnode.dbNode,
                         rnode.relNode, segindx};
-
-    Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
-    auto nspname = std::string(NameStr(nsptup->nspname));
     ReleaseSysCache(tp);
 
     std::string relname = RelationGetRelationName(aorel);
