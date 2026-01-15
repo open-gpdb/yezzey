@@ -51,7 +51,7 @@ VACUUM FULL yezzey_otm_regaoty_2;
 SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1') 
 WHERE x_path LIKE '/segments_005/seg2/basebackups_005/yezzey/17654%';
 
-SELECT yezzey_vacuum_garbage_relation('tab2','yezzey_otm_regaoty_2');
+SELECT yezzey_vacuum_garbage_relation('tab2','yezzey_otm_regaoty_2', true, true);
 
 SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1') 
 WHERE x_path LIKE '/segments_005/seg2/basebackups_005/yezzey/17654%';
@@ -82,7 +82,7 @@ VACUUM FULL yezzey_otm_regaoty_2;
 
 SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
 
-SELECT yezzey_vacuum_garbage_relation('tab2','yezzey_otm_regaoty_2');
+SELECT yezzey_vacuum_garbage_relation('tab2','yezzey_otm_regaoty_2', true, true);
 
 SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
 
