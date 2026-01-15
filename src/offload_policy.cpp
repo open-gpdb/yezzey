@@ -2,12 +2,11 @@
  * file: src/offload_policy.cpp
  */
 
-
-#include "yezzey_heap_api.h"
 #include "offload_policy.h"
 #include "offload.h"
-#include <unistd.h>
+#include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
+#include <unistd.h>
 
 #include "offload_tablespace_map.h"
 
@@ -201,7 +200,8 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
-  auto offrel = yezzey_relation_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
+  auto offrel =
+      yezzey_relation_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
 
   /* INSERT INTO yezzey.offload_metadata VALUES(v_reloid, 1, NULL, NOW()); */
 

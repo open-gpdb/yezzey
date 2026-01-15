@@ -169,15 +169,14 @@ EXTERNC int yezzey_FileSync(SMGRFile file)
 }
 
 static File yezzey_AORelOpenSegFile_internal(Oid reloid, char *nspname,
-                                         char *relname, const char *fileName,
-                                         int fileFlags, int fileMode,
-                                         int64 modcount)
-{
+                                             char *relname,
+                                             const char *fileName,
+                                             int fileFlags, int fileMode,
+                                             int64 modcount) {
   if (modcount != -1) {
     /* advance modcount to the value it will be after commit */
     ++modcount;
   }
-
 
   /* lookup for virtual file desc entry */
   for (SMGRFile yezzey_fd = YEZZEY_NOT_OPENED + 1;; ++yezzey_fd) {
@@ -192,7 +191,8 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, char *nspname,
 #define GPDB6YEZZEYPREF "yezzey"
 #define GPDB7YEZZEYPREF "pg_tblspc/8555/"
 
-      if (strncmp(GPDB6YEZZEYPREF, fileName, strlen(GPDB6YEZZEYPREF)) == 0 || strncmp(GPDB7YEZZEYPREF, fileName, strlen(GPDB7YEZZEYPREF)) == 0) {
+      if (strncmp(GPDB6YEZZEYPREF, fileName, strlen(GPDB6YEZZEYPREF)) == 0 ||
+          strncmp(GPDB7YEZZEYPREF, fileName, strlen(GPDB7YEZZEYPREF)) == 0) {
         offloaded = true;
         if (relname == NULL || nspname == NULL) {
           /* Should be possible only in recovery */
@@ -268,20 +268,24 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, char *nspname,
   }
 }
 
-
 #if IsModernYezzey
 
-EXTERNC	File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum, int fileFlags) {
-  return yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, NULL, 0, 0, -1);
+EXTERNC File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum,
+                                         int fileFlags) {
+  return yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, NULL, 0, 0,
+                                          -1);
 }
-	
-EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName, int fileFlags) {
+
+EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
+                                     int fileFlags) {
   Assert(reloid != InvalidOid);
   auto aorel = relation_open(reloid, NoLock);
 
-	auto nspname = get_namespace_name(aorel->rd_rel->relnamespace);
-  
-  auto rv = yezzey_AORelOpenSegFile_internal(reloid, nspname, RelationGetRelationName(aorel), fileName, fileFlags, 0, 1);
+  auto nspname = get_namespace_name(aorel->rd_rel->relnamespace);
+
+  auto rv = yezzey_AORelOpenSegFile_internal(reloid, nspname,
+                                             RelationGetRelationName(aorel),
+                                             fileName, fileFlags, 0, 1);
 
   relation_close(aorel, NoLock);
 
@@ -292,9 +296,10 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName, int fileF
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, char *nspname,
                                          char *relname, FileName fName,
                                          int fileFlags, int fileMode,
-                                         int64 modcount)
-{
-  return yezzey_AORelOpenSegFile_internal(reloid, nspname, relname, (const char*)fName, fileFlags, fileMode, modcount);
+                                         int64 modcount) {
+  return yezzey_AORelOpenSegFile_internal(reloid, nspname, relname,
+                                          (const char *)fName, fileFlags,
+                                          fileMode, modcount);
 }
 #endif
 

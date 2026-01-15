@@ -55,8 +55,8 @@ int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
 
     std::string storage_path(yezzey_block_namespace_path(segindx));
 
-    auto deleter =
-        std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx), confirm, crazyDrop);
+    auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
+                                                   confirm, crazyDrop);
 
     if (deleter->deleteChunk(storage_path)) {
       return 0;
@@ -95,8 +95,8 @@ int yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
     std::string storage_path(
         yezzey_block_db_file_path(nspname, relname, coords, segindx));
 
-    auto deleter =
-        std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx), confirm, crazyDrop);
+    auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
+                                                   confirm, crazyDrop);
     ReleaseSysCache(tp);
 
     if (deleter->deleteChunk(storage_path)) {
@@ -121,7 +121,7 @@ int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
 }
 
 int yezzey_delele_obsolete_internal(int segindx, bool crazy_drop, char *dbname,
-                                     Oid nspoid, Oid dboid) {
+                                    Oid nspoid, Oid dboid) {
   try {
     auto ioadv = std::make_shared<IOadv>(
         "", "", std::string(storage_class /*storage_class*/),
@@ -146,7 +146,7 @@ int yezzey_delele_obsolete_internal(int segindx, bool crazy_drop, char *dbname,
 }
 
 int yezzey_collect_obsolete_internal(int segindx, char *dbname, Oid nspoid,
-                                      Oid dboid) {
+                                     Oid dboid) {
   try {
     auto ioadv = std::make_shared<IOadv>(
         "", "", std::string(storage_class /*storage_class*/),

@@ -166,7 +166,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       iohandler.writer_->getExternalStoragePath().c_str() /* path */,
       yezzey_fqrelname_md5(ioadv->nspname, ioadv->relname).c_str());
 
-  if (!iohandler.io_close() ) {
+  if (!iohandler.io_close()) {
     elog(ERROR, "yezzey: failed to complete %s offloading", localPath.c_str());
   } else {
     // debug output
@@ -383,9 +383,7 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   return 0;
 }
 
-static Oid
-resolveTablespaceOidByName(std::string tablespacename)
-{
+static Oid resolveTablespaceOidByName(std::string tablespacename) {
   Relation rel;
   SysScanDesc scan;
   HeapTuple tuple;
@@ -412,9 +410,8 @@ resolveTablespaceOidByName(std::string tablespacename)
     return InvalidOid;
   }
 
-
 #if PG_VERSION_NUM >= 120000
-  resOid = ((Form_pg_class) GETSTRUCT(tuple))->oid;
+  resOid = ((Form_pg_class)GETSTRUCT(tuple))->oid;
 #else
   resOid = HeapTupleGetOid(tuple);
 #endif

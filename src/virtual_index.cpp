@@ -1,7 +1,7 @@
 
 #include "virtual_index.h"
-#include <algorithm>
 #include "yezzey_heap_api.h"
+#include <algorithm>
 
 #include "yezzey_meta.h"
 
@@ -84,7 +84,8 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
   const char *colname_fn = "filenode";
   const char *colname_blkno = "blkno";
   const char *colname_modcount = "modcount";
-  auto indexColNames = list_make3((void*)colname_fn, (void*)colname_blkno, (void*)colname_modcount);
+  auto indexColNames = list_make3((void *)colname_fn, (void *)colname_blkno,
+                                  (void *)colname_modcount);
 
   auto indexInfo = makeNode(IndexInfo);
 
@@ -474,9 +475,9 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
 
   auto use_y_index = false;
 
-
   {
-    auto tmprel = try_relation_open(YEZZEY_VIRTUAL_INDEX_IDX_RELATION, AccessShareLock, false);
+    auto tmprel = try_relation_open(YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
+                                    AccessShareLock, false);
 
     if (tmprel != NULL) {
       use_y_index = true;
@@ -485,9 +486,8 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
   }
 
   /* TBD: Read index */
-  auto desc =
-      yezzey_systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION, use_y_index, snap, 2, skey);
-
+  auto desc = yezzey_systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
+                                        use_y_index, snap, 2, skey);
 
   while (HeapTupleIsValid(tuple = yezzey_systable_getnext(desc))) {
     auto ytup = ((FormData_yezzey_virtual_index *)GETSTRUCT(tuple));

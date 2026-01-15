@@ -23,7 +23,7 @@
 #define yezzey_beginscan heap_beginscan
 #define yezzey_endscan heap_endscan
 
-/* catalog */ 
+/* catalog */
 #define yezzey_systable_beginscan systable_beginscan
 #define yezzey_systable_getnext systable_getnext
 #define yezzey_systable_endscan systable_endscan
