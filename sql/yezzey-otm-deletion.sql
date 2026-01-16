@@ -2,7 +2,7 @@
 CREATE EXTENSION yezzey;
 
 -- check that load result of is correct
-ALTER EXTENSION yezzey UPDATE TO '1.8.6';
+ALTER EXTENSION yezzey UPDATE TO '1.8.7';
 
 SET client_min_messages TO WARNING;
 -- AO
