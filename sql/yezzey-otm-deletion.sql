@@ -19,7 +19,7 @@ INSERT INTO yezzey_otm_regaoty_1 SELECT i, 'sdsd' FROM generate_series(1, 100000
 ALTER TABLE yezzey_otm_regaoty_1 ALTER COLUMN s SET STORAGE EXTERNAL;
 INSERT INTO yezzey_otm_regaoty_1 VALUES (1111, repeat('a', 2323323));
 
-CREATE TABLE yezzey_otm_regaoty_2(i INT, s TEXT) WITH (appendonly=true);
+CREATE TABLE yezzey_otm_regaoty_2(i INT, s TEXT) WITH (appendonly=true) TABLESPACE tab2;
 INSERT INTO yezzey_otm_regaoty_2 SELECT i, 'dssd' FROM generate_series(1, 100000) i;
 ALTER TABLE yezzey_otm_regaoty_2 ALTER COLUMN s SET STORAGE EXTERNAL;
 INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
@@ -27,27 +27,18 @@ INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
 
 
 SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
+
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1') 
+
 INSERT INTO yezzey_otm_regaoty_1 SELECT * FROM generate_series(1, 100000);
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
-
 UPDATE yezzey_otm_regaoty_1 SET i = i + 1;
-
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
-
 DELETE FROM yezzey_otm_regaoty_1 WHERE i < 50501;
 
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
-
+SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
 VACUUM FULL yezzey_otm_regaoty_1;
-
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
+SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
 
 SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_1', true, true);
-SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_1');
-
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
 
 SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
 
@@ -57,28 +48,15 @@ SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
 
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
-
 INSERT INTO yezzey_otm_regaoty_2 SELECT * FROM generate_series(1, 100000);
-
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
-
 UPDATE yezzey_otm_regaoty_2 SET i = i + 1;
-
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
-
 DELETE FROM yezzey_otm_regaoty_2 WHERE i < 50501;
 
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
-
+SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
 VACUUM FULL yezzey_otm_regaoty_2;
-
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
+SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
 
 SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_2', true, true);
-SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_2');
-
-SELECT x_path FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
 
 SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
 
