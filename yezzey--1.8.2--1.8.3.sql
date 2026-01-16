@@ -1,5 +1,4 @@
 reindex index yezzey.offload_metadata_indx;
-reindex index yezzey.yezzey_virtual_index_idx;
 
 CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m() RETURNS VOID
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'

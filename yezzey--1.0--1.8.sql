@@ -1,6 +1,5 @@
 
 reindex index yezzey.offload_metadata_indx;
-reindex index yezzey.yezzey_virtual_index_idx;
 
 CREATE TABLE yezzey.offload_tablespace_map(
     reloid                 OID PRIMARY KEY,

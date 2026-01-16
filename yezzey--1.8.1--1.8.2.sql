@@ -1,5 +1,4 @@
 reindex index yezzey.offload_metadata_indx;
-reindex index yezzey.yezzey_virtual_index_idx;
 
 CREATE TABLE yezzey.yezzey_virtual_index_stale AS 
     SELECT * FROM yezzey.yezzey_virtual_index LIMIT 0;
