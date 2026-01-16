@@ -94,7 +94,7 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     
     relnodeCoord coords{spcNode, rnode.dbNode,
                         rnode.relNode, segindx};
-    relnodeCoord coords_old{rnode.spcNode, rnode.dbNode,
+    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, rnode.dbNode,
                         rnode.relNode, segindx};
     ReleaseSysCache(tp);
 

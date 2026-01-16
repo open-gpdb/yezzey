@@ -8,11 +8,9 @@ SET client_min_messages TO WARNING;
 -- AO
 
 \! rm -fr /tmp/test_spc_tab1 && mkdir -p /tmp/test_spc_tab1
-
-CREATE TABLESPACE tab1 LOCATION '/tmp/test_spc_tab1';
-
 \! rm -fr /tmp/test_spc_tab2 && mkdir -p /tmp/test_spc_tab2
 
+CREATE TABLESPACE tab1 LOCATION '/tmp/test_spc_tab1';
 CREATE TABLESPACE tab2 LOCATION '/tmp/test_spc_tab2';
 
 -- Create tables
