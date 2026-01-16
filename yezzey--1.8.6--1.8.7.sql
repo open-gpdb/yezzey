@@ -1,5 +1,8 @@
 /* Fixes Cloudberry compatibility */
 
+reindex index yezzey.offload_metadata_indx;
+reindex index yezzey.yezzey_virtual_index_idx;
+
 DROP FUNCTION yezzey_load_relation_seg(oid, text);
 DROP FUNCTION yezzey_load_relation(OID, TEXT);
 DROP FUNCTION yezzey_load_relation(TEXT, TEXT);

@@ -1,4 +1,6 @@
 
+reindex index yezzey.offload_metadata_indx;
+
 CREATE TABLE yezzey.offload_tablespace_map(
     reloid                 OID PRIMARY KEY,
     origin_tablespace_name NAME

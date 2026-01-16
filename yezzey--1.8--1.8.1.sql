@@ -1,3 +1,4 @@
+reindex index yezzey.offload_metadata_indx;
 
 -- New utilities & functions
 CREATE FUNCTION yezzey_vacuum_garbage(

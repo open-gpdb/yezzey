@@ -1,7 +1,7 @@
 
-
 -- create yezzey hint index here
-
+reindex index yezzey.offload_metadata_indx;
+reindex index yezzey.yezzey_virtual_index_idx;
 
 CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m() RETURNS void
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'
