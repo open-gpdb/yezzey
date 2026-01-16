@@ -1,4 +1,6 @@
 /* Bloat files deletion */
+reindex index yezzey.offload_metadata_indx;
+reindex index yezzey.yezzey_virtual_index_idx;
 
 CREATE FUNCTION yezzey_delete_obsolete(
     crazyDrop BOOLEAN DEFAULT FALSE

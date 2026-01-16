@@ -1,5 +1,8 @@
 /* Fixes OTM feature */
 
+reindex index yezzey.offload_metadata_indx;
+reindex index yezzey.yezzey_virtual_index_idx;
+
 CREATE FUNCTION yezzey_define_relation_offload_policy_internal_prepare_master(reloid OID) RETURNS void
 AS 'MODULE_PATHNAME','yezzey_define_relation_offload_policy_internal_prepare'
 VOLATILE
