@@ -506,8 +506,27 @@ EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset)
 }
 
 #if IsModernYezzey
-EXTERNC off_t yezzey_FileDiskSize(File file) { return FileDiskSize(file); }
-#endif
-#if IsModernYezzey
-EXTERNC off_t yezzey_FileSize(File file) { return FileSize(file); }
+EXTERNC off_t yezzey_FileDiskSize(File file) {
+  auto actual_fd = YVirtFD_cache[file].y_vfd;
+  if (actual_fd == YEZZEY_OFFLOADED_FD) {
+    /* s3 always sync ? */
+    /* sync tmp buf file here */
+    return 0;
+  }
+
+  return FileDiskSize(file);
+}
+
+EXTERNC off_t yezzey_FileSize(File file) 
+{
+  auto actual_fd = YVirtFD_cache[file].y_vfd;
+  if (actual_fd == YEZZEY_OFFLOADED_FD) {
+    /* s3 always sync ? */
+    /* sync tmp buf file here */
+
+    return YVirtFD_cache[file].handler->total_size();
+  }
+
+  return FileSize(file);
+}
 #endif

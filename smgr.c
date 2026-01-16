@@ -38,6 +38,7 @@
 #include "storage.h"
 #include "proxy.h"
 #include "yezzey.h"
+#include "yezzey_meta.h"
 
 /*
  * Construct external storage filepath.
@@ -116,7 +117,6 @@ void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
 }
 #endif
 
-#if IsGreenplum6
 void yezzey_create_ao(RelFileNodeBackend rnode, int32 segmentFileNum,
                       bool isRedo) {
   if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
@@ -126,7 +126,6 @@ void yezzey_create_ao(RelFileNodeBackend rnode, int32 segmentFileNum,
 
   mdcreate_ao(rnode, segmentFileNum, isRedo);
 }
-#endif
 
 #if IsModernYezzey
 bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum) {
@@ -367,6 +366,7 @@ static const f_smgr yezzey_smgrsw[] = {
 #endif
 
 static const struct f_smgr_ao yezzey_smgr_ao = {
+    .smgr_create_ao = yezzey_create_ao,
     .smgr_FileClose = yezzey_FileClose,
     .smgr_AORelOpenSegFile = yezzey_AORelOpenSegFile,
 #if IsModernYezzey
