@@ -42,10 +42,9 @@ struct YIO {
   off_t total_size() {
     off_t rt = 0;
 
-    for (const auto &o: order_) {
+    for (const auto &o : order_) {
       rt += o.size + o.start_off;
     }
-
 
     return rt;
   }
