@@ -4,13 +4,13 @@
 
 #include "xvacuum.h"
 #include "gucs.h"
+#include "offload_tablespace_map.h"
 #include "pg.h"
+#include "storage.h"
 #include "yproxy.h"
 #include <string>
 #include <url.h>
 #include <util.h>
-#include "storage.h"
-#include "offload_tablespace_map.h"
 /*
  * yezzey_delete_chunk_internal:
  * Given external chunk path, remove it from external storage
@@ -88,12 +88,11 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     auto nspname = std::string(NameStr(nsptup->nspname));
 
     auto spcNode = resolveTablespaceOidByName(
-      YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
-    
-    relnodeCoord coords{spcNode, rnode.dbNode,
-                        rnode.relNode, segindx};
-    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, rnode.dbNode,
-                        rnode.relNode, segindx};
+        YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
+
+    relnodeCoord coords{spcNode, rnode.dbNode, rnode.relNode, segindx};
+    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, rnode.dbNode, rnode.relNode,
+                            segindx};
     ReleaseSysCache(tp);
 
     std::string relname = RelationGetRelationName(aorel);
@@ -103,12 +102,13 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     std::string storage_path_old(
         yezzey_block_db_file_path(nspname, relname, coords_old, segindx));
     auto ioadv = std::make_shared<IOadv>(
-        nspname, relname, std::string(storage_class),
-        multipart_chunksize, coords, aorel->rd_id, use_gpg_crypto, yproxy_socket);
+        nspname, relname, std::string(storage_class), multipart_chunksize,
+        coords, aorel->rd_id, use_gpg_crypto, yproxy_socket);
     auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
                                                    confirm, crazyDrop);
 
-    if (deleter->deleteChunk(storage_path) && deleter->deleteChunk(storage_path_old)) {
+    if (deleter->deleteChunk(storage_path) &&
+        deleter->deleteChunk(storage_path_old)) {
       return 0;
     }
 

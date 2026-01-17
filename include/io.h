@@ -39,6 +39,16 @@ struct YIO {
 
   ~YIO();
 
+  off_t total_size() {
+    off_t rt = 0;
+
+    for (const auto &o : order_) {
+      rt += o.size + o.start_off;
+    }
+
+    return rt;
+  }
+
   // copyable
   YIO(const YIO &buf) = default;
   YIO &operator=(const YIO &) = default;
