@@ -366,9 +366,9 @@ static const f_smgr yezzey_smgrsw[] = {
 #endif
 
 static const struct f_smgr_ao yezzey_smgr_ao = {
-  #if IsModernYezzey
+#if IsModernYezzey
     .smgr_create_ao = yezzey_create_ao,
-    #endif
+#endif
     .smgr_FileClose = yezzey_FileClose,
     .smgr_AORelOpenSegFile = yezzey_AORelOpenSegFile,
 #if IsModernYezzey
