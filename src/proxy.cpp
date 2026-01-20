@@ -184,7 +184,7 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
       YVirtFD_cache[yezzey_fd] = YVirtFD();
 
       YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
-      // memset(&YVirtFD_cache[file], 0, sizeof(YVirtFD));
+
       yfd.filepath = std::string(fileName);
       bool offloaded = false;
 
@@ -272,8 +272,18 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
 
 EXTERNC File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum,
                                          int fileFlags) {
-  return yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, NULL, 0, 0,
-                                          -1);
+  char path[MAXPGPATH];
+  auto dbPath = GetDatabasePath(node.dbNode, node.spcNode);
+
+  if (segmentFileNum == 0)
+    snprintf(path, MAXPGPATH, "%s/%u", dbPath, node.relNode);
+  else
+    snprintf(path, MAXPGPATH, "%s/%u.%u", dbPath, node.relNode, segmentFileNum);
+
+  auto rt =
+      yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, path, fileFlags, 0, -1);
+  pfree(dbPath);
+  return rt;
 }
 
 EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,

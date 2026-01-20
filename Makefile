@@ -85,17 +85,10 @@ endif
 cleanall:
 	@-$(MAKE) clean # incase PGXS not included
 	rm -f *.o *.so *.a
-	rm -f *.gcov src/*.gcov src/*.gcda src/*.gcno
 	rm -f src/*.o src/*.d
-
 
 apply_fmt:
 	clang-format -i ./src/*.cpp ./include/*.h
-
-format:
-	@-[ -n "`command -v dos2unix`" ] && dos2unix -k -q src/*.cpp bin/gpcheckcloud/*.cpp test/*.cpp include/*.h
-	@-[ -n "`command -v clang-format`" ] && clang-format -style="{BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 100, AllowShortFunctionsOnASingleLine: None}" -i src/*.cpp bin/gpcheckcloud/*.cpp test/*.cpp include/*.h
-
 
 test:
 	@-$(MAKE) -C test test
