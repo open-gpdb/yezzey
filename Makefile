@@ -66,6 +66,7 @@ REGRESS = \
 	  load_offload_load \
 	  yezzey_feat_1_8_7 \
 	  yezzey-reorg \
+	  yezzey-reorg-vi \
 	  yezzey-vac-relation \
 	  yezzey-otm-feat \
 	  yezzey-otm-deletion \
