@@ -104,6 +104,10 @@ void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 
 #if IsModernYezzey
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    /*do nothing */
+    return;
+  }
   mdcreate(reln, forkNum, isRedo);
 }
 #else
