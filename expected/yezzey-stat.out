@@ -1,0 +1,71 @@
+CREATE EXTENSION yezzey;
+SET client_min_messages TO WARNING;
+-- AO
+CREATE TABLE regaostat(i INT) WITH (appendonly=true);
+INSERT INTO regaostat SELECT * FROM generate_series(1, 100000);
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+   sum   | sum 
+---------+-----
+ 1001640 |   0
+(1 row)
+
+SELECT * FROM yezzey_define_offload_policy('regaostat');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+ sum |   sum   
+-----+---------
+   0 | 1001640
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'regaostat'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+ sum |   sum   
+-----+---------
+   0 | 1001640
+(1 row)
+
+DELETE FROM regaostat;
+INSERT INTO regaostat SELECT * FROM generate_series(1, 100000);
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+ sum |   sum   
+-----+---------
+   0 | 2003280
+(1 row)
+
+VACUUM regaostat;
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+ sum |   sum   
+-----+---------
+   0 | 6009840
+(1 row)
+
+SELECT yezzey_load_relation('regaostat');
+INFO:  loaded relation regaostats to local storage
+CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+        'public',
+        load_relname
+    )"
+PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
+ yezzey_load_relation 
+----------------------
+ 
+(1 row)
+
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+   sum   |   sum   
+---------+---------
+ 1001640 | 6009840
+(1 row)
+
+DROP TABLE regaostat;
+DROP EXTENSION yezzey;
+CHECKPOINT;
