@@ -426,7 +426,8 @@ Oid resolveTablespaceOidByName(std::string tablespacename) {
 int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                            int64 logicalEof, size_t *local_bytes,
                            size_t *local_committed_bytes,
-                           size_t *external_bytes) {
+                           size_t *external_bytes,
+                           size_t *external_bloat_bytes) {
 
   auto rnode = aorel->rd_node;
 
@@ -553,6 +554,23 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   /* No local storage cache logic for now */
   auto local_path = getlocalpath(coords);
   *local_bytes = 0;
+
+  if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
+
+    auto f = PathNameOpenFile((FileName)local_path.c_str(),
+                              O_RDONLY | PG_BINARY, S_IRUSR);
+
+    if (f < 0)
+      elog(ERROR, "could not open file \"%s\": %m", local_path.c_str());
+
+#if PG_VERSION_NUM < 120000
+    *local_bytes = FileSeek(f, 0L, SEEK_END);
+#else
+    *local_bytes = FileSize(f);
+#endif
+
+    FileClose(f);
+  }
 
   // *local_bytes =
   // std::filesystem::file_size(std::filesystem::path(local_path));
