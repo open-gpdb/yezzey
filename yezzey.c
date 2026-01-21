@@ -844,8 +844,6 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     /* create a function context for cross-call persistence */
     funcctx = SRF_FIRSTCALL_INIT();
 
-    chunkInfo = NULL;
-
     /*
      * switch to memory context appropriate for multiple function calls
      */
@@ -871,7 +869,7 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     external_bytes = curr_external_bytes;
     local_commited_bytes = curr_local_commited_bytes;
 
-    chunkInfo = repalloc(chunkInfo, sizeof(yezzeyChunkMetaInfo) *
+    chunkInfo = palloc0(sizeof(yezzeyChunkMetaInfo) *
                                         (cnt_chunks));
 
     for (size_t chunk_index = 0; chunk_index < cnt_chunks; ++chunk_index) {
