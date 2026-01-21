@@ -91,10 +91,9 @@ void getYezzeyExternalStoragePathByCoords(const char *nspname,
   /* FIXME: Support for non-default table space? */
   auto coords = relnodeCoord(spcNode, dbNode, relNode, segblockno);
   auto prefix = getYezzeyRelationUrl_internal(nspname, relname, coords, segid);
-  auto path = prefix;
 
-  *dest = (char *)malloc(sizeof(char) * path.size());
-  strcpy(*dest, path.c_str());
+  *dest = (char *)palloc(sizeof(char) * prefix.size());
+  strcpy(*dest, prefix.c_str());
   return;
 }
 

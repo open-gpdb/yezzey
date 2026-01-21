@@ -306,9 +306,9 @@ int removeLocalFile(const char *localPath) {
   return res;
 }
 
-std::string getlocalpath(std::string local_path, int segno) {
+std::string getlocalpath(const std::string &local_path, int segno) {
   if (segno != 0) {
-    local_path = local_path + "." + std::to_string(segno);
+    return local_path + "." + std::to_string(segno);
   }
   return local_path;
 }
@@ -542,15 +542,12 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   Assert((*cnt_chunks) >= 0);
 
   // do copy;
-  // list will be allocated via malloc, not PostgreSQL memory context, so should
-  // be free in the end of function call
-  // this actually may lead to memory leak in multiple ways
   *list = (struct yezzeyChunkMeta *)palloc(sizeof(struct yezzeyChunkMeta) *
                                            (*cnt_chunks));
 
   for (size_t i = 0; i < *cnt_chunks; ++i) {
     (*list)[i].chunkSize = meta[i].chunkSize;
-    (*list)[i].chunkName = strdup(meta[i].chunkName.c_str());
+    (*list)[i].chunkName = pstrdup(meta[i].chunkName.c_str());
   }
 
   /* No local storage cache logic for now */

@@ -509,15 +509,16 @@ Datum yezzey_binary_upgrade_1_8_3_to_1_8_4(PG_FUNCTION_ARGS) {
   YezzeyBinaryUpgrade184();
   PG_RETURN_VOID();
 }
+
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   Relation aorel;
   RelFileNode rnode;
   int32 segno;
-  char *pgptr;
-  char *ptr;
+  char  *ptr;
   HeapTuple tp;
-  char *nspname;
+  char  *nspname;
+  text *rt;
 
   reloid = PG_GETARG_OID(0);
   segno = PG_GETARG_OID(1);
@@ -542,13 +543,15 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
       nspname, RelationGetRelationName(aorel), rnode.spcNode, rnode.dbNode,
       rnode.relNode, segno, GpIdentity.segindex, &ptr);
 
-  pgptr = pstrdup(ptr);
-  free(ptr);
   pfree(nspname);
 
   relation_close(aorel, AccessShareLock);
 
-  PG_RETURN_TEXT_P(cstring_to_text(pgptr));
+  rt = cstring_to_text(ptr);
+
+  pfree(ptr);
+
+  PG_RETURN_TEXT_P(rt);
 }
 
 /**
@@ -841,8 +844,6 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     /* create a function context for cross-call persistence */
     funcctx = SRF_FIRSTCALL_INIT();
 
-    chunkInfo = NULL;
-
     /*
      * switch to memory context appropriate for multiple function calls
      */
@@ -868,7 +869,7 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     external_bytes = curr_external_bytes;
     local_commited_bytes = curr_local_commited_bytes;
 
-    chunkInfo = realloc(chunkInfo, sizeof(yezzeyChunkMetaInfo) *
+    chunkInfo = palloc0(sizeof(yezzeyChunkMetaInfo) *
                                         (cnt_chunks));
 
     for (size_t chunk_index = 0; chunk_index < cnt_chunks; ++chunk_index) {
@@ -953,10 +954,10 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
 
     /* cleanup */
     for (int j = 0; j < funcctx->max_calls; ++ j) {
-      free((char*)chunkInfo[j].external_storage_filepath);
+      pfree((char*)chunkInfo[j].external_storage_filepath);
     }
 
-    free(chunkInfo);
+    pfree(chunkInfo);
 
     /* do when there is no more left */
     SRF_RETURN_DONE(funcctx);
@@ -973,7 +974,7 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
   values[0] = ObjectIdGetDatum(chunkInfo[i].reloid);
   values[1] = Int32GetDatum(GpIdentity.segindex);
   values[2] = Int32GetDatum(chunkInfo[i].segfileindex);
-  values[3] = CStringGetTextDatum(pstrdup(chunkInfo[i].external_storage_filepath));
+  values[3] = CStringGetTextDatum(chunkInfo[i].external_storage_filepath);
   values[4] = Int64GetDatum(chunkInfo[i].local_bytes);
   values[5] = Int64GetDatum(chunkInfo[i].local_commited_bytes);
   values[6] = Int64GetDatum(chunkInfo[i].external_bytes);
