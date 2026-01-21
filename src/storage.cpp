@@ -425,7 +425,7 @@ Oid resolveTablespaceOidByName(std::string tablespacename) {
 
 int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                            int64 logicalEof, size_t *local_bytes,
-                           size_t *local_commited_bytes,
+                           size_t *local_committed_bytes,
                            size_t *external_bytes) {
 
   auto rnode = aorel->rd_node;
@@ -459,10 +459,9 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   /* we dont need to interact with s3 while in recovery*/
   /* stat external storage usage */
   auto virtual_sz = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
-  if (virtual_sz == -1) {
+  if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
          RelationGetRelationName(aorel));
-  }
 
   *external_bytes = virtual_sz;
 
@@ -470,12 +469,26 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   auto local_path = getlocalpath(coords);
 
   *local_bytes = 0;
-  // *local_bytes =
-  // std::filesystem::file_size(std::filesystem::path(local_path));
 
-  // Assert(virtual_sz <= logicalEof);
+  if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
+
+    auto f = PathNameOpenFile((FileName)local_path.c_str(),
+                              O_RDONLY | PG_BINARY, S_IRUSR);
+
+    if (f < 0)
+      elog(ERROR, "could not open file \"%s\": %m", local_path.c_str());
+
+#if PG_VERSION_NUM < 120000
+    *local_bytes = FileSeek(f, 0L, SEEK_END);
+#else
+    *local_bytes = FileSize(f);
+#endif
+
+    FileClose(f);
+  }
+
   //
-  *local_commited_bytes = 0;
+  *local_committed_bytes = 0;
   // the following will not work since files in externakl storage may be
   // encrypted & compressed.
   // *local_commited_bytes = logicalEof - virtual_sz;

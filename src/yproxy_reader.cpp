@@ -117,6 +117,11 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
       continue;
     }
     // what if rc > current_chunk_remaining_bytes_ ?
+    if (current_chunk_remaining_bytes_ < rc) {
+      ereport(ERROR, (errmsg_internal("yproxy returned too much data: received "
+                                      "%ld while expected <= %ld",
+                                      rc, current_chunk_remaining_bytes_)));
+    }
     current_chunk_remaining_bytes_ -= rc;
     current_chunk_offset_ += rc;
     if (current_chunk_remaining_bytes_ == 0) {
