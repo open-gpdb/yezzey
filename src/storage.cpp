@@ -542,9 +542,6 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   Assert((*cnt_chunks) >= 0);
 
   // do copy;
-  // list will be allocated via malloc, not PostgreSQL memory context, so should
-  // be free in the end of function call
-  // this actually may lead to memory leak in multiple ways
   *list = (struct yezzeyChunkMeta *)palloc(sizeof(struct yezzeyChunkMeta) *
                                            (*cnt_chunks));
 

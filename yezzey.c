@@ -515,10 +515,10 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Relation aorel;
   RelFileNode rnode;
   int32 segno;
-  char *pgptr;
-  char *ptr;
+  char  *ptr;
   HeapTuple tp;
-  char *nspname;
+  char  *nspname;
+  text *rt;
 
   reloid = PG_GETARG_OID(0);
   segno = PG_GETARG_OID(1);
@@ -543,13 +543,15 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
       nspname, RelationGetRelationName(aorel), rnode.spcNode, rnode.dbNode,
       rnode.relNode, segno, GpIdentity.segindex, &ptr);
 
-  pgptr = pstrdup(ptr);
-  free(ptr);
   pfree(nspname);
 
   relation_close(aorel, AccessShareLock);
 
-  PG_RETURN_TEXT_P(cstring_to_text(pgptr));
+  rt = cstring_to_text(ptr);
+
+  pfree(ptr);
+
+  PG_RETURN_TEXT_P(rt);
 }
 
 /**
