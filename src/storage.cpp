@@ -550,7 +550,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
   for (size_t i = 0; i < *cnt_chunks; ++i) {
     (*list)[i].chunkSize = meta[i].chunkSize;
-    (*list)[i].chunkName = (meta[i].chunkName.c_str());
+    (*list)[i].chunkName = pstrdup(meta[i].chunkName.c_str());
   }
 
   /* No local storage cache logic for now */
