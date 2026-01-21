@@ -27,7 +27,7 @@ typedef struct yezzeyChunkMeta {
 #include "types.h"
 #include <memory>
 
-std::string getlocalpath(std::string local_path, int segno);
+std::string getlocalpath(const std::string &local_path, int segno);
 bool ensureFilepathLocal(const std::string &filepath);
 std::string getlocalpath(const relnodeCoord &coords);
 
