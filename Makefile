@@ -89,7 +89,7 @@ cleanall:
 	rm -f src/*.o src/*.d
 
 apply_fmt:
-	clang-format -i ./src/*.cpp ./include/*.h
+	clang-format -i ./src/*.cpp ./include/*.h  *.c
 
 test:
 	@-$(MAKE) -C test test

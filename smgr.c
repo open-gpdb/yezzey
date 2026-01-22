@@ -35,8 +35,8 @@
 
 #include "miscadmin.h"
 
-#include "storage.h"
 #include "proxy.h"
+#include "storage.h"
 #include "yezzey.h"
 #include "yezzey_meta.h"
 
@@ -82,9 +82,7 @@ void yezzey_init(void) {
 }
 
 #if IsModernYezzey
-void yezzey_open(SMgrRelation reln) {
-  mdopen(reln);
-}
+void yezzey_open(SMgrRelation reln) { mdopen(reln); }
 #endif
 
 #if IsModernYezzey
@@ -159,7 +157,7 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #else
   if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
     /*do nothing */
-    
+
     return;
   }
 
@@ -167,15 +165,12 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #endif
 }
 
-
 #if IsModernYezzey
-void
-yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo)
-{
+void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
+                      bool isRedo) {
   mdunlink_ao(rnode, forkNum, isRedo);
 }
 #endif
-
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                    char *buffer, bool skipFsync) {
@@ -210,8 +205,7 @@ yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
   return mdprefetch(reln, forkNum, blockNum);
 }
 
-void
-yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
+void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                  char *buffer) {
 #if IsGreenplum6
   if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
@@ -223,8 +217,7 @@ yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
   mdread(reln, forkNum, blockNum, buffer);
 }
 
-void
-yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
+void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                   char *buffer, bool skipFsync) {
 #if IsGreenplum6
   if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
@@ -236,18 +229,16 @@ yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
   mdwrite(reln, forkNum, blockNum, buffer, skipFsync);
 }
 
-void
-yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
+void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
                       BlockNumber blockNum, BlockNumber nBlocks) {
 #if IsGreenplum6
-  /*do nothing */  
+  /*do nothing */
 #else
-  mdwriteback(reln, forkNum, blockNum, nBlocks);  
+  mdwriteback(reln, forkNum, blockNum, nBlocks);
 #endif
 }
 
-BlockNumber
-yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
+BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
 
 #if IsGreenplum6
   if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
@@ -259,8 +250,7 @@ yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
   return mdnblocks(reln, forkNum);
 }
 
-void
-yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
+void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
                      BlockNumber nBlocks) {
 #if IsGreenplum6
   if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
@@ -272,8 +262,7 @@ yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
   mdtruncate(reln, forkNum, nBlocks);
 }
 
-void
-yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum) {
+void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum) {
 #if IsGreenplum6
   if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
     /*do nothing */
@@ -285,20 +274,13 @@ yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum) {
 }
 
 #if IsGreenplum6
-void yezzey_pre_ckpt(void) {
-  (void) mdpreckpt();
-}
+void yezzey_pre_ckpt(void) { (void)mdpreckpt(); }
 
-void yezzey_sync(void) {
-  (void) mdsync();
-} 
+void yezzey_sync(void) { (void)mdsync(); }
 
-void yezzey_post_ckpt(void) {
-  (void) mdpostckpt();
-}
+void yezzey_post_ckpt(void) { (void)mdpostckpt(); }
 
 #endif
-
 
 #if IsGreenplum6
 static const struct f_smgr yezzey_smgr = {
@@ -324,49 +306,48 @@ static const struct f_smgr yezzey_smgr = {
 #else
 
 static const f_smgr yezzey_smgrsw[] = {
-	/* magnetic disk */
-	{
-		.smgr_init = yezzey_init,
-    .smgr_open = yezzey_open,
-		.smgr_shutdown = NULL,
-		.smgr_close = yezzey_close,
-		.smgr_create = yezzey_create,
-		.smgr_exists = yezzey_exists,
-		.smgr_unlink = yezzey_unlink,
-		.smgr_extend = yezzey_extend,
-		.smgr_prefetch = yezzey_prefetch,
-		.smgr_read = yezzey_read,
-		.smgr_write = yezzey_write,
-		.smgr_writeback = yezzey_writeback,
-		.smgr_nblocks = mdnblocks,
-		.smgr_truncate = yezzey_truncate,
-		.smgr_immedsync = yezzey_immedsync,
-	},
-	/*
-	 * Relation files that are different from heap, characterised by:
-	 *     1. variable blocksize
-	 *     2. block numbers are not consecutive
-	 *     3. shared buffers are not used
-	 * Append-optimized relation files currently fall in this category.
-	 */
-	{
-		.smgr_init = NULL,
-    .smgr_open = yezzey_open,
-		.smgr_shutdown = NULL,
-		.smgr_close = yezzey_close,
-		.smgr_create = yezzey_create,
-		.smgr_exists = yezzey_exists,
-		.smgr_unlink = yezzey_unlink_ao,
-		.smgr_extend = yezzey_extend,
-		.smgr_prefetch = yezzey_prefetch,
-		.smgr_read = yezzey_read,
-		.smgr_write = yezzey_write,
-		.smgr_writeback = yezzey_writeback,
-		.smgr_nblocks = yezzey_nblocks,
-		.smgr_truncate = yezzey_truncate,
-		.smgr_immedsync = yezzey_immedsync,
-	}
-};
+    /* magnetic disk */
+    {
+        .smgr_init = yezzey_init,
+        .smgr_open = yezzey_open,
+        .smgr_shutdown = NULL,
+        .smgr_close = yezzey_close,
+        .smgr_create = yezzey_create,
+        .smgr_exists = yezzey_exists,
+        .smgr_unlink = yezzey_unlink,
+        .smgr_extend = yezzey_extend,
+        .smgr_prefetch = yezzey_prefetch,
+        .smgr_read = yezzey_read,
+        .smgr_write = yezzey_write,
+        .smgr_writeback = yezzey_writeback,
+        .smgr_nblocks = mdnblocks,
+        .smgr_truncate = yezzey_truncate,
+        .smgr_immedsync = yezzey_immedsync,
+    },
+    /*
+     * Relation files that are different from heap, characterised by:
+     *     1. variable blocksize
+     *     2. block numbers are not consecutive
+     *     3. shared buffers are not used
+     * Append-optimized relation files currently fall in this category.
+     */
+    {
+        .smgr_init = NULL,
+        .smgr_open = yezzey_open,
+        .smgr_shutdown = NULL,
+        .smgr_close = yezzey_close,
+        .smgr_create = yezzey_create,
+        .smgr_exists = yezzey_exists,
+        .smgr_unlink = yezzey_unlink_ao,
+        .smgr_extend = yezzey_extend,
+        .smgr_prefetch = yezzey_prefetch,
+        .smgr_read = yezzey_read,
+        .smgr_write = yezzey_write,
+        .smgr_writeback = yezzey_writeback,
+        .smgr_nblocks = yezzey_nblocks,
+        .smgr_truncate = yezzey_truncate,
+        .smgr_immedsync = yezzey_immedsync,
+    }};
 #endif
 
 static const struct f_smgr_ao yezzey_smgr_ao = {
@@ -396,20 +377,20 @@ const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode) {
   return &yezzey_smgr;
 }
 #elif IsGreenplum7
-const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode, SMgrImpl which) {
+const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode,
+                          SMgrImpl which) {
   return &yezzey_smgrsw[which];
 }
 #else
-void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which, Relation rel) {
+void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which,
+                 Relation rel) {
   reln->smgr = &yezzey_smgrsw[which];
   reln->smgr_ao = &yezzey_smgr_ao;
 }
 #endif
 
 #if IsGreenplum6
-const f_smgr_ao *smgrao_yezzey(void) { 
-  return &yezzey_smgr_ao;
-}
+const f_smgr_ao *smgrao_yezzey(void) { return &yezzey_smgr_ao; }
 #endif
 
 void smgr_init_yezzey(void) {

@@ -51,7 +51,8 @@ EXTERNC bool ensureFileLocal(RelFileNode rnode, BackendId backend,
 EXTERNC int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                                    int64 logicalEof, size_t *local_bytes,
                                    size_t *local_commited_bytes,
-                                   size_t *external_bytes);
+                                   size_t *external_bytes,
+                                   size_t *external_bloat_bytes);
 
 EXTERNC int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
                                          size_t *local_commited_bytes,
