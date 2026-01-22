@@ -1096,7 +1096,7 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
 
       local_bytes += curr_local_bytes;
       external_bytes += curr_external_bytes;
-      external_bloat_bytes = curr_external_bloat_bytes;
+      external_bloat_bytes += curr_external_bloat_bytes;
       local_commited_bytes += curr_local_commited_bytes;
       /* segment if loaded */
     }
