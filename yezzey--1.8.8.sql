@@ -46,23 +46,16 @@ GRANT SELECT ON yezzey.offload_metadata TO PUBLIC;
 -- external bytes always commited
 
 CREATE FUNCTION yezzey_offload_relation_status_internal(reloid OID) 
-RETURNS TABLE (reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
-AS 'MODULE_PATHNAME'
+RETURNS TABLE (reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
+AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_modern'
 VOLATILE
 LANGUAGE C STRICT;
 
 
 -- more detailed debug about relations file segments
 CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(reloid OID) 
-RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
-AS 'MODULE_PATHNAME'
-VOLATILE
-LANGUAGE C STRICT;
-
--- even more detailed debug about relations file segments
-CREATE FUNCTION yezzey_relation_describe_external_storage_structure_internal(reloid OID) 
-RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
-AS 'MODULE_PATHNAME'
+RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
+AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_per_filesegment_modern'
 VOLATILE
 LANGUAGE C STRICT;
 
@@ -71,7 +64,12 @@ CREATE FUNCTION yezzey_offload_relation_status(
     i_nspname TEXT,
     i_relname TEXT
 ) 
-RETURNS TABLE (offload_reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
+RETURNS TABLE (
+    offload_reloid OID,
+    segindex INTEGER,
+    local_bytes BIGINT,
+    external_bytes BIGINT,
+    external_bloat_bytes BIGINT)
 AS $$
 DECLARE
     v_tmp_relname yezzey.offload_metadata%rowtype;
@@ -92,7 +90,7 @@ BEGIN
     -- END IF;
 
     RETURN QUERY SELECT 
-        *
+        reloid, segindex, local_bytes, external_bytes, external_bloat_bytes
     FROM yezzey_offload_relation_status_internal(
         v_reloid
     );
@@ -103,7 +101,12 @@ LANGUAGE PLPGSQL;
 
 
 CREATE FUNCTION yezzey_offload_relation_status(i_relname TEXT) 
-RETURNS TABLE (offload_reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
+RETURNS TABLE (
+    offload_reloid OID,
+    segindex INTEGER,
+    local_bytes BIGINT,
+    external_bytes BIGINT,
+    external_bloat_bytes BIGINT)
 AS $$
 BEGIN
     RETURN QUERY SELECT 
@@ -122,7 +125,13 @@ CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(
     i_nspname TEXT,
     i_relname TEXT
     ) 
-RETURNS TABLE (offload_reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
+RETURNS TABLE (
+    offload_reloid OID,
+    segindex INTEGER,
+    segfileindex INTEGER,
+    local_bytes BIGINT,
+    external_bytes BIGINT,
+    external_bloat_bytes BIGINT)
 AS $$
 DECLARE
     v_tmp_relname yezzey.offload_metadata%rowtype;
@@ -144,7 +153,7 @@ BEGIN
     -- END IF;
  
     RETURN QUERY SELECT 
-        *
+        reloid, segindex, segfileindex, local_bytes, external_bytes, external_bloat_bytes
     FROM yezzey_offload_relation_status_per_filesegment(
         v_reloid
     );
@@ -155,7 +164,7 @@ LANGUAGE PLPGSQL;
 
 
 CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(i_relname TEXT) 
-RETURNS TABLE (offload_reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
+RETURNS TABLE (offload_reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
 AS $$
 DECLARE
     v_tmp_relname yezzey.offload_metadata%rowtype;

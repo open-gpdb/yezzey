@@ -20,8 +20,6 @@ BEGIN
         reloid, 'pg_default'
     FROM 
         yezzey.offload_metadata
-    WHERE 
-        relpolicy = 1
     ;
 
     -- RESET gp_session_role;

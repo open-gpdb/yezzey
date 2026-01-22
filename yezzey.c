@@ -104,7 +104,9 @@ PG_FUNCTION_INFO_V1(yezzey_load_relation);
 PG_FUNCTION_INFO_V1(yezzey_load_relation_seg);
 PG_FUNCTION_INFO_V1(yezzey_force_segment_offload);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_internal);
+PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_modern);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_per_filesegment);
+PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_per_filesegment_modern);
 PG_FUNCTION_INFO_V1(
     yezzey_relation_describe_external_storage_structure_internal);
 PG_FUNCTION_INFO_V1(yezzey_define_relation_offload_policy_internal);
@@ -549,8 +551,7 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   PG_RETURN_TEXT_P(rt);
 }
 
-static Datum
-yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
+static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
   Relation aorel;
   int i;
   int segno;
@@ -627,11 +628,19 @@ yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
      */
 
 #if IsGreenplum6
-    funcctx->tuple_desc =
-        CreateTemplateTupleDesc(NUM_USED_OFFLOAD_PER_SEGMENT_STATUS, false);
+    if (ext)
+      funcctx->tuple_desc = CreateTemplateTupleDesc(
+          NUM_USED_OFFLOAD_PER_SEGMENT_STATUS + 1, false);
+    else
+      funcctx->tuple_desc =
+          CreateTemplateTupleDesc(NUM_USED_OFFLOAD_PER_SEGMENT_STATUS, false);
 #else
-    funcctx->tuple_desc =
-        CreateTemplateTupleDesc(NUM_USED_OFFLOAD_PER_SEGMENT_STATUS);
+    if (ext)
+      funcctx->tuple_desc =
+          CreateTemplateTupleDesc(NUM_USED_OFFLOAD_PER_SEGMENT_STATUS + 1);
+    else
+      funcctx->tuple_desc =
+          CreateTemplateTupleDesc(NUM_USED_OFFLOAD_PER_SEGMENT_STATUS);
 #endif
 
     TupleDescInitEntry(funcctx->tuple_desc, (AttrNumber)1, "reloid", OIDOID,
@@ -649,7 +658,7 @@ yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
                        INT8OID, -1 /* typmod */, 0 /* attdim */);
 
     if (ext)
-      TupleDescInitEntry(funcctx->tuple_desc, (AttrNumber)6,
+      TupleDescInitEntry(funcctx->tuple_desc, (AttrNumber)7,
                          "external_bloat_bytes", INT8OID, -1 /* typmod */,
                          0 /* attdim */);
 
@@ -793,8 +802,7 @@ yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
   values[5] = Int64GetDatum(external_bytes);
 
   if (ext)
-
-    values[5] = Int64GetDatum(external_bloat_bytes);
+    values[6] = Int64GetDatum(external_bloat_bytes);
 
   HeapTuple tuple = heap_form_tuple(funcctx->tuple_desc, values, nulls);
   Datum result = HeapTupleGetDatum(tuple);
@@ -810,6 +818,14 @@ yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
  */
 Datum yezzey_offload_relation_status_per_filesegment(PG_FUNCTION_ARGS) {
   return yezzey_ofr_per_fs_worker(fcinfo, false);
+}
+
+/**
+ * @brief yezzey_offload_relation_status_per_filesegment:
+ * List relation external storage usage per filesegment(block)
+ */
+Datum yezzey_offload_relation_status_per_filesegment_modern(PG_FUNCTION_ARGS) {
+  return yezzey_ofr_per_fs_worker(fcinfo, true);
 }
 
 typedef struct yezzeyChunkMetaInfo {
@@ -1007,8 +1023,7 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
  * usage. Urgent: for now, local stogare usage should be 0 since no
  * cache-logic implemented.
  */
-static Datum
-yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
+static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
   Relation aorel;
   int i;
   int segno;
@@ -1140,9 +1155,15 @@ yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
    * view yezzey_offload_relation_status_internal
    */
 #if IsGreenplum6
-  tupdesc = CreateTemplateTupleDesc(NUM_YEZZEY_OFFLOAD_STATE_COLS, false);
+  if (ext)
+    tupdesc = CreateTemplateTupleDesc(NUM_YEZZEY_OFFLOAD_STATE_COLS + 1, false);
+  else
+    tupdesc = CreateTemplateTupleDesc(NUM_YEZZEY_OFFLOAD_STATE_COLS, false);
 #else
-  tupdesc = CreateTemplateTupleDesc(NUM_YEZZEY_OFFLOAD_STATE_COLS);
+  if (ext)
+    tupdesc = CreateTemplateTupleDesc(NUM_YEZZEY_OFFLOAD_STATE_COLS + 1);
+  else
+    tupdesc = CreateTemplateTupleDesc(NUM_YEZZEY_OFFLOAD_STATE_COLS);
 #endif
 
   TupleDescInitEntry(tupdesc, (AttrNumber)1, "reloid", OIDOID, -1 /* typmod */,
@@ -1156,6 +1177,10 @@ yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
   TupleDescInitEntry(tupdesc, (AttrNumber)5, "external_bytes", INT8OID,
                      -1 /* typmod */, 0 /* attdim */);
 
+  if (ext)
+    TupleDescInitEntry(tupdesc, (AttrNumber)6, "external_bloat_bytes", INT8OID,
+                       -1 /* typmod */, 0 /* attdim */);
+
   tupdesc = BlessTupleDesc(tupdesc);
 
   Datum values[NUM_YEZZEY_OFFLOAD_STATE_COLS];
@@ -1168,6 +1193,8 @@ yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
   values[2] = Int64GetDatum(local_bytes);
   values[3] = Int64GetDatum(local_commited_bytes);
   values[4] = Int64GetDatum(external_bytes);
+  if (ext)
+    values[5] = Int64GetDatum(external_bloat_bytes);
 
   HeapTuple tuple = heap_form_tuple(tupdesc, values, nulls);
   Datum result = HeapTupleGetDatum(tuple);
@@ -1188,6 +1215,10 @@ yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
 
 Datum yezzey_offload_relation_status_internal(PG_FUNCTION_ARGS) {
   return yezzey_ofr_worker(fcinfo, false);
+}
+
+Datum yezzey_offload_relation_status_modern(PG_FUNCTION_ARGS) {
+  return yezzey_ofr_worker(fcinfo, true);
 }
 
 Datum yezzey_set_relation_expirity_seg(PG_FUNCTION_ARGS) {
