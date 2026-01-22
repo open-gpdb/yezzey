@@ -733,8 +733,8 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
 
     if (statRelationSpaceUsage(aorel, segno, modcount, logicalEof,
                                &curr_local_bytes, &curr_local_commited_bytes,
-                               &curr_external_bytes,
-                               &curr_external_bloat_bytes) < 0) {
+                               &curr_external_bytes, &curr_external_bloat_bytes,
+                               ext) < 0) {
       elog(ERROR, "failed to stat segment %d usage", segno);
     }
 
@@ -770,8 +770,8 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
 
     if (statRelationSpaceUsage(aorel, pseudosegno, modcount, logicalEof,
                                &curr_local_bytes, &curr_local_commited_bytes,
-                               &curr_external_bytes,
-                               &curr_external_bloat_bytes) < 0) {
+                               &curr_external_bytes, &curr_external_bloat_bytes,
+                               ext) < 0) {
       elog(ERROR, "failed to stat segment block %d usage", pseudosegno);
     }
 
@@ -1090,7 +1090,7 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
       if (statRelationSpaceUsage(aorel, segno, modcount, logicalEof,
                                  &curr_local_bytes, &curr_local_commited_bytes,
                                  &curr_external_bytes,
-                                 &curr_external_bloat_bytes) < 0) {
+                                 &curr_external_bloat_bytes, ext) < 0) {
         elog(ERROR, "yezzey: failed to stat segment %d usage", segno);
       }
 
@@ -1134,7 +1134,7 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
         if (statRelationSpaceUsage(
                 aorel, pseudosegno, modcount, logicalEof, &curr_local_bytes,
                 &curr_local_commited_bytes, &curr_external_bytes,
-                &curr_external_bloat_bytes) < 0) {
+                &curr_external_bloat_bytes, ext) < 0) {
           elog(ERROR, "yezzey: failed to stat segment %d usage", segno);
         }
 
