@@ -68,9 +68,21 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
 
 ALTER EXTENSION yezzey UPDATE TO '1.8.7';
 SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
-   sum   |   sum   |   sum   
----------+---------+---------
- 1001640 | 6009840 | 6009840
+   sum   | sum |   sum   
+---------+-----+---------
+ 1001640 |   0 | 3004920
+(1 row)
+
+SELECT * FROM yezzey_define_offload_policy('regaostat');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
+ sum |   sum   |   sum   
+-----+---------+---------
+   0 | 1001640 | 3004920
 (1 row)
 
 DROP TABLE regaostat;
