@@ -64,7 +64,7 @@ REGRESS = \
 	  yezzey-trunc \
 	  yezzey-expand \
 	  load_offload_load \
-	  yezzey_feat_1_8_7 \
+	  yezzey_feat_cbdb \
 	  yezzey-reorg \
 	  yezzey-vac-relation \
 	  yezzey-otm-feat \
