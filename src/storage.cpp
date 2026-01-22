@@ -367,7 +367,8 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
 
 #if 0
   if (/* support this feature */)
-    virtual_sz = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
+    auto fb = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
+    virtual_sz = fb.first;
 #endif
 
   if (virtual_sz == -1) {
@@ -426,8 +427,8 @@ Oid resolveTablespaceOidByName(std::string tablespacename) {
 int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                            int64 logicalEof, size_t *local_bytes,
                            size_t *local_committed_bytes,
-                           size_t *external_bytes,
-                           size_t *external_bloat_bytes) {
+                           size_t *external_bytes, size_t *external_bloat_bytes,
+                           bool ext) {
 
   auto rnode = aorel->rd_node;
 
@@ -459,12 +460,17 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
       yproxy_socket);
   /* we dont need to interact with s3 while in recovery*/
   /* stat external storage usage */
-  auto virtual_sz = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
+  auto fb = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
+  auto virtual_sz = fb.first;
   if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
          RelationGetRelationName(aorel));
 
-  *external_bytes = virtual_sz;
+  if (ext)
+    *external_bytes = virtual_sz - fb.second;
+  else
+    *external_bytes = virtual_sz;
+  *external_bloat_bytes = fb.second;
 
   /* No local storage cache logic for now */
   auto local_path = getlocalpath(coords);
