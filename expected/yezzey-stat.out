@@ -45,7 +45,7 @@ VACUUM regaostat;
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
  sum |   sum   
 -----+---------
-   0 | 6009840
+   0 | 3004920
 (1 row)
 
 SELECT yezzey_load_relation('regaostat');
@@ -63,14 +63,14 @@ PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
    sum   |   sum   
 ---------+---------
- 1001640 | 6009840
+ 1001640 | 3004920
 (1 row)
 
 ALTER EXTENSION yezzey UPDATE TO '1.8.7';
 SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
-   sum   | sum |   sum   
----------+-----+---------
- 1001640 |   0 | 6009840
+   sum   |   sum   |   sum   
+---------+---------+---------
+ 1001640 | 3004920 | 3004920
 (1 row)
 
 SELECT * FROM yezzey_define_offload_policy('regaostat');
@@ -82,7 +82,7 @@ SELECT * FROM yezzey_define_offload_policy('regaostat');
 SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
  sum |   sum   |   sum   
 -----+---------+---------
-   0 | 1001640 | 7011480
+   0 | 4006560 | 3004920
 (1 row)
 
 DROP TABLE regaostat;

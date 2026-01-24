@@ -141,32 +141,35 @@ std::string make_yezzey_url(const std::string &prefix, int64_t modcount,
 }
 
 /* calc size of external files */
-std::pair<int64_t, int64_t>
-yezzey_virtual_relation_size(std::shared_ptr<IOadv> adv, int32_t segid) {
+int64_t yezzey_virtual_relation_size(std::shared_ptr<IOadv> adv,
+                                     int32_t segid) {
   try {
-    auto order =
-        YezzeyVirtualGetOrder(YezzeyFindAuxIndex(adv->reloid), adv->reloid,
-                              adv->coords_.filenode, adv->coords_.blkno);
-    std::set<std::string> used_chnk;
-
-    for (auto &o : order) {
-      used_chnk.insert(o.x_path);
-    }
-
     auto lister = YProxyLister(adv, segid);
     int64_t sz = 0;
-    int64_t szBloat = 0;
     auto chunks = lister.list_relation_chunks();
     for (auto chunk : chunks) {
       sz += chunk.chunkSize;
-      if (!used_chnk.count(chunk.chunkName))
-        szBloat += chunk.chunkSize;
     }
     /* external reader destruct */
-    return {sz, szBloat};
+    return sz;
   } catch (...) {
-    return {-1, -1};
+    return -1;
   }
+}
+
+int64_t yezzey_relation_metadata_size(std::shared_ptr<IOadv> adv) {
+  auto order =
+      YezzeyVirtualGetOrder(YezzeyFindAuxIndex(adv->reloid), adv->reloid,
+                            adv->coords_.filenode, adv->coords_.blkno);
+
+  int64_t sz = 0;
+
+  for (auto &o : order) {
+    sz += o.size;
+  }
+
+  /* external reader destruct */
+  return sz;
 }
 
 /* calc total offset of external files */
