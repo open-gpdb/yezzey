@@ -424,11 +424,43 @@ Oid resolveTablespaceOidByName(std::string tablespacename) {
   return resOid;
 }
 
+int statExternalTotal(Relation aorel, int segindx) {
+  auto rnode = aorel->rd_node;
+
+  auto tp = SearchSysCache1(NAMESPACEOID,
+                            ObjectIdGetDatum(aorel->rd_rel->relnamespace));
+
+  if (!HeapTupleIsValid(tp)) {
+    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+         RelationGetRelationName(aorel));
+  }
+
+  Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
+  auto nspname = std::string(NameStr(nsptup->nspname));
+
+  ReleaseSysCache(tp);
+
+  /* rnode.spcNode == YEZZEYTABLESPACEOID here. we need
+  to lookup in metadata table to resolve origin tablespace */
+
+  auto spcNode = resolveTablespaceOidByName(
+      YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
+
+  auto coords =
+      relnodeCoord(spcNode, rnode.dbNode, rnode.relNode, -1 /* not used */);
+
+  auto ioadv = std::make_shared<IOadv>(
+      nspname, std::string(RelationGetRelationName(aorel)),
+      std::string(storage_class /*storage_class*/), multipart_chunksize,
+      coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
+      yproxy_socket);
+  return yezzey_virtual_relation_size(ioadv, segindx);
+}
+
 int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                            int64 logicalEof, size_t *local_bytes,
                            size_t *local_committed_bytes,
-                           size_t *external_bytes, size_t *external_bloat_bytes,
-                           bool ext) {
+                           size_t *external_bytes) {
 
   auto rnode = aorel->rd_node;
 
@@ -460,17 +492,12 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
       yproxy_socket);
   /* we dont need to interact with s3 while in recovery*/
   /* stat external storage usage */
-  auto fb = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
-  auto virtual_sz = fb.first;
+  auto virtual_sz = yezzey_relation_metadata_size(ioadv);
   if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
          RelationGetRelationName(aorel));
 
-  if (ext)
-    *external_bytes = virtual_sz - fb.second;
-  else
-    *external_bytes = virtual_sz;
-  *external_bloat_bytes = fb.second;
+  *external_bytes = virtual_sz;
 
   /* No local storage cache logic for now */
   auto local_path = getlocalpath(coords);

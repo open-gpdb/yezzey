@@ -29,8 +29,9 @@ extern const char *baseYezzeyPath;
 // to transfer segment file of given AO/AOCS relation,
 // with operation modcound $modcount$
 
-std::pair<int64_t, int64_t>
-yezzey_virtual_relation_size(std::shared_ptr<IOadv> adv, int32_t segid);
+int64_t yezzey_virtual_relation_size(std::shared_ptr<IOadv> adv, int32_t segid);
+
+int64_t yezzey_relation_metadata_size(std::shared_ptr<IOadv> adv);
 
 int64_t yezzey_calc_virtual_relation_size(std::shared_ptr<IOadv> adv,
                                           ssize_t segindx, ssize_t modcount,

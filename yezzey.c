@@ -708,9 +708,9 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
   }
 
   size_t local_bytes = 0;
-  size_t external_bytes = 0;
-  size_t external_bloat_bytes = 0;
+  size_t external_used_bytes = 0;
   size_t local_commited_bytes = 0;
+  size_t external_total_bytes = 0;
 
   if (RelationIsAoRows(aorel)) {
     /* ao rows relation */
@@ -727,20 +727,17 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
          "stat segment no %d, modcount %ld with to logial eof %ld", segno,
          modcount, logicalEof);
     size_t curr_local_bytes = 0;
-    size_t curr_external_bytes = 0;
-    size_t curr_external_bloat_bytes = 0;
+    size_t curr_external_used_bytes = 0;
     size_t curr_local_commited_bytes = 0;
 
     if (statRelationSpaceUsage(aorel, segno, modcount, logicalEof,
                                &curr_local_bytes, &curr_local_commited_bytes,
-                               &curr_external_bytes, &curr_external_bloat_bytes,
-                               ext) < 0) {
+                               &curr_external_used_bytes) < 0) {
       elog(ERROR, "failed to stat segment %d usage", segno);
     }
 
     local_bytes = curr_local_bytes;
-    external_bytes = curr_external_bytes;
-    external_bloat_bytes = curr_external_bloat_bytes;
+    external_used_bytes = curr_external_used_bytes;
     local_commited_bytes = curr_local_commited_bytes;
 
   } else if (RelationIsAoCols(aorel)) {
@@ -764,28 +761,27 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
          "stat segment no %d, modcount %ld with to logial eof %ld", segno,
          modcount, logicalEof);
     size_t curr_local_bytes = 0;
-    size_t curr_external_bytes = 0;
-    size_t curr_external_bloat_bytes = 0;
+    size_t curr_external_used_bytes = 0;
     size_t curr_local_commited_bytes = 0;
 
     if (statRelationSpaceUsage(aorel, pseudosegno, modcount, logicalEof,
                                &curr_local_bytes, &curr_local_commited_bytes,
-                               &curr_external_bytes, &curr_external_bloat_bytes,
-                               ext) < 0) {
+                               &curr_external_used_bytes) < 0) {
       elog(ERROR, "failed to stat segment block %d usage", pseudosegno);
     }
 
     local_bytes = curr_local_bytes;
-    external_bytes = curr_external_bytes;
-    external_bloat_bytes = curr_external_bloat_bytes;
+    external_used_bytes = curr_external_used_bytes;
     local_commited_bytes = curr_local_commited_bytes;
   } else {
     elog(ERROR, "wrong relation storage type, not AO/AOCS");
   }
 
+  external_total_bytes = statExternalTotal(aorel, GpIdentity.segindex);
+
   /* segment if loaded */
-  Datum values[NUM_USED_OFFLOAD_PER_SEGMENT_STATUS];
-  bool nulls[NUM_USED_OFFLOAD_PER_SEGMENT_STATUS];
+  Datum values[NUM_USED_OFFLOAD_PER_SEGMENT_STATUS + 1];
+  bool nulls[NUM_USED_OFFLOAD_PER_SEGMENT_STATUS + 1];
 
   MemSet(nulls, 0, sizeof(nulls));
 
@@ -799,10 +795,11 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
   }
   values[3] = Int64GetDatum(local_bytes);
   values[4] = Int64GetDatum(local_commited_bytes);
-  values[5] = Int64GetDatum(external_bytes);
+  values[5] = Int64GetDatum(external_total_bytes);
 
-  if (ext)
-    values[6] = Int64GetDatum(external_bloat_bytes);
+  if (ext) {
+    values[6] = Int64GetDatum(external_total_bytes - external_used_bytes);
+  }
 
   HeapTuple tuple = heap_form_tuple(funcctx->tuple_desc, values, nulls);
   Datum result = HeapTupleGetDatum(tuple);
@@ -1059,9 +1056,10 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
   appendOnlyMetaDataSnapshot = SnapshotSelf;
 
   size_t local_bytes = 0;
-  size_t external_bytes = 0;
-  size_t external_bloat_bytes = 0;
+  size_t external_used_bytes = 0;
   size_t local_commited_bytes = 0;
+
+  size_t external_total_bytes = 0;
 
   if (RelationIsAoRows(aorel)) {
     /* ao rows relation */
@@ -1084,19 +1082,16 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
            segno, modcount, logicalEof);
       size_t curr_local_bytes = 0;
       size_t curr_external_bytes = 0;
-      size_t curr_external_bloat_bytes = 0;
       size_t curr_local_commited_bytes = 0;
 
       if (statRelationSpaceUsage(aorel, segno, modcount, logicalEof,
                                  &curr_local_bytes, &curr_local_commited_bytes,
-                                 &curr_external_bytes,
-                                 &curr_external_bloat_bytes, ext) < 0) {
+                                 &curr_external_bytes) < 0) {
         elog(ERROR, "yezzey: failed to stat segment %d usage", segno);
       }
 
       local_bytes += curr_local_bytes;
-      external_bytes += curr_external_bytes;
-      external_bloat_bytes += curr_external_bloat_bytes;
+      external_used_bytes += curr_external_bytes;
       local_commited_bytes += curr_local_commited_bytes;
       /* segment if loaded */
     }
@@ -1127,20 +1122,17 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
              "logial eof %ld",
              segno, pseudosegno, modcount, logicalEof);
         size_t curr_local_bytes = 0;
-        size_t curr_external_bytes = 0;
-        size_t curr_external_bloat_bytes = 0;
+        size_t curr_external_used_bytes = 0;
         size_t curr_local_commited_bytes = 0;
 
         if (statRelationSpaceUsage(
                 aorel, pseudosegno, modcount, logicalEof, &curr_local_bytes,
-                &curr_local_commited_bytes, &curr_external_bytes,
-                &curr_external_bloat_bytes, ext) < 0) {
+                &curr_local_commited_bytes, &curr_external_used_bytes) < 0) {
           elog(ERROR, "yezzey: failed to stat segment %d usage", segno);
         }
 
         local_bytes += curr_local_bytes;
-        external_bytes += curr_external_bytes;
-        external_bloat_bytes += curr_external_bloat_bytes;
+        external_used_bytes += curr_external_used_bytes;
         local_commited_bytes += curr_local_commited_bytes;
         /* segment if offloaded */
       }
@@ -1148,6 +1140,8 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
   } else {
     elog(ERROR, "wrong relation type (not AO/AOCS) storage");
   }
+
+  external_total_bytes = statExternalTotal(aorel, GpIdentity.segindex);
 
   /*
    * Build a tuple descriptor for our result type
@@ -1183,8 +1177,8 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
 
   tupdesc = BlessTupleDesc(tupdesc);
 
-  Datum values[NUM_YEZZEY_OFFLOAD_STATE_COLS];
-  bool nulls[NUM_YEZZEY_OFFLOAD_STATE_COLS];
+  Datum values[NUM_YEZZEY_OFFLOAD_STATE_COLS + 1];
+  bool nulls[NUM_YEZZEY_OFFLOAD_STATE_COLS + 1];
 
   MemSet(nulls, 0, sizeof(nulls));
 
@@ -1192,9 +1186,9 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
   values[1] = Int32GetDatum(GpIdentity.segindex);
   values[2] = Int64GetDatum(local_bytes);
   values[3] = Int64GetDatum(local_commited_bytes);
-  values[4] = Int64GetDatum(external_bytes);
+  values[4] = Int64GetDatum(external_total_bytes);
   if (ext)
-    values[5] = Int64GetDatum(external_bloat_bytes);
+    values[5] = Int64GetDatum(external_total_bytes - external_used_bytes);
 
   HeapTuple tuple = heap_form_tuple(tupdesc, values, nulls);
   Datum result = HeapTupleGetDatum(tuple);
