@@ -72,7 +72,8 @@ REGRESS = \
 	  yezzey-otm-feat \
 	  yezzey-otm-deletion \
 	  yezzey-vi-eh-unique \
-	  yezzey-stat
+	  yezzey-stat \
+	  yezzey-alter-ts
 
 ifdef USE_PGXS
 PG_CONFIG = pg_config
