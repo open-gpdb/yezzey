@@ -1327,14 +1327,14 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
 #endif
 
   switch (nodeTag(parsetree)) {
-  case T_CreateStmt:
+  case T_CreateStmt: {
     CreateStmt *stmt = (CreateStmt *)parsetree;
     if (stmt->tablespacename != NULL &&
         strcmp(stmt->tablespacename, YEZZEYTABLESPACE_NAME) == 0) {
       /* save range var for latter. */
       post_later_offload_rel = stmt->relation;
     }
-    break;
+  } break;
 #if IsGreenplum6
   case T_AlterTableStmt: {
     ListCell *lcmd;
