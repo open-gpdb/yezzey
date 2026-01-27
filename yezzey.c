@@ -1292,6 +1292,8 @@ readOnlyTree, ProcessUtilityContext context, ParamListInfo params,
 *queryEnv, DestReceiver *dest, QueryCompletion *qc);
 */
 
+#define YEZZEYTABLESPACE_NAME "yezzey(cloud-storage)"
+
 #if IsModernYezzey
 static void
 yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
@@ -1305,6 +1307,9 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
                                        char *completionTag)
 #endif
 {
+  RangeVar *post_later_offload_rel;
+
+  post_later_offload_rel = NULL;
 
 #if IsModernYezzey
   Node *parsetree;
@@ -1322,6 +1327,14 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
 #endif
 
   switch (nodeTag(parsetree)) {
+  case T_CreateStmt: {
+    CreateStmt *stmt = (CreateStmt *)parsetree;
+    if (stmt->tablespacename != NULL &&
+        strcmp(stmt->tablespacename, YEZZEYTABLESPACE_NAME) == 0) {
+      /* save range var for latter. */
+      post_later_offload_rel = stmt->relation;
+    }
+  } break;
 #if IsGreenplum6
   case T_AlterTableStmt: {
     ListCell *lcmd;
@@ -1375,6 +1388,13 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
   prev_ProcessUtility_hook(parsetree, queryString, context, params, dest,
                            completionTag);
 #endif
+
+  if (post_later_offload_rel != NULL) {
+
+    Relation rel = relation_openrv(post_later_offload_rel, NoLock);
+    YezzeyDefineOffloadPolicy(RelationGetRelid(rel));
+    relation_close(rel, NoLock);
+  }
 
 #if IsGreenplum6
   /* Reset it */

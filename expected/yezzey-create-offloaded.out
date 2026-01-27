@@ -1,0 +1,62 @@
+CREATE EXTENSION yezzey;
+create table regao_tt_alr_off (i int) with (appendonly=true) TABLESPACE "yezzey(cloud-storage)" DISTRIBUTED BY (i);
+INSERT INTO regao_tt_alr_off SELECT generate_series(1,10010);
+SELECT count(1) FROM regao_tt_alr_off;
+ count 
+-------
+ 10010
+(1 row)
+
+SELECT segindex, local_bytes, external_bytes FROM yezzey_offload_relation_status('regao_tt_alr_off');
+ segindex | local_bytes | external_bytes 
+----------+-------------+----------------
+        1 |           0 |          33928
+        2 |           0 |          32560
+        0 |           0 |          33816
+(3 rows)
+
+ALTER TABLE regao_tt_alr_off ADD COLUMN z INT;
+INSERT INTO regao_tt_alr_off SELECT i, i FROM generate_series(1,10010) i;
+SELECT count(1) FROM regao_tt_alr_off;
+ count 
+-------
+ 20020
+(1 row)
+
+SELECT segindex, local_bytes, external_bytes FROM yezzey_offload_relation_status('regao_tt_alr_off');
+ segindex | local_bytes | external_bytes 
+----------+-------------+----------------
+        0 |           0 |         155464
+        2 |           0 |         149664
+        1 |           0 |         155960
+(3 rows)
+
+SELECT yezzey_load_relation('regao_tt_alr_off');
+INFO:  loaded relation regao_tt_alr_offs to local storage
+CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+        'public',
+        load_relname
+    )"
+PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
+ yezzey_load_relation 
+----------------------
+ 
+(1 row)
+
+SELECT count(1) FROM regao_tt_alr_off;
+ count 
+-------
+ 20020
+(1 row)
+
+SELECT segindex, local_bytes, external_bytes FROM yezzey_offload_relation_status('regao_tt_alr_off');
+ segindex | local_bytes | external_bytes 
+----------+-------------+----------------
+        2 |      117104 |         149664
+        0 |      121648 |         155464
+        1 |      122032 |         155960
+(3 rows)
+
+DROP TABLE regao_tt_alr_off;
+DROP EXTENSION yezzey;
+CHECKPOINT;
