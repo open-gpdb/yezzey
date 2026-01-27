@@ -1331,6 +1331,10 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
 
     if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID) {
       foreach (lcmd, stmt->cmds) {
+        AlterTableCmd *cmd = (AlterTableCmd *)lfirst(lcmd);
+        if (cmd->subtype == AT_SetTableSpace) {
+          elog(ERROR, "altering YEZZEY relation TABLESPACE is forbidden");
+        }
         newTOASTTableSpace = YezzeyGetRelationOriginTablespaceOid(
             get_namespace_name(rel->rd_rel->relnamespace),
             RelationGetRelationName(rel), RelationGetRelid(rel));

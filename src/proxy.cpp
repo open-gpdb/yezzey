@@ -199,7 +199,9 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
           /* or changing tablespace */
           /* but we forbit change tablespace to yezzey not using yezzey sql api
            */
-          Assert(RecoveryInProgress());
+          if (!RecoveryInProgress())
+            elog(ERROR,
+                 "smgr ao relation open utility did not receive relation name");
         } else {
           yfd.relname = resolve_temp_relname(relname);
           yfd.nspname = std::string(nspname);
