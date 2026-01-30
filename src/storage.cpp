@@ -506,8 +506,12 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
 
+#if IsGreenplum6
     auto f = PathNameOpenFile((FileName)local_path.c_str(),
                               O_RDONLY | PG_BINARY, S_IRUSR);
+#else
+    auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
+#endif
 
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path.c_str());
@@ -590,8 +594,12 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
   if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
 
+#if IsGreenplum6
     auto f = PathNameOpenFile((FileName)local_path.c_str(),
                               O_RDONLY | PG_BINARY, S_IRUSR);
+#else
+    auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
+#endif
 
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path.c_str());
