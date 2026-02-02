@@ -240,12 +240,41 @@ SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_clas
  tab2
 (1 row)
 
+CREATE TABLE yezzey_otm_regaoty_1_cs(i INT, j INT, s TEXT) WITH (appendonly=true, orientation=column) TABLESPACE tab1;
+INSERT INTO yezzey_otm_regaoty_1_cs SELECT i, i, md5(i::text) FROM generate_series(1, 100000) i;
+SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT yezzey_load_relation('yezzey_otm_regaoty_1_cs');
+INFO:  loaded relation yezzey_otm_regaoty_1_css to local storage
+CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+        'public',
+        load_relname
+    )"
+PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
+ yezzey_load_relation 
+----------------------
+ 
+(1 row)
+
+SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
 -- test simple reorgnaze & vacuum 
 ALTER TABLE yezzey_otm_regaoty_1 SET WITH (reorganize=TRUE);
 VACUUM FULL yezzey_otm_regaoty_1;
 ALTER TABLE yezzey_otm_regaoty_2 SET WITH (reorganize=TRUE);
 VACUUM FULL yezzey_otm_regaoty_2;
+ALTER TABLE yezzey_otm_regaoty_1_cs SET WITH (reorganize=TRUE);
+VACUUM FULL yezzey_otm_regaoty_1_cs;
 DROP TABLE yezzey_otm_regaoty_1;
+DROP TABLE yezzey_otm_regaoty_1_cs;
 DROP TABLE yezzey_otm_regaoty_2;
 DROP TABLESPACE tab1;
 DROP TABLESPACE tab2;
