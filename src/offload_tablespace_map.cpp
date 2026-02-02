@@ -245,4 +245,34 @@ void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
   relation_close(r, NoLock);
 }
 
-void YezzeyTruncateOTMHint(void) { yezzey_otm_hint.clear(); }
+void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {
+
+  auto r = try_relation_open(sourceRelationOid, NoLock, false);
+
+  if (r == NULL)
+    return;
+
+  /* If not yezzey, we do not care */
+  if (r->rd_rel->reltablespace == YEZZEYTABLESPACE_OID) {
+
+    auto val = YezzeyGetRelationOriginTablespace(NULL, NULL, sourceRelationOid);
+
+    auto r2 = relation_open(targRelationOid, NoLock);
+
+    auto key = y_stringify_rv(get_namespace_name(r2->rd_rel->relnamespace),
+                              RelationGetRelationName(r2));
+
+    auto key_origin =
+        y_stringify_rv(get_namespace_name(r->rd_rel->relnamespace),
+                       RelationGetRelationName(r));
+    yezzey_otm_hint[key_origin] = val;
+
+    yezzey_otm_hint[key] = val;
+
+    relation_close(r2, NoLock);
+  }
+  relation_close(r, NoLock);
+}
+
+void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/
+}

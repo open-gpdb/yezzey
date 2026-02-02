@@ -1413,8 +1413,17 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
 
   IntoClause *iclause;
   Oid sourceOid;
+  Oid targOid;
 
-  if (queryDesc->plannedstmt->intoClause != NULL) {
+  if (IsA(queryDesc->plannedstmt->planTree, ModifyTable) &&
+      list_length(queryDesc->plannedstmt->relationOids) == 2) {
+
+    targOid = lfirst_oid(queryDesc->plannedstmt->relationOids->head);
+    sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids->tail);
+
+    YezzeyPreassignOTM(targOid, sourceOid);
+
+  } else if (queryDesc->plannedstmt->intoClause != NULL) {
     iclause = queryDesc->plannedstmt->intoClause;
     if (iclause->tableSpaceName &&
         strcmp(iclause->tableSpaceName, "yezzey(cloud-storage)") == 0) {

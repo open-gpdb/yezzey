@@ -88,6 +88,16 @@ SELECT yezzey_load_relation('yezzey_otm_regaoty_2');
 
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_2');
 
+CREATE TABLE yezzey_otm_regaoty_1_cs(i INT, j INT, s TEXT) WITH (appendonly=true, orientation=column) TABLESPACE tab1;
+
+INSERT INTO yezzey_otm_regaoty_1_cs SELECT i, i, md5(i::text) FROM generate_series(1, 100000) i;
+
+SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');
+
+SELECT yezzey_load_relation('yezzey_otm_regaoty_1_cs');
+
+SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');
+
 -- test simple reorgnaze & vacuum 
 ALTER TABLE yezzey_otm_regaoty_1 SET WITH (reorganize=TRUE);
 VACUUM FULL yezzey_otm_regaoty_1;
@@ -95,7 +105,11 @@ VACUUM FULL yezzey_otm_regaoty_1;
 ALTER TABLE yezzey_otm_regaoty_2 SET WITH (reorganize=TRUE);
 VACUUM FULL yezzey_otm_regaoty_2;
 
+ALTER TABLE yezzey_otm_regaoty_1_cs SET WITH (reorganize=TRUE);
+VACUUM FULL yezzey_otm_regaoty_1_cs;
+
 DROP TABLE yezzey_otm_regaoty_1;
+DROP TABLE yezzey_otm_regaoty_1_cs;
 DROP TABLE yezzey_otm_regaoty_2;
 
 DROP TABLESPACE tab1;
