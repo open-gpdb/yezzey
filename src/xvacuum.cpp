@@ -107,8 +107,10 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
                                                    confirm, crazyDrop);
 
-    if (deleter->deleteChunk(storage_path) &&
-        deleter->deleteChunk(storage_path_old)) {
+    auto deleted = false;
+    deleted |= deleter->deleteChunk(storage_path);
+    deleted |= deleter->deleteChunk(storage_path_old);
+    if (deleted) {
       return 0;
     }
 
