@@ -1,5 +1,5 @@
 
-CREATE EXTENSION yezzey;
+CREATE EXTENSION yezzey VERSION '1.0';
 CREATE TABLE vacuum_aot(i INT) WITH (appendonly=true);
 select yezzey_define_offload_policy('vacuum_aot');
 insert into vacuum_aot select * from generate_series(1, 10000);

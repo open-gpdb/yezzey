@@ -1,4 +1,4 @@
-CREATE EXTENSION yezzey;
+CREATE EXTENSION yezzey VERSION '1.0';
 
 \! rm -fr /tmp/test_spc_tab1 && mkdir -p /tmp/test_spc_tab1
 

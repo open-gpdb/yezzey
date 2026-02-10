@@ -1,4 +1,4 @@
-CREATE EXTENSION yezzey;
+CREATE EXTENSION yezzey VERSION '1.0';
 SET client_min_messages TO WARNING;
 
 -- AO
