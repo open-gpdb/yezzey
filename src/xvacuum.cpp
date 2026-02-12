@@ -97,19 +97,26 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
 
     std::string relname = RelationGetRelationName(aorel);
 
+    auto deleted = false;
+
+    auto ioadv = std::make_shared<IOadv>(
+        nspname, relname, std::string(storage_class), multipart_chunksize,
+        coords, aorel->rd_id, use_gpg_crypto, yproxy_socket);
+
     std::string storage_path(
         yezzey_block_db_file_path(nspname, relname, coords, segindx));
     std::string storage_path_old(
         yezzey_block_db_file_path(nspname, relname, coords_old, segindx));
-    auto ioadv = std::make_shared<IOadv>(
-        nspname, relname, std::string(storage_class), multipart_chunksize,
-        coords, aorel->rd_id, use_gpg_crypto, yproxy_socket);
-    auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
-                                                   confirm, crazyDrop);
-
-    auto deleted = false;
-    deleted |= deleter->deleteChunk(storage_path);
-    deleted |= deleter->deleteChunk(storage_path_old);
+    {
+      auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
+                                                     confirm, crazyDrop);
+      deleted |= deleter->deleteChunk(storage_path);
+    }
+    {
+      auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
+                                                     confirm, crazyDrop);
+      deleted |= deleter->deleteChunk(storage_path_old);
+    }
     if (deleted) {
       return 0;
     }
