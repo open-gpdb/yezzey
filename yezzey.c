@@ -1418,8 +1418,13 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
   if (IsA(queryDesc->plannedstmt->planTree, ModifyTable) &&
       list_length(queryDesc->plannedstmt->relationOids) == 2) {
 
+#if !IsModernYezzey
     targOid = lfirst_oid(queryDesc->plannedstmt->relationOids->head);
     sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids->tail);
+#else
+    targOid = lfirst_oid(list_head(queryDesc->plannedstmt->relationOids));
+    sourceOid = lfirst_oid(list_tail(queryDesc->plannedstmt->relationOids));
+#endif
 
     YezzeyPreassignOTM(targOid, sourceOid);
 
