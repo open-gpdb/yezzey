@@ -1,0 +1,9 @@
+docker compose file to setup dev minio environment for yezzey
+
+to setup containers perform:
+
+1. Build
+   run: docker-compose -f ./docker-compose.yaml build
+
+2. Run Docker
+   run: docker-compose -f ./docker-compose.yaml up
