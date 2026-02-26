@@ -54,6 +54,29 @@ DATA = yezzey--1.0.sql yezzey--1.8.8.sql \
 
 PGFILEDESC = "yezzey - external storage tables offloading extension"
 
+ifdef IS_CLOUDBERRY
+REGRESS = \
+          simple_cbdb \
+          versions \
+          drop-column \
+          yezzey-alter\
+          yezzey-alter-toast\
+          yezzey-vacuum \
+          yezzey-vacuum-garbage \
+          yezzey-trunc \
+          yezzey-expand \
+          load_offload_load \
+          yezzey_feat_cbdb \
+          yezzey-reorg \
+          yezzey-vac-relation \
+          yezzey-vac-relation-187 \
+          yezzey-otm-feat \
+          yezzey-otm-deletion \
+          yezzey-vi-eh-unique \
+          yezzey-stat \
+          yezzey-alter-ts \
+          yezzey-create-offloaded
+else
 REGRESS = \
 	  simple \
 	  versions \
@@ -75,6 +98,7 @@ REGRESS = \
 	  yezzey-stat \
 	  yezzey-alter-ts \
 	  yezzey-create-offloaded
+endif
 
 ifdef USE_PGXS
 PG_CONFIG = pg_config
