@@ -213,6 +213,8 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
       yfd.fileFlags = fileFlags;
 #if IsGreenplum6
       yfd.fileMode = fileMode;
+#else
+      yfd.op_start_offset = -1;
 #endif
       yfd.modcount = modcount;
       yfd.reloid = reloid;
@@ -374,8 +376,11 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
   YVirtFD &yfd = YVirtFD_cache[file];
 
 #if IsModernYezzey
-  yfd.op_start_offset = offset;
-  yfd.modcount = offset + 1;
+  /* Initialize only on first use. */
+  if (yfd.op_start_offset == -1) {
+    yfd.op_start_offset = offset;
+    yfd.modcount = offset + 1;
+  }
   yfd.offset = offset;
 #endif
 

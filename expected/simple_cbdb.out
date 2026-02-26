@@ -4,9 +4,9 @@ SET client_min_messages TO WARNING;
 CREATE TABLE simple_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO simple_regaoty SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('simple_regaoty');
- yezzey_define_offload_policy 
-------------------------------
- 
+                            status                            
+--------------------------------------------------------------
+ offloaded relation public.simple_regaoty to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
@@ -15,7 +15,7 @@ SELECT reltablespace FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
           8555
 (1 row)
 
-SELECT count(1) FROM yezzey_dump_virtual_index('simple_regaoty');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'simple_regaoty'::regclass;
  count 
 -------
      3

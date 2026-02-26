@@ -90,10 +90,10 @@ BEGIN
     -- END IF;
 
     RETURN QUERY SELECT 
-        reloid, segindex, local_bytes, external_bytes, external_bloat_bytes
+        y.reloid, y.segindex, y.local_bytes, y.external_bytes, y.external_bloat_bytes
     FROM yezzey_offload_relation_status_internal(
         v_reloid
-    );
+    ) y;
 END;
 $$
 EXECUTE ON ALL SEGMENTS
@@ -110,11 +110,11 @@ RETURNS TABLE (
 AS $$
 BEGIN
     RETURN QUERY SELECT 
-        *
+            y.offload_reloid, y.segindex, y.local_bytes, y.external_bytes, y.external_bloat_bytes
     FROM yezzey_offload_relation_status(
         'public',
         i_relname
-    );
+    ) y;
 END;
 $$
 EXECUTE ON ALL SEGMENTS
@@ -153,10 +153,10 @@ BEGIN
     -- END IF;
  
     RETURN QUERY SELECT 
-        reloid, segindex, segfileindex, local_bytes, external_bytes, external_bloat_bytes
+        y.reloid, y.segindex, y.segfileindex, y.local_bytes, y.external_bytes, y.external_bloat_bytes
     FROM yezzey_offload_relation_status_per_filesegment(
         v_reloid
-    );
+    ) y;
 END;
 $$
 EXECUTE ON ALL SEGMENTS
@@ -171,16 +171,22 @@ DECLARE
 BEGIN
  
     RETURN QUERY SELECT 
-        *
+        y.offload_reloid, y.segindex, y.segfileindex, y.local_bytes, y.external_bytes, y.external_bloat_bytes
     FROM yezzey_offload_relation_status_per_filesegment(
         'public',
         i_relname
-    );
+    ) y;
 END;
 $$
 EXECUTE ON ALL SEGMENTS
 LANGUAGE PLPGSQL;
 
+-- even more detailed debug about relations file segments
+CREATE FUNCTION yezzey_relation_describe_external_storage_structure_internal(reloid OID) 
+RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
+AS 'MODULE_PATHNAME'
+VOLATILE
+LANGUAGE C STRICT;
 
 CREATE FUNCTION yezzey_relation_describe_external_storage_structure(
     i_nspname TEXT, i_relname TEXT) 
