@@ -1,0 +1,234 @@
+CREATE EXTENSION yezzey;
+SET client_min_messages TO WARNING;
+-- AO
+CREATE TABLE trunc_regaoty(i INT) WITH (appendonly=true);
+INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
+SELECT * FROM yezzey_define_offload_policy('trunc_regaoty');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'trunc_regaoty'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+ count |   sum   
+-------+---------
+     3 | 1001640
+(1 row)
+
+SELECT count(1) FROM trunc_regaoty;
+ count  
+--------
+ 100000
+(1 row)
+
+INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM trunc_regaoty;
+ count  
+--------
+ 200000
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+ count |   sum   
+-------+---------
+     6 | 2003280
+(1 row)
+
+DELETE FROM trunc_regaoty;
+INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
+INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM trunc_regaoty;
+ count  
+--------
+ 200000
+(1 row)
+
+TRUNCATE trunc_regaoty;
+SELECT count(1) from yezzey_dump_virtual_index('trunc_regaoty');
+ count 
+-------
+     0
+(1 row)
+
+SELECT count(1) FROM trunc_regaoty;
+ count 
+-------
+     0
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
+ count 
+-------
+     0
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+ count |   sum   
+-------+---------
+    12 | 4006560
+(1 row)
+
+INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
+INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM trunc_regaoty;
+ count  
+--------
+ 200000
+(1 row)
+
+DROP TABLE trunc_regaoty;
+\! echo AO simple test OK
+AO simple test OK
+-- AOCS
+CREATE TABLE trunc_regaocsty(i INT) WITH (appendonly=true, orientation=column);
+INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT * FROM yezzey_define_offload_policy('trunc_regaocsty');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'trunc_regaocsty'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+ count |  sum   
+-------+--------
+     3 | 400656
+(1 row)
+
+SELECT count(1) FROM trunc_regaocsty;
+ count  
+--------
+ 100000
+(1 row)
+
+INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM trunc_regaocsty;
+ count  
+--------
+ 200000
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+ count |  sum   
+-------+--------
+     6 | 801312
+(1 row)
+
+DELETE FROM trunc_regaocsty;
+INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
+INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM trunc_regaocsty;
+ count  
+--------
+ 200000
+(1 row)
+
+TRUNCATE trunc_regaocsty;
+SELECT count(1) from yezzey_dump_virtual_index('trunc_regaoty');
+ count 
+-------
+     0
+(1 row)
+
+SELECT count(1) FROM trunc_regaocsty;
+ count 
+-------
+     0
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
+ count 
+-------
+     3
+(1 row)
+
+SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');
+ count 
+-------
+     0
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+ count |   sum   
+-------+---------
+    12 | 1602624
+(1 row)
+
+INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
+INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM trunc_regaocsty;
+ count  
+--------
+ 200000
+(1 row)
+
+DROP TABLE trunc_regaocsty;
+\! echo AOCS simple test OK
+AOCS simple test OK
+DROP EXTENSION yezzey;
+CHECKPOINT;

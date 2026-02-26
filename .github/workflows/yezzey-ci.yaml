@@ -258,21 +258,10 @@ jobs:
           SRC_DIR: ${{ github.workspace }}/cloudberry
         run: |
           set -eo pipefail
+          set -x
 
-          #run yproxy in daemon mode
-          /usr/bin/yproxy -c /tmp/yproxy.yaml -ldebug > yproxy.log 2>&1 &
-
-          i=0
-          while (! [ -S /tmp/yproxy.sock ]) && [ $i -lt 20 ]; do sleep 1; i=$(($i+1)) ; done
-
-          if (! [ -S /tmp/yproxy.sock ]); then
-             echo "::error::Config yproxy failed"
-             exit 1
-          fi
-
-          chmod 777 /tmp/yproxy.sock
-
-          if ! time su - gpadmin -c "cd ${SRC_DIR}/gpcontrib/yezzey && source /usr/local/cloudberry-db/cloudberry-env.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && make installcheck"; then
+          chmod +x "${SRC_DIR}"/../yezzey/devops/scripts/launch_yproxy.sh
+          if ! time su - gpadmin -c "cd ${SRC_DIR} && ../yezzey/devops/scripts/launch_yproxy.sh && cd ${SRC_DIR}/gpcontrib/yezzey && source /usr/local/cloudberry-db/cloudberry-env.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && IS_CLOUDBERRY=true make installcheck"; then
             echo "::error::Test yezzey failed"
             cat ${SRC_DIR}/gpcontrib/yezzey/regression.diffs
             exit 1
@@ -306,15 +295,15 @@ jobs:
             **/regression.diffs
             **/results/
             **/yproxy.log
-            gpAux/gpdemo/datadirs/standby/log/
-            gpAux/gpdemo/datadirs/qddir/demoDataDir-1/log/
-            gpAux/gpdemo/datadirs/dbfast1/demoDataDir0/log/
-            gpAux/gpdemo/datadirs/dbfast2/demoDataDir1/log/
-            gpAux/gpdemo/datadirs/dbfast3/demoDataDir2/log/
-            gpAux/gpdemo/datadirs/dbfast_mirror1/demoDataDir0/log/
-            gpAux/gpdemo/datadirs/dbfast_mirror2/demoDataDir1/log/
-            gpAux/gpdemo/datadirs/dbfast_mirror3/demoDataDir2/log/
-          retention-days: 3
+            cloudberry/gpAux/gpdemo/datadirs/standby/log/
+            cloudberry/gpAux/gpdemo/datadirs/qddir/demoDataDir-1/log/
+            cloudberry/gpAux/gpdemo/datadirs/dbfast1/demoDataDir0/log/
+            cloudberry/gpAux/gpdemo/datadirs/dbfast2/demoDataDir1/log/
+            cloudberry/gpAux/gpdemo/datadirs/dbfast3/demoDataDir2/log/
+            cloudberry/gpAux/gpdemo/datadirs/dbfast_mirror1/demoDataDir0/log/
+            cloudberry/gpAux/gpdemo/datadirs/dbfast_mirror2/demoDataDir1/log/
+            cloudberry/gpAux/gpdemo/datadirs/dbfast_mirror3/demoDataDir2/log/
+          retention-days: 7
 
   test-gpdb:
     name: Build and Test Yezzey GPDB
@@ -557,6 +546,7 @@ jobs:
           set -eo pipefail
           set -x
 
+          chmod +x "${SRC_DIR}"/../yezzey/devops/scripts/launch_yproxy.sh
           if ! time su - gpadmin -c "cd ${SRC_DIR} && ../yezzey/devops/scripts/launch_yproxy.sh && cd ${SRC_DIR}/gpcontrib/yezzey && source /opt/greenplum-db-6/greenplum_path.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && make installcheck"; then
             echo "::error::Test yezzey failed"
             cat ${SRC_DIR}/gpcontrib/yezzey/regression.diffs
@@ -591,14 +581,14 @@ jobs:
             **/regression.diffs
             **/results/
             **/yproxy.log
-            gpAux/gpdemo/datadirs/standby/log/
-            gpAux/gpdemo/datadirs/qddir/demoDataDir-1/log/
-            gpAux/gpdemo/datadirs/dbfast1/demoDataDir0/log/
-            gpAux/gpdemo/datadirs/dbfast2/demoDataDir1/log/
-            gpAux/gpdemo/datadirs/dbfast3/demoDataDir2/log/
-            gpAux/gpdemo/datadirs/dbfast_mirror1/demoDataDir0/log/
-            gpAux/gpdemo/datadirs/dbfast_mirror2/demoDataDir1/log/
-            gpAux/gpdemo/datadirs/dbfast_mirror3/demoDataDir2/log/
+            gpdb/gpAux/gpdemo/datadirs/standby/log/
+            gpdb/gpAux/gpdemo/datadirs/qddir/demoDataDir-1/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast1/demoDataDir0/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast2/demoDataDir1/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast3/demoDataDir2/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast_mirror1/demoDataDir0/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast_mirror2/demoDataDir1/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast_mirror3/demoDataDir2/log/
           retention-days: 7
 
   ## ======================================================================

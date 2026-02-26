@@ -1,0 +1,280 @@
+CREATE EXTENSION yezzey;
+SET client_min_messages TO WARNING;
+-- AO
+\! rm -fr /tmp/test_spc_tab1 && mkdir -p /tmp/test_spc_tab1
+CREATE TABLESPACE tab1 LOCATION '/tmp/test_spc_tab1';
+\! rm -fr /tmp/test_spc_tab2 && mkdir -p /tmp/test_spc_tab2
+CREATE TABLESPACE tab2 LOCATION '/tmp/test_spc_tab2';
+CREATE TABLE yezzey_otm_regaoty_1(i INT, s TEXT) WITH (appendonly=true) TABLESPACE tab1;
+INSERT INTO yezzey_otm_regaoty_1 SELECT i, 'sdsd' FROM generate_series(1, 100000) i;
+ALTER TABLE yezzey_otm_regaoty_1 ALTER COLUMN s SET STORAGE EXTERNAL;
+INSERT INTO yezzey_otm_regaoty_1 VALUES (1111, repeat('a', 2323323));
+CREATE TABLE yezzey_otm_regaoty_2(i INT, s TEXT) WITH (appendonly=true) TABLESPACE tab2;
+INSERT INTO yezzey_otm_regaoty_2 SELECT i, 'dssd' FROM generate_series(1, 100000) i;
+ALTER TABLE yezzey_otm_regaoty_2 ALTER COLUMN s SET STORAGE EXTERNAL;
+INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
+SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT count(1) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
+ count 
+-------
+     3
+(1 row)
+
+INSERT INTO yezzey_otm_regaoty_1 SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM yezzey_otm_regaoty_1;
+ count  
+--------
+ 200001
+(1 row)
+
+UPDATE yezzey_otm_regaoty_1 SET i = i + 1;
+SELECT count(1) FROM yezzey_otm_regaoty_1;
+ count  
+--------
+ 200001
+(1 row)
+
+DELETE FROM yezzey_otm_regaoty_1 WHERE i < 50501;
+SELECT count(1) FROM yezzey_otm_regaoty_1;
+ count 
+-------
+ 99002
+(1 row)
+
+SELECT i FROM yezzey_otm_regaoty_1 ORDER BY i LIMIT 5 OFFSET 7823;
+   i   
+-------
+ 54412
+ 54413
+ 54413
+ 54414
+ 54414
+(5 rows)
+
+SELECT segindex,external_bytes FROM yezzey_offload_relation_status('yezzey_otm_regaoty_1') order by segindex;
+ segindex | external_bytes 
+----------+----------------
+        0 |         603000
+        1 |         600624
+        2 |         598480
+(3 rows)
+
+SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('yezzey_otm_regaoty_1') order by segindex;
+ segindex | segfileindex | external_bytes 
+----------+--------------+----------------
+        0 |            1 |         603000
+        1 |            1 |         600624
+        2 |            1 |         598480
+(3 rows)
+
+SELECT segindex,segfileindex,external_bytes FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1') order by segindex;
+ segindex | segfileindex | external_bytes 
+----------+--------------+----------------
+        0 |            1 |         603000
+        1 |            1 |         600624
+        2 |            1 |         598480
+(3 rows)
+
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('yezzey_otm_regaoty_1');
+ count |   sum   
+-------+---------
+     3 | 1802104
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('yezzey_otm_regaoty_1');
+ count |   sum   
+-------+---------
+     3 | 1802104
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
+ count |   sum   
+-------+---------
+     3 | 1802104
+(1 row)
+
+SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
+ reltablespace 
+---------------
+          8555
+(1 row)
+
+SELECT count(1) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
+ count 
+-------
+     3
+(1 row)
+
+INSERT INTO yezzey_otm_regaoty_2 SELECT * FROM generate_series(1, 100000);
+SELECT count(1) FROM yezzey_otm_regaoty_2;
+ count  
+--------
+ 200001
+(1 row)
+
+UPDATE yezzey_otm_regaoty_2 SET i = i + 1;
+SELECT count(1) FROM yezzey_otm_regaoty_2;
+ count  
+--------
+ 200001
+(1 row)
+
+DELETE FROM yezzey_otm_regaoty_2 WHERE i < 50501;
+SELECT count(1) FROM yezzey_otm_regaoty_2;
+ count 
+-------
+ 99002
+(1 row)
+
+SELECT i FROM yezzey_otm_regaoty_2 ORDER BY i LIMIT 5 OFFSET 7823;
+   i   
+-------
+ 54412
+ 54413
+ 54413
+ 54414
+ 54414
+(5 rows)
+
+SELECT segindex,external_bytes FROM yezzey_offload_relation_status('yezzey_otm_regaoty_2') order by segindex;
+ segindex | external_bytes 
+----------+----------------
+        0 |         603000
+        1 |         600624
+        2 |         598480
+(3 rows)
+
+SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('yezzey_otm_regaoty_2') order by segindex;
+ segindex | segfileindex | external_bytes 
+----------+--------------+----------------
+        0 |            1 |         603000
+        1 |            1 |         600624
+        2 |            1 |         598480
+(3 rows)
+
+SELECT segindex,segfileindex,external_bytes FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2') order by segindex;
+ segindex | segfileindex | external_bytes 
+----------+--------------+----------------
+        0 |            1 |         603000
+        1 |            1 |         600624
+        2 |            1 |         598480
+(3 rows)
+
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('yezzey_otm_regaoty_2');
+ count |   sum   
+-------+---------
+     3 | 1802104
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('yezzey_otm_regaoty_2');
+ count |   sum   
+-------+---------
+     3 | 1802104
+(1 row)
+
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
+ count |   sum   
+-------+---------
+     3 | 1802104
+(1 row)
+
+select reloid::regclass, origin_tablespace_name from yezzey.offload_tablespace_map order by reloid::regclass::text;
+        reloid        | origin_tablespace_name 
+----------------------+------------------------
+ yezzey_otm_regaoty_1 | tab1
+ yezzey_otm_regaoty_2 | tab2
+(2 rows)
+
+SELECT yezzey_load_relation('yezzey_otm_regaoty_1');
+INFO:  loaded relation yezzey_otm_regaoty_1s to local storage
+CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+        'public',
+        load_relname
+    )"
+PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
+ yezzey_load_relation 
+----------------------
+ 
+(1 row)
+
+SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_1');
+ spcname 
+---------
+ tab1
+(1 row)
+
+SELECT yezzey_load_relation('yezzey_otm_regaoty_2');
+INFO:  loaded relation yezzey_otm_regaoty_2s to local storage
+CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+        'public',
+        load_relname
+    )"
+PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
+ yezzey_load_relation 
+----------------------
+ 
+(1 row)
+
+SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_2');
+ spcname 
+---------
+ tab2
+(1 row)
+
+CREATE TABLE yezzey_otm_regaoty_1_cs(i INT, j INT, s TEXT) WITH (appendonly=true, orientation=column) TABLESPACE tab1;
+INSERT INTO yezzey_otm_regaoty_1_cs SELECT i, i, md5(i::text) FROM generate_series(1, 100000) i;
+SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT yezzey_load_relation('yezzey_otm_regaoty_1_cs');
+INFO:  loaded relation yezzey_otm_regaoty_1_css to local storage
+CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+        'public',
+        load_relname
+    )"
+PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
+ yezzey_load_relation 
+----------------------
+ 
+(1 row)
+
+SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+-- test simple reorgnaze & vacuum 
+ALTER TABLE yezzey_otm_regaoty_1 SET WITH (reorganize=TRUE);
+VACUUM FULL yezzey_otm_regaoty_1;
+ALTER TABLE yezzey_otm_regaoty_2 SET WITH (reorganize=TRUE);
+VACUUM FULL yezzey_otm_regaoty_2;
+ALTER TABLE yezzey_otm_regaoty_1_cs SET WITH (reorganize=TRUE);
+VACUUM FULL yezzey_otm_regaoty_1_cs;
+DROP TABLE yezzey_otm_regaoty_1;
+DROP TABLE yezzey_otm_regaoty_1_cs;
+DROP TABLE yezzey_otm_regaoty_2;
+DROP TABLESPACE tab1;
+DROP TABLESPACE tab2;
+DROP EXTENSION yezzey;
+CHECKPOINT;
