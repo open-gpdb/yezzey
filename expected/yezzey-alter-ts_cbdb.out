@@ -3,9 +3,9 @@ CREATE EXTENSION yezzey;
 CREATE TABLESPACE tab1 LOCATION '/tmp/test_spc_tab1';
 CREATE TABLE regao_y_ats(i int) WITH (appendonly=true) TABLESPACE tab1 DISTRIBUTED BY (i);
 SELECT yezzey_define_offload_policy('regao_y_ats');
- yezzey_define_offload_policy 
-------------------------------
- 
+               yezzey_define_offload_policy                
+-----------------------------------------------------------
+ offloaded relation public.regao_y_ats to external storage
 (1 row)
 
 --should fail

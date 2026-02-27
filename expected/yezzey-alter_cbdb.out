@@ -4,9 +4,9 @@ SET client_min_messages TO WARNING;
 CREATE TABLE alter_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO alter_regaoty SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('alter_regaoty');
- yezzey_define_offload_policy 
-------------------------------
- 
+                           status                            
+-------------------------------------------------------------
+ offloaded relation public.alter_regaoty to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'alter_regaoty'::regclass::oid;
@@ -105,9 +105,9 @@ AO simple test OK
 CREATE TABLE alter_regaocsty(i INT) WITH (appendonly=true, orientation=column);
 INSERT INTO alter_regaocsty SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('alter_regaocsty');
- yezzey_define_offload_policy 
-------------------------------
- 
+                            status                             
+---------------------------------------------------------------
+ offloaded relation public.alter_regaocsty to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'alter_regaocsty'::regclass::oid;
