@@ -1,6 +1,17 @@
 # Yezzey
 
-Yezzey is a Apache Cloudberry/Greenplum6 extension, which makes AO/AOCO data offloading to S3.
+Yezzey is a Apache Cloudberry/Greenplum6 extension, which makes AO/AOCO data be offloaded to S3.
+
+```
+      /------\                   Cloud (external storage) e.g. S3
+     |\______/|                /-------\
+     |  GP    |               (         )
+     | segment|     ----->     \vvvvvvv/
+     |\______/|
+     |        |
+     |        |
+      \______/
+```
 
 
 ## General description
