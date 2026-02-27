@@ -3,9 +3,9 @@ CREATE TABLE vacuum_aot(i INT) WITH (appendonly=true);
 NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'i' as the Greenplum Database data distribution key for this table.
 HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 select yezzey_define_offload_policy('vacuum_aot');
- yezzey_define_offload_policy 
-------------------------------
- 
+               yezzey_define_offload_policy               
+----------------------------------------------------------
+ offloaded relation public.vacuum_aot to external storage
 (1 row)
 
 insert into vacuum_aot select * from generate_series(1, 10000);
@@ -14,6 +14,8 @@ delete from vacuum_aot;
 insert into vacuum_aot select * from generate_series(10000, 20000);
 VACUUM vacuum_aot;
 select count(1) from vacuum_aot; -- works ok, use second block(segment) of relation ;
+HINT:  For non-partitioned tables, run analyze <table_name>(<column_list>). For partitioned tables, run analyze rootpartition <table_name>(<column_list>). See log for columns missing statistics.
+NOTICE:  One or more columns in the following table(s) do not have statistics: vacuum_aot
  count 
 -------
  10001
@@ -21,6 +23,8 @@ select count(1) from vacuum_aot; -- works ok, use second block(segment) of relat
 
 insert into vacuum_aot select * from generate_series(10000, 20000); -- insert goes in first block(segment) with modcount 4
 select count(1) from vacuum_aot; -- works
+HINT:  For non-partitioned tables, run analyze <table_name>(<column_list>). For partitioned tables, run analyze rootpartition <table_name>(<column_list>). See log for columns missing statistics.
+NOTICE:  One or more columns in the following table(s) do not have statistics: vacuum_aot
  count 
 -------
  20002

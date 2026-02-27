@@ -14,9 +14,9 @@ INSERT INTO yezzey_otm_regaoty_2 SELECT i, 'dssd' FROM generate_series(1, 100000
 ALTER TABLE yezzey_otm_regaoty_2 ALTER COLUMN s SET STORAGE EXTERNAL;
 INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
 SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
- yezzey_define_offload_policy 
-------------------------------
- 
+                               status                               
+--------------------------------------------------------------------
+ offloaded relation public.yezzey_otm_regaoty_1 to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
@@ -105,9 +105,9 @@ SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_stora
 (1 row)
 
 SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
- yezzey_define_offload_policy 
-------------------------------
- 
+                               status                               
+--------------------------------------------------------------------
+ offloaded relation public.yezzey_otm_regaoty_2 to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
@@ -203,15 +203,9 @@ select reloid::regclass, origin_tablespace_name from yezzey.offload_tablespace_m
 (2 rows)
 
 SELECT yezzey_load_relation('yezzey_otm_regaoty_1');
-INFO:  loaded relation yezzey_otm_regaoty_1s to local storage
-CONTEXT:  SQL statement "SELECT yezzey_load_relation(
-        'public',
-        load_relname
-    )"
-PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
- yezzey_load_relation 
-----------------------
- 
+                 yezzey_load_relation                  
+-------------------------------------------------------
+ loaded relation yezzey_otm_regaoty_1 to local storage
 (1 row)
 
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_1');
@@ -221,15 +215,9 @@ SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_clas
 (1 row)
 
 SELECT yezzey_load_relation('yezzey_otm_regaoty_2');
-INFO:  loaded relation yezzey_otm_regaoty_2s to local storage
-CONTEXT:  SQL statement "SELECT yezzey_load_relation(
-        'public',
-        load_relname
-    )"
-PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
- yezzey_load_relation 
-----------------------
- 
+                 yezzey_load_relation                  
+-------------------------------------------------------
+ loaded relation yezzey_otm_regaoty_2 to local storage
 (1 row)
 
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_2');
@@ -241,21 +229,15 @@ SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_clas
 CREATE TABLE yezzey_otm_regaoty_1_cs(i INT, j INT, s TEXT) WITH (appendonly=true, orientation=column) TABLESPACE tab1;
 INSERT INTO yezzey_otm_regaoty_1_cs SELECT i, i, md5(i::text) FROM generate_series(1, 100000) i;
 SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');
- yezzey_define_offload_policy 
-------------------------------
- 
+                                status                                 
+-----------------------------------------------------------------------
+ offloaded relation public.yezzey_otm_regaoty_1_cs to external storage
 (1 row)
 
 SELECT yezzey_load_relation('yezzey_otm_regaoty_1_cs');
-INFO:  loaded relation yezzey_otm_regaoty_1_css to local storage
-CONTEXT:  SQL statement "SELECT yezzey_load_relation(
-        'public',
-        load_relname
-    )"
-PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
- yezzey_load_relation 
-----------------------
- 
+                   yezzey_load_relation                   
+----------------------------------------------------------
+ loaded relation yezzey_otm_regaoty_1_cs to local storage
 (1 row)
 
 SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');

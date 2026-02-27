@@ -5,9 +5,9 @@ CREATE TABLE expand_regaoty(i INT) WITH (appendonly=true);
 set allow_system_table_mods TO on;
 update gp_distribution_policy set numsegments = 2 where localoid = 'expand_regaoty'::regclass::oid;
 SELECT * FROM yezzey_define_offload_policy('expand_regaoty');
- yezzey_define_offload_policy 
-------------------------------
- 
+                            status                            
+--------------------------------------------------------------
+ offloaded relation public.expand_regaoty to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'expand_regaoty'::regclass::oid;
@@ -50,9 +50,9 @@ CREATE TABLE expand_regaocsty(i INT) WITH (appendonly=true);
 set allow_system_table_mods TO on;
 update gp_distribution_policy set numsegments = 2 where localoid = 'expand_regaocsty'::regclass::oid;
 SELECT * FROM yezzey_define_offload_policy('expand_regaocsty');
- yezzey_define_offload_policy 
-------------------------------
- 
+                             status                             
+----------------------------------------------------------------
+ offloaded relation public.expand_regaocsty to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'expand_regaocsty'::regclass::oid;

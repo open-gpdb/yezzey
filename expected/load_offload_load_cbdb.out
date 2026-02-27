@@ -4,9 +4,9 @@ SET client_min_messages TO WARNING;
 CREATE TABLE regaotylol(i INT) WITH (appendonly=true);
 INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('regaotylol');
- yezzey_define_offload_policy 
-------------------------------
- 
+                          status                          
+----------------------------------------------------------
+ offloaded relation public.regaotylol to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
@@ -44,15 +44,9 @@ SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
 (1 row)
 
 SELECT yezzey_load_relation('regaotylol');
-INFO:  loaded relation regaotylols to local storage
-CONTEXT:  SQL statement "SELECT yezzey_load_relation(
-        'public',
-        load_relname
-    )"
-PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
- yezzey_load_relation 
-----------------------
- 
+            yezzey_load_relation             
+---------------------------------------------
+ loaded relation regaotylol to local storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;

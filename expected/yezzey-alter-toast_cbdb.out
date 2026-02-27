@@ -5,9 +5,9 @@ CREATE TABLE y_a_toast_t(i int, t text) with (appendonly=true, orientation=colum
 ALTER TABLE y_a_toast_t ALTER COLUMN t SET STORAGE EXTERNAL;
 INSERT INTO y_a_toast_t VALUES(1, repeat('a', 320023));
 SELECT * FROM yezzey_define_offload_policy('y_a_toast_t');
- yezzey_define_offload_policy 
-------------------------------
- 
+                          status                           
+-----------------------------------------------------------
+ offloaded relation public.y_a_toast_t to external storage
 (1 row)
 
 ALTER TABLE y_a_toast_t ADD COLUMN z text;
