@@ -27,7 +27,7 @@ INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
 SELECT count(1) FROM trunc_regaoty;
 
 TRUNCATE trunc_regaoty;
-SELECT count(1) from yezzey_dump_virtual_index('trunc_regaoty');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'trunc_regaoty'::regclass::oid;
 SELECT count(1) FROM trunc_regaoty;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
@@ -68,7 +68,7 @@ INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
 SELECT count(1) FROM trunc_regaocsty;
 
 TRUNCATE trunc_regaocsty;
-SELECT count(1) from yezzey_dump_virtual_index('trunc_regaoty');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'trunc_regaocsty'::regclass::oid;
 SELECT count(1) FROM trunc_regaocsty;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
