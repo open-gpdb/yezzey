@@ -74,7 +74,7 @@ SELECT count(1) FROM trunc_regaoty;
 (1 row)
 
 TRUNCATE trunc_regaoty;
-SELECT count(1) from yezzey_dump_virtual_index('trunc_regaoty');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'trunc_regaoty'::regclass::oid;
  count 
 -------
      0
@@ -189,7 +189,7 @@ SELECT count(1) FROM trunc_regaocsty;
 (1 row)
 
 TRUNCATE trunc_regaocsty;
-SELECT count(1) from yezzey_dump_virtual_index('trunc_regaoty');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'trunc_regaocsty'::regclass::oid;
  count 
 -------
      0
