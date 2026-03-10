@@ -11,30 +11,30 @@ SELECT * FROM yezzey_define_offload_policy('vac_relation_regaotyvi');
 
 SELECT reltablespace FROM pg_class where oid = 'vac_relation_regaotyvi'::regclass::oid;
 
-SELECT count(1) FROM yezzey_dump_virtual_index('vac_relation_regaotyvi');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'vac_relation_regaotyvi'::regclass::oid;
 
 INSERT INTO vac_relation_regaotyvi SELECT * FROM generate_series(1, 100000);
 
-SELECT count(1) FROM yezzey_dump_virtual_index('vac_relation_regaotyvi');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'vac_relation_regaotyvi'::regclass::oid;
 
 DELETE FROM vac_relation_regaotyvi;
 
 INSERT INTO vac_relation_regaotyvi SELECT * FROM generate_series(1, 100000);
-SELECT count(1) FROM yezzey_dump_virtual_index('vac_relation_regaotyvi');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'vac_relation_regaotyvi'::regclass::oid;
 
 -- list external storage
 SELECT count() FROM yezzey_relation_describe_external_storage_structure('vac_relation_regaotyvi');
 
 VACUUM vac_relation_regaotyvi;
 
-SELECT count(1) FROM yezzey_dump_virtual_index('vac_relation_regaotyvi');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'vac_relation_regaotyvi'::regclass::oid;
 SELECT count() FROM yezzey_relation_describe_external_storage_structure('vac_relation_regaotyvi');
 
 SELECT count() FROM vac_relation_regaotyvi;
 
 SELECT yezzey_vacuum_relation('vac_relation_regaotyvi', true);
 
-SELECT count(1) FROM yezzey_dump_virtual_index('vac_relation_regaotyvi');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'vac_relation_regaotyvi'::regclass::oid;
 SELECT count() FROM yezzey_relation_describe_external_storage_structure('vac_relation_regaotyvi');
 
 SELECT count() FROM vac_relation_regaotyvi;
