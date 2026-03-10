@@ -18,17 +18,16 @@ Yezzey is a Apache Cloudberry/Greenplum6 extension, which makes AO/AOCO data be 
 
 Our solution is architecturally similar to [Snowflake](https://www.snowflake.com/wp-content/uploads/2019/06/Snowflake_SIGMOD.pdf)+[AnyBlob](https://vldb.org/pvldb/vol16/p2769-durner.pdf).
 
-At Greenplum, we:
-- patched the smgr interface and made it extensible;
-- expanded the smgr interface and added the ability to work with Object Storage S3;
-- made a yezzey extension to manage uploading/downloading from Object Storage;
-- wrote a special YProxy service to proxy requests from Greenplum to S3 storage.
+What are our extension doing is:
+- expand the smgr interface and added the ability to work with Object Storage S3;
+- create yezzey extension's objects to manage uploading/downloading from Object Storage;
+- create a special YProxy service to proxy requests from Apache Cloudberry/Greenplum6 to S3 storage.
 
-The result was called Hybrid Storage in Greenplum (internal name: yezzey). The idea is to be able to offload data to S3 without a significant degradation of query performance and changes to the user interface.
+The result was called yezzey. The idea is to be able to offload data to S3 without a significant degradation of query performance and changes to the user interface.
 
 ## Interfaces
 
-Hybrid Storage currently only works with Append Only (AO/AOCO) Greenplum tables. Suppose you have a table:
+Yezzey currently only works with Append Only (AO/AOCO) Greenplum tables. The simple example:
 
 ```
 postgres=# create table test(i int, j int, k int, kk int) with(appendonly=true, orientation=column) DISTRIBUTED RANDOMLY;
@@ -133,7 +132,7 @@ INFO:  loaded relation ... to local storage
 
 ### Get info about offloaded data
 
-Just query extensionЖ
+Just query extension:
 
         ```sql
         SELECT * FROM yezzey_offload_relation_status('<имя_схемы>', '<имя_таблицы>');
@@ -199,7 +198,7 @@ Data writing algorithms in yezzey:
 
 ![Example of a virtual metadata index in yezzey](images/read.png)
 
-This is an example of the contents of the yezzey virtual index for file 32 776.2. The local file is one, but it was created by two transactions. These two transactions correspond to two files in S3, and two entries in the yezzey_virtual_index table. The sum of the EOFs of these two files is equal to the Logical EOF in the pg_aoseg table.
+This is an example of the contents of the yezzey virtual index for file `32776.2`. The local file is one, but it was created by two transactions. These two transactions correspond to two files in S3, and two entries in the yezzey_virtual_index table. The sum of the EOFs of these two files is equal to the Logical EOF in the pg_aoseg table.
 
 The algorithm for reading data in yezzey:
 
@@ -231,7 +230,7 @@ The algorithm for reading data in yezzey:
 
 5. WAL streaming to a disaster recovery cluster is supported with a restriction: S3 must also be accessible from the disaster recovery cluster.
 
-Data in yezzey is not deleted, but garbage needs to be cleaned (yes, this data was once very useful, but now it's garbage). To clean garbage, yezzey_expire_index structures are used, here's an example of data:
+Data in yezzey is not deleted, but garbage needs to be cleaned. To clean garbage, yezzey_expire_index structures are used, here's an example of data:
 
 ```
 postgres=# select * from gp_dist_random('yezzey.yezzey_expire_index');
@@ -246,9 +245,9 @@ In `yezzey_expire_index`, for each file in S3, `expire_lsn` is specified. `expir
 
 ## Performance tests
 
-We decided to perform performance tests based on the open dataset of NY Yellow Taxi trips from 2013 to 2022 (about a billion rows of data). Description of the test on GitHub.
+Performance tests is based on the open dataset of NY Yellow Taxi trips from 2013 to 2022 (about a billion rows of data). [Description of the test](https://github.com/open-gpdb/yezzey/blob/v1.8_opengpdb/notes/announce.md).
 
-We took the most popular Greenplum configuration in Yandex Cloud in default settings, loaded data into it. Also loaded data into csv files in S3, access to which was configured through PXF. And compared performance if data is on local disks, in Hybrid Storage and in PXF.
+We took similar to the demo-cluster greenplum cluster in default settings, loaded data into it. Also loaded data into csv files in S3, access to which was configured through PXF. And compared performance if data is on local disks, in Hybrid Storage and in PXF.
 
 The fact tables with trips for all engines were randomly distributed across segments (DISTRIBUTED RANDOMLY) and partitioned by year.
 
@@ -353,7 +352,7 @@ Each request was executed 3 times. The test results are shown in the table.
 
 Tests have shown that:
 
-- The worst result (Q1) is that the query execution time for Hybrid storage increased by 43% compared to vanilla Greenplum. However, if data is accessed via PXF, the execution time increases by 20%.
+- The worst result (Q1) is that the query execution time for Hybrid storage increased by 43% compared to vanilla Greenplum. However, if data is accessed via PXF, the execution time is 20 times higher.
 - The best result is that the query execution time did not change (Q5). When accessing Q5 via PXF, the time increased by 2.46 times.
 - A significant difference in execution time was observed in simple queries Q1–Q3. They depend mainly on storage performance.
 - For complex queries, the increase in execution time was within 10%–20%.
