@@ -31,9 +31,9 @@ INSERT INTO yezzey_otm_regaoty_1 SELECT * FROM generate_series(1, 100000);
 UPDATE yezzey_otm_regaoty_1 SET i = i + 1;
 DELETE FROM yezzey_otm_regaoty_1 WHERE i < 50501;
 
-SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
+SELECT count(x_path) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'yezzey_otm_regaoty_1'::regclass::oid;
 VACUUM FULL yezzey_otm_regaoty_1;
-SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
+SELECT count(x_path) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'yezzey_otm_regaoty_1'::regclass::oid;
 
 SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_1', true, true);
 
@@ -49,9 +49,9 @@ INSERT INTO yezzey_otm_regaoty_2 SELECT * FROM generate_series(1, 100000);
 UPDATE yezzey_otm_regaoty_2 SET i = i + 1;
 DELETE FROM yezzey_otm_regaoty_2 WHERE i < 50501;
 
-SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
+SELECT count(x_path) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'yezzey_otm_regaoty_2'::regclass::oid;
 VACUUM FULL yezzey_otm_regaoty_2;
-SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
+SELECT count(x_path) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'yezzey_otm_regaoty_2'::regclass::oid;
 
 SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_2', true, true);
 

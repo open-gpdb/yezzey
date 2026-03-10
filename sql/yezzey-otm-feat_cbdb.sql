@@ -29,7 +29,7 @@ SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
 
-SELECT count(1) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'yezzey_otm_regaoty_1'::regclass::oid;
 
 INSERT INTO yezzey_otm_regaoty_1 SELECT * FROM generate_series(1, 100000);
 SELECT count(1) FROM yezzey_otm_regaoty_1;
@@ -54,7 +54,7 @@ SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
 
-SELECT count(1) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'yezzey_otm_regaoty_2'::regclass::oid;
 
 INSERT INTO yezzey_otm_regaoty_2 SELECT * FROM generate_series(1, 100000);
 SELECT count(1) FROM yezzey_otm_regaoty_2;
