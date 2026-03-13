@@ -98,7 +98,103 @@ void YezzeyBinaryUpgrade(void) {
   allowSystemTableMods = prevAllowSystableMods;
 }
 
+#if IsModernYezzey
+
+static void YezzeyCreateVirtualSpc() {
+
+  Relation rel;
+  Datum values[Natts_pg_tablespace];
+  bool nulls[Natts_pg_tablespace];
+  HeapTuple tuple;
+  Oid tablespaceoid;
+  char *location = "";
+  Oid ownerId;
+  Datum newOptions;
+  List *nonContentOptions = NIL;
+  char *fileHandler = NULL;
+  bool in_place;
+
+  ownerId = GetUserId();
+
+  /*
+   * Insert tuple into pg_tablespace.  The purpose of doing this first is to
+   * lock the proposed tablename against other would-be creators. The
+   * insertion will roll back if we find problems below.
+   */
+  rel = table_open(TableSpaceRelationId, RowExclusiveLock);
+
+  MemSet(nulls, false, sizeof(nulls));
+
+  tablespaceoid = YEZZEYTABLESPACE_OID;
+
+  values[Anum_pg_tablespace_oid - 1] = ObjectIdGetDatum(tablespaceoid);
+  values[Anum_pg_tablespace_spcname - 1] =
+      DirectFunctionCall1(namein, CStringGetDatum("yezzey"));
+  values[Anum_pg_tablespace_spcowner - 1] = ObjectIdGetDatum(ownerId);
+  nulls[Anum_pg_tablespace_spcacl - 1] = true;
+
+  /* No filehandler support. */
+  nulls[Anum_pg_tablespace_spcfilehandlersrc - 1] = true;
+  nulls[Anum_pg_tablespace_spcfilehandlerbin - 1] = true;
+
+  /* No spcoptions */
+  nulls[Anum_pg_tablespace_spcoptions - 1] = true;
+
+  tuple = heap_form_tuple(rel->rd_att, values, nulls);
+
+  CatalogTupleInsert(rel, tuple);
+
+  heap_freetuple(tuple);
+
+  /*
+   * No tag description.
+   */
+
+  /* Record dependency on owner */
+  recordDependencyOnOwner(TableSpaceRelationId, tablespaceoid, ownerId);
+
+  /* Post creation hook for new tablespace */
+  InvokeObjectPostCreateHook(TableSpaceRelationId, tablespaceoid, 0);
+
+  // create_tablespace_directories(location, tablespaceoid);
+
+  /* Record the filesystem change in XLOG */
+  {
+    xl_tblspc_create_rec xlrec;
+
+    xlrec.ts_id = tablespaceoid;
+
+    XLogBeginInsert();
+    XLogRegisterData((char *)&xlrec, offsetof(xl_tblspc_create_rec, ts_path));
+    XLogRegisterData((char *)location, strlen(location) + 1);
+
+    (void)XLogInsert(RM_TBLSPC_ID, XLOG_TBLSPC_CREATE);
+  }
+
+  /*
+   * Mark tablespace for deletion on abort.
+   */
+  // ScheduleTablespaceDirectoryDeletionForAbort(tablespaceoid);
+
+  /*
+   * Force synchronous commit, to minimize the window between creating the
+   * symlink on-disk and marking the transaction committed.  It's not great
+   * that there is any window at all, but definitely we don't want to make
+   * it larger than necessary.
+   */
+  ForceSyncCommit();
+
+  /* We keep the lock on pg_tablespace until commit */
+  table_close(rel, NoLock);
+}
+#endif
+
 void YezzeyInitMetadata(void) {
+
+#if IsModernYezzey
+  YezzeyCreateVirtualSpc();
+#endif
+
   (void)YezzeyCreateVirtualSchema();
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
