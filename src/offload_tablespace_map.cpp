@@ -173,7 +173,23 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
               F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
   auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
+#if IsModernYezzey
+
+  auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
+
+  /* No map tuple created. Assume 'pg_default' by default */
+  if (!table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
+    ExecDropSingleTupleTableSlot(slot);
+
+    heap_close(offload_tablespace_map_rel, RowExclusiveLock);
+
+    yezzey_endscan(scanoff);
+    UnregisterSnapshot(snap);
+    return;
+  }
+#else
   auto offtuple = heap_getnext(scanoff, ForwardScanDirection);
+
   /* No map tuple created. Assume 'pg_default' by default */
   if (HeapTupleIsValid(offtuple)) {
     heap_close(offload_tablespace_map_rel, RowExclusiveLock);
@@ -182,6 +198,7 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
     UnregisterSnapshot(snap);
     return;
   }
+#endif
   yezzey_endscan(scanoff);
 
   values[Anum_offload_tablespace_map_reloid - 1] = ObjectIdGetDatum(i_reloid);

@@ -1452,6 +1452,7 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
 static bool yezzey_autooffload = true; /* start yezzey worker? */
 
 static void yezzey_define_gucs() {
+
   DefineCustomStringVariable(
       "yezzey.storage_class", "external storage default storage class", NULL,
       &storage_class, "STANDARD", PGC_SUSET, 0, NULL, NULL, NULL);
@@ -1509,6 +1510,8 @@ void yezzey_TrackObjDrop(Relation rel) {
 
 void _PG_init(void) {
   /* Allocate shared memory for yezzey workers */
+
+  allow_in_place_tablespaces = true;
 
   /* Yezzey GUCS define */
   (void)yezzey_define_gucs();
