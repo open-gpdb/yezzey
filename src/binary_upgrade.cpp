@@ -109,12 +109,22 @@ static void YezzeyCreateVirtualSpc() {
   Oid tablespaceoid;
   char *location = "";
   Oid ownerId;
-  Datum newOptions;
-  List *nonContentOptions = NIL;
-  char *fileHandler = NULL;
-  bool in_place;
+  HeapTuple tp;
 
   ownerId = GetUserId();
+
+  tablespaceoid = YEZZEYTABLESPACE_OID;
+  	/*
+	 * Not found in TableSpace cache.  Check catcache.  If we don't find a
+	 * valid HeapTuple, it must mean someone has managed to request tablespace
+	 * details for a non-existent tablespace.  We'll just treat that case as
+	 * if no options were specified.
+	 */
+	tp = SearchSysCache1(TABLESPACEOID, ObjectIdGetDatum(tablespaceoid));
+	if (HeapTupleIsValid(tp)) {
+    ReleaseSysCache(tp);
+    return;
+  }
 
   /*
    * Insert tuple into pg_tablespace.  The purpose of doing this first is to
@@ -125,7 +135,6 @@ static void YezzeyCreateVirtualSpc() {
 
   MemSet(nulls, false, sizeof(nulls));
 
-  tablespaceoid = YEZZEYTABLESPACE_OID;
 
   values[Anum_pg_tablespace_oid - 1] = ObjectIdGetDatum(tablespaceoid);
   values[Anum_pg_tablespace_spcname - 1] =
@@ -150,13 +159,9 @@ static void YezzeyCreateVirtualSpc() {
    * No tag description.
    */
 
-  /* Record dependency on owner */
-  recordDependencyOnOwner(TableSpaceRelationId, tablespaceoid, ownerId);
 
   /* Post creation hook for new tablespace */
   InvokeObjectPostCreateHook(TableSpaceRelationId, tablespaceoid, 0);
-
-  // create_tablespace_directories(location, tablespaceoid);
 
   /* Record the filesystem change in XLOG */
   {
@@ -170,11 +175,6 @@ static void YezzeyCreateVirtualSpc() {
 
     (void)XLogInsert(RM_TBLSPC_ID, XLOG_TBLSPC_CREATE);
   }
-
-  /*
-   * Mark tablespace for deletion on abort.
-   */
-  // ScheduleTablespaceDirectoryDeletionForAbort(tablespaceoid);
 
   /*
    * Force synchronous commit, to minimize the window between creating the
