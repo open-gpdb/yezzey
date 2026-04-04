@@ -84,6 +84,7 @@ Oid YezzeyGetRelationOriginTablespaceOid(const char *nspname,
 std::string YezzeyGetRelationOriginTablespace(const char *nspname,
                                               const char *relname,
                                               Oid i_reloid) {
+  HeapTuple offtuple;
 
   if (nspname != NULL && relname != NULL) {
     auto key = y_stringify_rv(nspname, relname);
@@ -111,7 +112,32 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
               BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
   auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
-  auto offtuple = heap_getnext(scanoff, ForwardScanDirection);
+#if IsModernYezzey
+  auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
+  /* No map tuple created. Assume 'pg_default' by default */
+  if (!table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
+    ExecDropSingleTupleTableSlot(slot);
+
+    heap_close(offload_tablespace_map_rel, RowExclusiveLock);
+
+    yezzey_endscan(scanoff);
+    UnregisterSnapshot(snap);
+
+    /* should be OK */
+    if (Gp_role == GP_ROLE_UTILITY || Gp_role == GP_ROLE_DISPATCH) {
+      return "pg_default";
+    }
+
+    elog(ERROR, "failed to map relation %d (%s.%s) to its origin tablespace",
+         i_reloid, nspname, relname);
+  }
+
+  bool shouldFree;
+
+  offtuple = ExecFetchSlotHeapTuple(slot, false, &shouldFree);
+  Assert(!shouldFree);
+#else
+  offtuple = heap_getnext(scanoff, ForwardScanDirection);
   /* No map tuple created. Assume 'pg_default' by default */
   if (!HeapTupleIsValid(offtuple)) {
     heap_close(offload_tablespace_map_rel, RowExclusiveLock);
@@ -127,6 +153,7 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
     elog(ERROR, "failed to map relation %d (%s.%s) to its origin tablespace",
          i_reloid, nspname, relname);
   }
+#endif
 
   auto rv = ((Form_offload_tablespace_map)GETSTRUCT(offtuple))
                 ->origin_tablespace_name;
@@ -143,11 +170,14 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
   yezzey_endscan(scanoff);
   UnregisterSnapshot(snap);
 
+#if IsModernYezzey
+  ExecDropSingleTupleTableSlot(slot);
+#endif
+
   return tablespace_val;
 }
 
 void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
-
   auto yezzey_tablespace_map_oid = YezzeyResolveTablespaceMapOid();
 
   if (yezzey_tablespace_map_oid == InvalidOid) {
@@ -177,8 +207,8 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
 
   auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
 
-  /* No map tuple created. Assume 'pg_default' by default */
-  if (!table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
+  /* Already registered, from previous offloads */
+  if (table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
     ExecDropSingleTupleTableSlot(slot);
 
     heap_close(offload_tablespace_map_rel, RowExclusiveLock);
@@ -187,10 +217,11 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
     UnregisterSnapshot(snap);
     return;
   }
-#else
-  auto offtuple = heap_getnext(scanoff, ForwardScanDirection);
 
-  /* No map tuple created. Assume 'pg_default' by default */
+#else
+  offtuple = heap_getnext(scanoff, ForwardScanDirection);
+
+  /* Already registered, from previous offloads */
   if (HeapTupleIsValid(offtuple)) {
     heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
@@ -218,6 +249,10 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
   heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
   heap_freetuple(nofftuple);
+
+#if IsModernYezzey
+  ExecDropSingleTupleTableSlot(slot);
+#endif
 
   UnregisterSnapshot(snap);
 }
