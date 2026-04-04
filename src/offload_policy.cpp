@@ -248,8 +248,8 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
   } else {
     auto offtuple = heap_form_tuple(RelationGetDescr(offrel), values, nulls);
 
-    simple_heap_insert(offrel, offtuple);
 #if IsGreenplum6
+    simple_heap_insert(offrel, offtuple);
     CatalogUpdateIndexes(offrel, offtuple);
 #else
     CatalogTupleInsert(offrel, offtuple);

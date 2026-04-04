@@ -203,8 +203,8 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
               F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
   auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
-#if IsModernYezzey
 
+#if IsModernYezzey
   auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
 
   /* Already registered, from previous offloads */
@@ -219,7 +219,7 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
   }
 
 #else
-  offtuple = heap_getnext(scanoff, ForwardScanDirection);
+  auto offtuple = heap_getnext(scanoff, ForwardScanDirection);
 
   /* Already registered, from previous offloads */
   if (HeapTupleIsValid(offtuple)) {
@@ -239,8 +239,8 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
   auto nofftuple = heap_form_tuple(RelationGetDescr(offload_tablespace_map_rel),
                                    values, nulls);
 
-  simple_heap_insert(offload_tablespace_map_rel, nofftuple);
 #if IsGreenplum6
+  simple_heap_insert(offload_tablespace_map_rel, nofftuple);
   CatalogUpdateIndexes(offload_tablespace_map_rel, nofftuple);
 #else
   CatalogTupleInsert(offload_tablespace_map_rel, nofftuple);
