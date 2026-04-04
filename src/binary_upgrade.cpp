@@ -114,14 +114,14 @@ static void YezzeyCreateVirtualSpc() {
   ownerId = GetUserId();
 
   tablespaceoid = YEZZEYTABLESPACE_OID;
-  	/*
-	 * Not found in TableSpace cache.  Check catcache.  If we don't find a
-	 * valid HeapTuple, it must mean someone has managed to request tablespace
-	 * details for a non-existent tablespace.  We'll just treat that case as
-	 * if no options were specified.
-	 */
-	tp = SearchSysCache1(TABLESPACEOID, ObjectIdGetDatum(tablespaceoid));
-	if (HeapTupleIsValid(tp)) {
+  /*
+   * Not found in TableSpace cache.  Check catcache.  If we don't find a
+   * valid HeapTuple, it must mean someone has managed to request tablespace
+   * details for a non-existent tablespace.  We'll just treat that case as
+   * if no options were specified.
+   */
+  tp = SearchSysCache1(TABLESPACEOID, ObjectIdGetDatum(tablespaceoid));
+  if (HeapTupleIsValid(tp)) {
     ReleaseSysCache(tp);
     return;
   }
@@ -134,7 +134,6 @@ static void YezzeyCreateVirtualSpc() {
   rel = table_open(TableSpaceRelationId, RowExclusiveLock);
 
   MemSet(nulls, false, sizeof(nulls));
-
 
   values[Anum_pg_tablespace_oid - 1] = ObjectIdGetDatum(tablespaceoid);
   values[Anum_pg_tablespace_spcname - 1] =
@@ -158,7 +157,6 @@ static void YezzeyCreateVirtualSpc() {
   /*
    * No tag description.
    */
-
 
   /* Post creation hook for new tablespace */
   InvokeObjectPostCreateHook(TableSpaceRelationId, tablespaceoid, 0);

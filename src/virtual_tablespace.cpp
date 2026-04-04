@@ -41,6 +41,7 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
   auto tuple = SearchSysCacheCopy1(RELOID, ObjectIdGetDatum(reloid));
   if (!HeapTupleIsValid(tuple))
     elog(ERROR, "cache lookup failed for relation %u", reloid);
+
   auto rd_rel = (Form_pg_class)GETSTRUCT(tuple);
 
   /*
