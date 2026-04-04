@@ -1511,7 +1511,9 @@ void yezzey_TrackObjDrop(Relation rel) {
 void _PG_init(void) {
   /* Allocate shared memory for yezzey workers */
 
+#if IsModernYezzey
   allow_in_place_tablespaces = true;
+#endif
 
   /* Yezzey GUCS define */
   (void)yezzey_define_gucs();
