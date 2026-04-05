@@ -10,7 +10,7 @@ SELECT yezzey_define_offload_policy('regao_y_ats');
 
 --should fail
 ALTER TABLE regao_y_ats SET TABLESPACE pg_default;
-ERROR:  altering YEZZEY relation TABLESPACE is forbidden (yezzey.c:1355)
+ERROR:  altering YEZZEY relation TABLESPACE is forbidden (yezzey.c:1361)
 DROP TABLE regao_y_ats;
 DROP EXTENSION yezzey;
 DROP TABLESPACE tab1;
