@@ -196,11 +196,25 @@ void YezzeyInitMetadata(void) {
   (void)YezzeyCreateVirtualSchema();
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
-}
 
-void YezzeyBinaryUpgrade183(void) { (void)YezzeyCreateVirtualIndexIdx(); }
-
-void YezzeyBinaryUpgrade184(void) {
+#if IsModernYezzey
+  (void)YezzeyCreateVirtualIndexIdx();
   (void)YezzeyCreateExpireHint();
   (void)YezzeyCreateExpireHintIdx();
+#endif
+}
+
+void YezzeyBinaryUpgrade183(void) {
+#if IsModernYezzey
+#else
+  (void)YezzeyCreateVirtualIndexIdx();
+#endif
+}
+
+void YezzeyBinaryUpgrade184(void) {
+#if IsModernYezzey
+#else
+  (void)YezzeyCreateExpireHint();
+  (void)YezzeyCreateExpireHintIdx();
+#endif
 }
