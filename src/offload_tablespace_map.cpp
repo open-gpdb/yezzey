@@ -199,7 +199,7 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
 
   ScanKeyData offskey[1];
 
-  ScanKeyInit(&offskey[0], Anum_pg_class_relname, BTEqualStrategyNumber,
+  ScanKeyInit(&offskey[0], Anum_offload_tablespace_map_reloid, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
   auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
