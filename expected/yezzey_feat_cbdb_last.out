@@ -93,9 +93,9 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
 SELECT yezzey_vacuum_garbage_relation('vacuum_garbage_aot_187_r_187', true, true);
  yezzey_vacuum_garbage_relation 
 --------------------------------
- f
- f
- f
+ t
+ t
+ t
 (3 rows)
 
 -- should single file.
@@ -116,9 +116,9 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
 SELECT yezzey_vacuum_garbage(true, true);
  yezzey_vacuum_garbage 
 -----------------------
- f
- f
- f
+ t
+ t
+ t
 (3 rows)
 
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187');
@@ -139,9 +139,9 @@ DROP TABLE vacuum_garbage_aot_187_r_187;
 SELECT yezzey_vacuum_garbage(true, true);
  yezzey_vacuum_garbage 
 -----------------------
- f
- f
- f
+ t
+ t
+ t
 (3 rows)
 
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187');
