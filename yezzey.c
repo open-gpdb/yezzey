@@ -487,7 +487,13 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
   rc = yezzey_vacuum_garbage_relation_internal_oid(reloid, GpIdentity.segindex,
                                                    confirm, crazyDrop);
 
+#if IsModernYezzey
+  /* Return dummy bool because CBDB does not allow
+   * non-SRF on segments. */
+  PG_RETURN_BOOL(true);
+#else
   PG_RETURN_VOID();
+#endif
 }
 
 Datum yezzey_binary_upgrade_1_8_to_1_8_1(PG_FUNCTION_ARGS) {
