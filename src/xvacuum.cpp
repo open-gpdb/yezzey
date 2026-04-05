@@ -131,10 +131,10 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
 
 int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
                                                 bool confirm, bool crazyDrop) {
-  Relation rel = relation_open(reloid, NoLock);
+  auto rel = relation_open(reloid, AccessShareLock);
   int rc =
       yezzey_vacuum_garbage_relation_internal(rel, segindx, confirm, crazyDrop);
-  relation_close(rel, NoLock);
+  relation_close(rel, AccessShareLock);
   return rc;
 }
 
