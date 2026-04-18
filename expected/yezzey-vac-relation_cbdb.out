@@ -65,9 +65,9 @@ SELECT count() FROM vac_relation_regaotyvi;
 SELECT yezzey_vacuum_relation('vac_relation_regaotyvi', true);
  yezzey_vacuum_relation 
 ------------------------
- 
- 
- 
+ t
+ t
+ t
 (3 rows)
 
 SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'vac_relation_regaotyvi'::regclass::oid;
