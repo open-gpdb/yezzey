@@ -113,8 +113,6 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
 
   auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
 #if IsModernYezzey
-  /* XXX: todo - fix OTM */
-  return "pg_default";
   auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
   /* No map tuple created. Assume 'pg_default' by default */
   if (!table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
@@ -129,6 +127,9 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
     if (Gp_role == GP_ROLE_UTILITY || Gp_role == GP_ROLE_DISPATCH) {
       return "pg_default";
     }
+
+    /* XXX: todo - fix OTM */
+    return "pg_default";
 
     elog(ERROR, "failed to map relation %d (%s.%s) to its origin tablespace",
          i_reloid, nspname, relname);

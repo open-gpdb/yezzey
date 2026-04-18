@@ -229,15 +229,12 @@ void
 yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
 {
 #if IsGreenplum6
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-#if PG_VERSION_NUM >= 130000
-    return true;
+  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
+
+  mdprefetch(reln, forkNum, blockNum);
+
+  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
 #else
-    return;
-#endif
-  }
-#endif
 
   bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
 
@@ -246,6 +243,7 @@ yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
   yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
 
   return ret;
+#endif
 }
 
 void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
