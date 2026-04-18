@@ -128,6 +128,9 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
       return "pg_default";
     }
 
+    /* XXX: todo - fix OTM */
+    return "pg_default";
+
     elog(ERROR, "failed to map relation %d (%s.%s) to its origin tablespace",
          i_reloid, nspname, relname);
   }
