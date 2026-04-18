@@ -629,7 +629,7 @@ CREATE FUNCTION yezzey_vacuum_relation(
 RETURNS TABLE (status BOOLEAN)
 AS $$ 
 BEGIN
-SELECT yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop);
+RETURN QUERY SELECT yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop);
 END;
 $$
 LANGUAGE PLPGSQL;

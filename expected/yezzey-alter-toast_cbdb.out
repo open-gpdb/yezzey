@@ -19,7 +19,8 @@ INSERT INTO y_a_toast_t (z3) VALUES (repeat('a', 2323323));
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='y_a_toast_t');
  spcname 
 ---------
-(0 rows)
+ yezzey
+(1 row)
 
 DROP TABLE y_a_toast_t;
 \! echo AO TOAST ALTER test OK
