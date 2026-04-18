@@ -77,6 +77,9 @@ int loadFileFromExternalStorage(RelFileNode rnode, BackendId backend,
 }
 
 static bool yezzeyCheatRelfilenode(RelFileNodeBackend *rnode) {
+#if IsGreenplum6
+  return false;
+#endif
   if (rnode->node.spcNode == YEZZEYTABLESPACE_OID) {
     rnode->node.spcNode = DEFAULTTABLESPACE_OID;
     return true;
@@ -86,13 +89,16 @@ static bool yezzeyCheatRelfilenode(RelFileNodeBackend *rnode) {
 
 static void yezzeyRevertCheatRelfilenode(RelFileNodeBackend *rnode,
                                          bool cheat) {
+#if IsGreenplum6
+  return;
+#endif
   if (cheat) {
     rnode->node.spcNode = YEZZEYTABLESPACE_OID;
   }
 }
 
 void yezzey_init(void) {
-  elog(yezzey_log_level, "[YEZZEY_SMGR] init");
+  elog(yezzey_log_level, "[YEZZEY_SMGR] init called");
   mdinit();
 }
 
