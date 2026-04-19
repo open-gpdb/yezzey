@@ -326,6 +326,7 @@ $$
             yezzey.offload_metadata op 
         WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE oid = op.reloid);
 
+    SELECT false;
 $$ LANGUAGE SQL
 EXECUTE ON ALL SEGMENTS;
 CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m()
