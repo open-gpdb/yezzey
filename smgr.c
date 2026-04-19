@@ -78,20 +78,22 @@ int loadFileFromExternalStorage(RelFileNode rnode, BackendId backend,
 
 static bool yezzeyCheatRelfilenode(RelFileNodeBackend *rnode) {
 #if IsGreenplum6
-  return false;
-#endif
+  if (rnode->node.spcNode == YEZZEYTABLESPACE_OID) {
+    rnode->node.spcNode = runningRewriteSpcOidHint ? runningRewriteSpcOidHint
+                                                   : DEFAULTTABLESPACE_OID;
+    return true;
+  }
+#else
   if (rnode->node.spcNode == YEZZEYTABLESPACE_OID) {
     rnode->node.spcNode = DEFAULTTABLESPACE_OID;
     return true;
   }
+#endif
   return false;
 }
 
 static void yezzeyRevertCheatRelfilenode(RelFileNodeBackend *rnode,
                                          bool cheat) {
-#if IsGreenplum6
-  return;
-#endif
   if (cheat) {
     rnode->node.spcNode = YEZZEYTABLESPACE_OID;
   }

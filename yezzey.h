@@ -83,6 +83,7 @@ void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
                      BlockNumber nBlocks);
 void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum);
 
+BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum);
 
 #if IsGreenplum6
 extern void yezzey_pre_ckpt(void);
@@ -111,5 +112,9 @@ void smgr_init_yezzey(void);
 extern Datum yezzey_stat_get_external_storage_usage(PG_FUNCTION_ARGS);
 
 void _PG_init(void);
+
+#if IsGreenplum6
+extern Oid runningRewriteSpcOidHint;
+#endif
 
 #endif /* YEZZEY_H */
