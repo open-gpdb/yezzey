@@ -1432,6 +1432,8 @@ static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
 static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
   (void)prev_ExecutorStart_hook(queryDesc, eflags);
 
+  newTOASTTableSpace = DEFAULTTABLESPACE_OID;
+
   IntoClause *iclause;
   Oid sourceOid;
   Oid targOid;
