@@ -236,18 +236,16 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #if IsModernYezzey
 void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
                       bool isRedo) {
-
-  bool ret;
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
       mdunlink_ao(rnode, forkNum, isRedo);
-      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      yezzeyRevertCheatRelfilenode(&rnode);
     }
     PG_CATCH();
     {
-      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      yezzeyRevertCheatRelfilenode(&rnode);
       PG_RE_THROW();
     }
     PG_END_TRY();
