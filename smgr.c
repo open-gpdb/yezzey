@@ -76,25 +76,17 @@ int loadFileFromExternalStorage(RelFileNode rnode, BackendId backend,
   return 0;
 }
 
-static bool yezzeyCheatRelfilenode(RelFileNodeBackend *rnode) {
+static void yezzeyCheatRelfilenode(RelFileNodeBackend *rnode) {
 #if IsGreenplum6
-  return false;
+  rnode->node.spcNode = runningRewriteSpcOidHint ? runningRewriteSpcOidHint
+                                                 : DEFAULTTABLESPACE_OID;
+#else
+  rnode->node.spcNode = DEFAULTTABLESPACE_OID;
 #endif
-  if (rnode->node.spcNode == YEZZEYTABLESPACE_OID) {
-    rnode->node.spcNode = DEFAULTTABLESPACE_OID;
-    return true;
-  }
-  return false;
 }
 
-static void yezzeyRevertCheatRelfilenode(RelFileNodeBackend *rnode,
-                                         bool cheat) {
-#if IsGreenplum6
-  return;
-#endif
-  if (cheat) {
-    rnode->node.spcNode = YEZZEYTABLESPACE_OID;
-  }
+static void yezzeyRevertCheatRelfilenode(RelFileNodeBackend *rnode) {
+  rnode->node.spcNode = YEZZEYTABLESPACE_OID;
 }
 
 void yezzey_init(void) {
@@ -104,77 +96,107 @@ void yezzey_init(void) {
 
 #if IsModernYezzey
 void yezzey_open(SMgrRelation reln) {
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-  mdopen(reln);
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
-}
-#endif
-
-#if IsModernYezzey
-void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-  mdclose(reln, forkNum);
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
-}
-#else
-void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-    return;
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      mdopen(reln);
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdopen(reln);
   }
-
-  mdclose(reln, forkNum);
 }
 #endif
 
-#if IsModernYezzey
-void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
+void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 
-  mdcreate(reln, forkNum, isRedo);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
-}
-#else
-void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-    return;
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      mdclose(reln, forkNum);
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdclose(reln, forkNum);
   }
-
-  mdcreate(reln, forkNum, isRedo);
 }
-#endif
+
+void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      mdcreate(reln, forkNum, isRedo);
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdcreate(reln, forkNum, isRedo);
+  }
+}
 
 void yezzey_create_ao(RelFileNodeBackend rnode, int32 segmentFileNum,
                       bool isRedo) {
-  bool cheat = yezzeyCheatRelfilenode(&rnode);
-
-  mdcreate_ao(rnode, segmentFileNum, isRedo);
-
-  yezzeyRevertCheatRelfilenode(&rnode, cheat);
+  if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&rnode);
+    PG_TRY();
+    {
+      mdcreate_ao(rnode, segmentFileNum, isRedo);
+      yezzeyRevertCheatRelfilenode(&rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdcreate_ao(rnode, segmentFileNum, isRedo);
+  }
 }
 
-#if IsModernYezzey
 bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum) {
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
 
-  bool ret = mdexists(reln, forkNum);
+  bool ret;
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
 
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
+      ret = mdexists(reln, forkNum);
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    ret = mdexists(reln, forkNum);
+  }
 
   return ret;
 }
-#else
-bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum) {
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-    return true;
-  }
-
-  return mdexists(reln, forkNum);
-}
-#endif
 
 #if IsModernYezzey
 void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo)
@@ -183,48 +205,74 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
                    char relstorage)
 #endif
 {
-  bool cheat = yezzeyCheatRelfilenode(&rnode);
+
+  if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&rnode);
+    PG_TRY();
+    {
 
 #if IsModernYezzey
-  mdunlink(rnode, forkNum, isRedo);
+      mdunlink(rnode, forkNum, isRedo);
 #else
-  if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-
-    return;
-  }
-
-  mdunlink(rnode, forkNum, isRedo, relstorage);
+      mdunlink(rnode, forkNum, isRedo, relstorage);
 #endif
-
-  yezzeyRevertCheatRelfilenode(&rnode, cheat);
+      yezzeyRevertCheatRelfilenode(&rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+#if IsModernYezzey
+    mdunlink(rnode, forkNum, isRedo);
+#else
+    mdunlink(rnode, forkNum, isRedo, relstorage);
+#endif
+  }
 }
 
 #if IsModernYezzey
 void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
                       bool isRedo) {
-
-  bool cheat = yezzeyCheatRelfilenode(&rnode);
-  mdunlink_ao(rnode, forkNum, isRedo);
-
-  yezzeyRevertCheatRelfilenode(&rnode, cheat);
+  if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&rnode);
+    PG_TRY();
+    {
+      mdunlink_ao(rnode, forkNum, isRedo);
+      yezzeyRevertCheatRelfilenode(&rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdunlink_ao(rnode, forkNum, isRedo);
+  }
 }
 #endif
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                    char *buffer, bool skipFsync) {
-
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-#if IsGreenplum6
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-    return;
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      mdextend(reln, forkNum, blockNum, buffer, skipFsync);
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdextend(reln, forkNum, blockNum, buffer, skipFsync);
   }
-#endif
-
-  mdextend(reln, forkNum, blockNum, buffer, skipFsync);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
 }
 
 #if PG_VERSION_NUM >= 130000
@@ -234,54 +282,81 @@ void
 #endif
 yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
 {
+
+#if IsModernYezzey
+  bool ret;
+#endif
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
 #if IsGreenplum6
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-
-  mdprefetch(reln, forkNum, blockNum);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
+      mdprefetch(reln, forkNum, blockNum);
 #else
+      ret = mdprefetch(reln, forkNum, blockNum);
+#endif
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
 
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
+#if IsGreenplum6
+    mdprefetch(reln, forkNum, blockNum);
+#else
+    ret = mdprefetch(reln, forkNum, blockNum);
+#endif
+  }
 
-  bool ret = mdprefetch(reln, forkNum, blockNum);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
-
+#if IsModernYezzey
   return ret;
 #endif
 }
 
 void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                  char *buffer) {
-#if IsGreenplum6
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-    return;
+
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      mdread(reln, forkNum, blockNum, buffer);
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdread(reln, forkNum, blockNum, buffer);
   }
-#endif
-
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-
-  mdread(reln, forkNum, blockNum, buffer);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
 }
 
 void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                   char *buffer, bool skipFsync) {
-#if IsGreenplum6
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-    return;
+
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      mdwrite(reln, forkNum, blockNum, buffer, skipFsync);
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdwrite(reln, forkNum, blockNum, buffer, skipFsync);
   }
-#endif
-
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-
-  mdwrite(reln, forkNum, blockNum, buffer, skipFsync);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
 }
 
 void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
@@ -289,67 +364,111 @@ void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
 #if IsGreenplum6
   /*do nothing */
 #else
-
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-  mdwriteback(reln, forkNum, blockNum, nBlocks);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      mdwriteback(reln, forkNum, blockNum, nBlocks);
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdwriteback(reln, forkNum, blockNum, nBlocks);
+  }
 #endif
 }
 
 BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
-
-#if IsGreenplum6
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-    return 0;
+  BlockNumber n;
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      n = mdnblocks(reln, forkNum);
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    n = mdnblocks(reln, forkNum);
   }
-#endif
-
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-
-  BlockNumber n = mdnblocks(reln, forkNum);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
 
   return n;
 }
 
 BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum) {
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-  BlockNumber n = mdnblocks(reln, forknum);
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
+  BlockNumber n;
+
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      n = mdnblocks(reln, forknum);
+
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    n = mdnblocks(reln, forknum);
+  }
+
   return n;
 }
 
 void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
                      BlockNumber nBlocks) {
-#if IsGreenplum6
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-    return;
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      mdtruncate(reln, forkNum, nBlocks);
+
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdtruncate(reln, forkNum, nBlocks);
   }
-#endif
-
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-  mdtruncate(reln, forkNum, nBlocks);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
 }
 
 void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum) {
-#if IsGreenplum6
-  if ((reln->smgr_rnode).node.spcNode == YEZZEYTABLESPACE_OID) {
-    /*do nothing */
-    return;
+
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    PG_TRY();
+    {
+      mdimmedsync(reln, forkNum);
+
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&reln->smgr_rnode);
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdimmedsync(reln, forkNum);
   }
-#endif
-
-  bool cheat = yezzeyCheatRelfilenode(&reln->smgr_rnode);
-
-  mdimmedsync(reln, forkNum);
-
-  yezzeyRevertCheatRelfilenode(&reln->smgr_rnode, cheat);
 }
 
 #if IsGreenplum6

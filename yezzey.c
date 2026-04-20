@@ -97,6 +97,10 @@ bool use_otm_feature = false;
 
 char *yproxy_socket = NULL;
 
+#if IsGreenplum6
+Oid runningRewriteSpcOidHint = InvalidOid;
+#endif
+
 PG_MODULE_MAGIC;
 
 PG_FUNCTION_INFO_V1(yezzey_offload_relation);
@@ -1393,6 +1397,10 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
     break;
   }
 
+#if IsGreenplum6
+  runningRewriteSpcOidHint = newTOASTTableSpace;
+#endif
+
 #if IsModernYezzey
   prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params,
                            queryEnv, dest, qc);
@@ -1411,6 +1419,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
 #if IsGreenplum6
   /* Reset it */
   newTOASTTableSpace = InvalidOid;
+  runningRewriteSpcOidHint = InvalidOid;
 #endif
 }
 
