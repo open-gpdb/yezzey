@@ -237,7 +237,7 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
                       bool isRedo) {
   if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
-    yezzeyCheatRelfilenode(&reln->smgr_rnode);
+    yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
     {
       mdunlink_ao(rnode, forkNum, isRedo);
