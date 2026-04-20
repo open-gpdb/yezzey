@@ -96,8 +96,8 @@ void yezzey_init(void) {
 
 #if IsModernYezzey
 void yezzey_open(SMgrRelation reln) {
-  if (rnode->node.spcNode == YEZZEYTABLESPACE_OID) {
-    yezzeyCheatRelfilenode(&rnode);
+  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+    yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
       mdopen(reln);
