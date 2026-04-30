@@ -5,6 +5,7 @@
 
           rm -rf /tmp/yproxy.sock
           #run yproxy in daemon mode
+          mkdir  /tmp/data
           /usr/bin/yproxy -c /tmp/yproxy.yaml -ldebug > yproxy.log 2>&1 &
 
           i=0
