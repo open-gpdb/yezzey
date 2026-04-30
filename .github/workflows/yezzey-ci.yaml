@@ -398,19 +398,6 @@ jobs:
           chmod +x mc
           sudo mv mc /usr/local/bin/mc  # Make mc available system-wide
 
-      - name: Configure MinIO service
-        run: |
-          set -ex pipefail
-           # Add the MinIO service as an "alias" in mc (name it "minio-ci")
-          mc alias set minio-ci http://minio:9000 some_key some_key
-
-          # Verify the connection
-          mc admin info minio-ci
-
-          # Create buckets
-          mc mb minio-ci/gpyezzey
-          mc mb minio-ci/gpyezzey2
-          mc mb minio-ci/gpyezzey3
           
       - name: Run Greenplum configure script
         env:
