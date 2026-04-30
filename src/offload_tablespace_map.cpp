@@ -302,6 +302,10 @@ void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
 
 void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {
 
+  if (IsCatalogRelationOid(targRelationOid) || IsCatalogRelationOid(sourceRelationOid)) {
+    return;
+  }
+
   auto r = try_relation_open(sourceRelationOid, NoLock, false);
 
   if (r == NULL)
