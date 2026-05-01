@@ -15,7 +15,7 @@ INSERT INTO expand_regaoty SELECT * FROM generate_series(1, 100000);
 SELECT COUNT(1) FROM expand_regaoty;
 
 CREATE TEMP TABLE yezzey_ao_relfilenode_before_expand AS 
-SELECT relfilenode FROM yezzey_dump_virtual_index('expand_regaoty') DISTRIBUTED RANDOMLY;
+SELECT filenode FROM gp_dist_random('yezzey.yezzey_virtual_index') where relation = 'expand_regaoty'::regclass::oid DISTRIBUTED RANDOMLY;
 
 ALTER TABLE expand_regaoty EXPAND TABLE;
 SELECT reltablespace FROM pg_class where oid = 'expand_regaoty'::regclass::oid;
@@ -23,7 +23,7 @@ SELECT reltablespace FROM pg_class where oid = 'expand_regaoty'::regclass::oid;
 INSERT INTO expand_regaoty SELECT * FROM generate_series(1, 100000);
 SELECT COUNT(1) FROM expand_regaoty;
 
-SELECT relfilenode FROM yezzey_dump_virtual_index('expand_regaoty') INTERSECT TABLE yezzey_ao_relfilenode_before_expand;
+SELECT filenode FROM gp_dist_random('yezzey.yezzey_virtual_index') where relation =  'expand_regaoty'::regclass::oid INTERSECT TABLE yezzey_ao_relfilenode_before_expand;
 
 DROP TABLE expand_regaoty;
 
@@ -41,7 +41,7 @@ INSERT INTO expand_regaocsty SELECT * FROM generate_series(1, 100000);
 SELECT COUNT(1) FROM expand_regaocsty;
 
 CREATE TEMP TABLE yezzey_aocs_relfilenode_before_expand AS 
-SELECT relfilenode FROM yezzey_dump_virtual_index('expand_regaocsty') DISTRIBUTED RANDOMLY;
+SELECT filenode FROM gp_dist_random('yezzey.yezzey_virtual_index') where relation = 'expand_regaocsty'::regclass::oid DISTRIBUTED RANDOMLY;
 
 ALTER TABLE expand_regaocsty EXPAND TABLE;
 SELECT reltablespace FROM pg_class where oid = 'expand_regaocsty'::regclass::oid;
@@ -49,7 +49,7 @@ SELECT reltablespace FROM pg_class where oid = 'expand_regaocsty'::regclass::oid
 INSERT INTO expand_regaocsty SELECT * FROM generate_series(1, 100000);
 SELECT COUNT(1) FROM expand_regaocsty;
 
-SELECT relfilenode FROM yezzey_dump_virtual_index('expand_regaocsty') INTERSECT TABLE yezzey_aocs_relfilenode_before_expand;
+SELECT filenode FROM gp_dist_random('yezzey.yezzey_virtual_index') where relation = 'expand_regaocsty'::regclass::oid INTERSECT TABLE yezzey_aocs_relfilenode_before_expand;
 
 DROP TABLE expand_regaocsty;
 
