@@ -27,6 +27,7 @@
 #include "catalog/objectaccess.h"
 #include "catalog/pg_tablespace.h"
 #include "catalog/storage.h"
+#include "catalog/namespace.h"
 
 #include "access/xact.h"
 #include "catalog/indexing.h"
@@ -1276,6 +1277,16 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
     return;
   }
 
+
+  if (access == OAT_TRUNCATE && subId == 0) {
+      /* open the relation, we already hold a lock on it */
+      offRel = relation_open(objectId, AccessShareLock);
+
+      emptyYezzeyIndex(YezzeyFindAuxIndex(objectId), offRel->rd_rel->relfilenode);
+
+      relation_close(offRel, AccessShareLock);
+  }
+
   if (access == OAT_DROP && subId == 0) {
     offRel = relation_open(objectId, AccessShareLock);
     if (offRel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
@@ -1323,9 +1334,8 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
                                        char *completionTag)
 #endif
 {
-  RangeVar *post_later_offload_rel;
-
-  post_later_offload_rel = NULL;
+  RangeVar *post_alter_offload_rel;
+  ListCell *lcmd;
 
 #if IsModernYezzey
   Node *parsetree;
@@ -1342,18 +1352,19 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
   newTOASTTableSpace = InvalidOid;
 #endif
 
+  post_alter_offload_rel = NULL;
+
   switch (nodeTag(parsetree)) {
   case T_CreateStmt: {
     CreateStmt *stmt = (CreateStmt *)parsetree;
     if (stmt->tablespacename != NULL &&
         strcmp(stmt->tablespacename, YEZZEYTABLESPACE_NAME) == 0) {
       /* save range var for latter. */
-      post_later_offload_rel = stmt->relation;
+      post_alter_offload_rel = stmt->relation;
     }
   } break;
 #if IsGreenplum6
   case T_AlterTableStmt: {
-    ListCell *lcmd;
     AlterTableStmt *stmt = (AlterTableStmt *)parsetree;
 
     Relation rel = relation_openrv(stmt->relation, NoLock);
@@ -1409,9 +1420,9 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
                            completionTag);
 #endif
 
-  if (post_later_offload_rel != NULL) {
+  if (post_alter_offload_rel != NULL) {
 
-    Relation rel = relation_openrv(post_later_offload_rel, NoLock);
+    Relation rel = relation_openrv(post_alter_offload_rel, NoLock);
     YezzeyDefineOffloadPolicy(RelationGetRelid(rel));
     relation_close(rel, NoLock);
   }
