@@ -1278,6 +1278,7 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
   }
 
 
+#if IsModernYezzey
   if (access == OAT_TRUNCATE && subId == 0) {
       /* open the relation, we already hold a lock on it */
       offRel = relation_open(objectId, AccessShareLock);
@@ -1286,6 +1287,7 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
 
       relation_close(offRel, AccessShareLock);
   }
+#endif
 
   if (access == OAT_DROP && subId == 0) {
     offRel = relation_open(objectId, AccessShareLock);
