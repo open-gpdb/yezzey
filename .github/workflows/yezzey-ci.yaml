@@ -524,6 +524,7 @@ jobs:
           if ! time su - gpadmin -c "cd ${SRC_DIR} && ../yezzey/devops/scripts/launch_yproxy.sh && cd ${SRC_DIR}/gpcontrib/yezzey && source /opt/greenplum-db-6/greenplum_path.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && make installcheck"; then
             echo "::error::Test yezzey failed"
             cat ${SRC_DIR}/gpcontrib/yezzey/regression.diffs
+            cat /tmp/data/yproxy.log
             exit 1
           fi
 
