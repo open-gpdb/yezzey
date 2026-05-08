@@ -139,7 +139,7 @@ jobs:
         run: |
           set -ex pipefail
           # Download mc for Linux (amd64)
-          curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
+          curl -fsSL -o mc https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
           sudo mv mc /usr/local/bin/mc  # Make mc available system-wide
 
