@@ -24,10 +24,10 @@
 #include "utils/fmgroids.h"
 
 #include "catalog/catalog.h"
+#include "catalog/namespace.h"
 #include "catalog/objectaccess.h"
 #include "catalog/pg_tablespace.h"
 #include "catalog/storage.h"
-#include "catalog/namespace.h"
 
 #include "access/xact.h"
 #include "catalog/indexing.h"
@@ -1277,15 +1277,14 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
     return;
   }
 
-
 #if IsModernYezzey
   if (access == OAT_TRUNCATE && subId == 0) {
-      /* open the relation, we already hold a lock on it */
-      offRel = relation_open(objectId, AccessShareLock);
+    /* open the relation, we already hold a lock on it */
+    offRel = relation_open(objectId, AccessShareLock);
 
-      emptyYezzeyIndex(YezzeyFindAuxIndex(objectId), offRel->rd_rel->relfilenode);
+    emptyYezzeyIndex(YezzeyFindAuxIndex(objectId), offRel->rd_rel->relfilenode);
 
-      relation_close(offRel, AccessShareLock);
+    relation_close(offRel, AccessShareLock);
   }
 #endif
 

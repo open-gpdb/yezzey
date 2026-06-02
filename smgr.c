@@ -94,9 +94,21 @@ void yezzey_init(void) {
   mdinit();
 }
 
+#define IsYezzeyOperateSpc(spc) ((spc) == YEZZEYTABLESPACE_OID)
+
+#define YezzeyShouldOperate()                                                  \
+  if (RecoveryInProgress())                                                    \
+    return;
+
+#define YezzeyShouldOperateVal(x)                                              \
+  if (RecoveryInProgress())                                                    \
+    return x;
+
 #if IsModernYezzey
 void yezzey_open(SMgrRelation reln) {
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -117,7 +129,9 @@ void yezzey_open(SMgrRelation reln) {
 
 void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -136,7 +150,9 @@ void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 }
 
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -156,7 +172,9 @@ void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
 
 void yezzey_create_ao(RelFileNodeBackend rnode, int32 segmentFileNum,
                       bool isRedo) {
-  if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
     {
@@ -177,7 +195,9 @@ void yezzey_create_ao(RelFileNodeBackend rnode, int32 segmentFileNum,
 bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum) {
 
   bool ret;
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperateVal(false);
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -206,7 +226,9 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #endif
 {
 
-  if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
     {
@@ -236,7 +258,9 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #if IsModernYezzey
 void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
                       bool isRedo) {
-  if (rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
     {
@@ -257,7 +281,9 @@ void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                    char *buffer, bool skipFsync) {
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -286,7 +312,14 @@ yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
 #if IsModernYezzey
   bool ret;
 #endif
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+
+#if PG_VERSION_NUM >= 130000
+    YezzeyShouldOperateVal(false);
+#else
+    YezzeyShouldOperate();
+#endif
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -320,7 +353,9 @@ yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
 void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                  char *buffer) {
 
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -341,7 +376,9 @@ void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                   char *buffer, bool skipFsync) {
 
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -364,7 +401,9 @@ void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
 #if IsGreenplum6
   /*do nothing */
 #else
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -385,7 +424,9 @@ void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
 
 BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
   BlockNumber n;
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperateVal(InvalidBlockNumber);
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -408,7 +449,9 @@ BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
 BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum) {
   BlockNumber n;
 
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperateVal(InvalidBlockNumber);
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -431,7 +474,9 @@ BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum) {
 
 void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
                      BlockNumber nBlocks) {
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -452,7 +497,9 @@ void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
 
 void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum) {
 
-  if (reln->smgr_rnode.node.spcNode == YEZZEYTABLESPACE_OID) {
+  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+    YezzeyShouldOperate();
+
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
