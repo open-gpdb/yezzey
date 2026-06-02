@@ -303,7 +303,8 @@ void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
 void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {
 
 #if IsModernYezzey
-  if (IsCatalogRelationOid(targRelationOid) || IsCatalogRelationOid(sourceRelationOid)) {
+  if (IsCatalogRelationOid(targRelationOid) ||
+      IsCatalogRelationOid(sourceRelationOid)) {
     return;
   }
 #else
