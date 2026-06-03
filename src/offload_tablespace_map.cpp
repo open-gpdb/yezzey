@@ -303,6 +303,7 @@ void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
 void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {
 
 #if IsModernYezzey
+  return;
   if (IsCatalogRelationOid(targRelationOid) ||
       IsCatalogRelationOid(sourceRelationOid)) {
     return;
@@ -338,5 +339,4 @@ void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {
   relation_close(r, NoLock);
 }
 
-void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/
-}
+void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/ }

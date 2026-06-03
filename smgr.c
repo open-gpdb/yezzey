@@ -96,18 +96,9 @@ void yezzey_init(void) {
 
 #define IsYezzeyOperateSpc(spc) ((spc) == YEZZEYTABLESPACE_OID)
 
-#define YezzeyShouldOperate()                                                  \
-  if (RecoveryInProgress())                                                    \
-    return;
-
-#define YezzeyShouldOperateVal(x)                                              \
-  if (RecoveryInProgress())                                                    \
-    return x;
-
 #if IsModernYezzey
 void yezzey_open(SMgrRelation reln) {
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -130,7 +121,6 @@ void yezzey_open(SMgrRelation reln) {
 void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -151,7 +141,6 @@ void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -173,7 +162,6 @@ void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
 void yezzey_create_ao(RelFileNodeBackend rnode, int32 segmentFileNum,
                       bool isRedo) {
   if (IsYezzeyOperateSpc(rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
@@ -196,7 +184,6 @@ bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum) {
 
   bool ret;
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperateVal(false);
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -227,7 +214,6 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 {
 
   if (IsYezzeyOperateSpc(rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
@@ -259,7 +245,6 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
                       bool isRedo) {
   if (IsYezzeyOperateSpc(rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
@@ -282,7 +267,6 @@ void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                    char *buffer, bool skipFsync) {
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -313,13 +297,6 @@ yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
   bool ret;
 #endif
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-
-#if PG_VERSION_NUM >= 130000
-    YezzeyShouldOperateVal(false);
-#else
-    YezzeyShouldOperate();
-#endif
-
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -354,8 +331,6 @@ void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                  char *buffer) {
 
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperate();
-
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
     {
@@ -377,7 +352,6 @@ void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                   char *buffer, bool skipFsync) {
 
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -402,7 +376,6 @@ void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
   /*do nothing */
 #else
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -425,7 +398,6 @@ void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
 BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
   BlockNumber n;
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperateVal(InvalidBlockNumber);
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -450,7 +422,6 @@ BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum) {
   BlockNumber n;
 
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperateVal(InvalidBlockNumber);
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -475,7 +446,6 @@ BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum) {
 void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
                      BlockNumber nBlocks) {
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -498,7 +468,6 @@ void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
 void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum) {
 
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
-    YezzeyShouldOperate();
 
     yezzeyCheatRelfilenode(&reln->smgr_rnode);
     PG_TRY();
@@ -550,6 +519,12 @@ static const struct f_smgr yezzey_smgr = {
 };
 #else
 
+#if IsModernYezzey
+#define MAX_YEZZEY_SMGR_ID 3
+#else
+#define MAX_YEZZEY_SMGR_ID 2
+#endif
+
 static const f_smgr yezzey_smgrsw[] = {
     /* magnetic disk */
     {
@@ -592,7 +567,9 @@ static const f_smgr yezzey_smgrsw[] = {
         .smgr_nblocks = yezzey_nblocks,
         .smgr_truncate = yezzey_truncate,
         .smgr_immedsync = yezzey_immedsync,
-    }};
+    },
+#define YEZZEY_IGNORE_SMGR_ID 2
+};
 #endif
 
 static const struct f_smgr_ao yezzey_smgr_ao = {
@@ -629,8 +606,15 @@ const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode,
 #else
 void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which,
                  Relation rel) {
-  reln->smgr = &yezzey_smgrsw[which];
+  if (which >= MAX_YEZZEY_SMGR_ID) {
+    elog(ERROR, "corrutped smgr which ID: %d", which);
+  }
   reln->smgr_ao = &yezzey_smgr_ao;
+  /* This is basically only PAX case for now, do not overwrite */
+  if (which == YEZZEY_IGNORE_SMGR_ID) {
+    return;
+  }
+  reln->smgr = &yezzey_smgrsw[which];
 }
 #endif
 
