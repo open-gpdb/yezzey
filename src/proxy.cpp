@@ -543,6 +543,6 @@ EXTERNC off_t yezzey_FileSize(File file) {
     return YVirtFD_cache[file].handler->total_size();
   }
 
-  return FileSize(file);
+  return FileSize(actual_fd);
 }
 #endif
