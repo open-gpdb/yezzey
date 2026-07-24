@@ -533,7 +533,7 @@ EXTERNC off_t yezzey_FileDiskSize(File file) {
 
   return FileDiskSize(file);
 }
-
+/*comment*/
 EXTERNC off_t yezzey_FileSize(File file) {
   auto actual_fd = YVirtFD_cache[file].y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
