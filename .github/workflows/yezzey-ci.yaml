@@ -37,7 +37,7 @@ concurrency:
 
 env:
   CLOUDBERRY_HOME: "/usr/local/cloudberry-db"
-  CLOUDBERRY_VERSION: "main"
+  CLOUDBERRY_VERSION: "REL_2_STABLE"
   GPDB_HOME: "/opt/greenplum-db-6"
   GPDB_VERSION: "OPENGPDB_STABLE"
 
@@ -82,7 +82,7 @@ jobs:
       - name: Checkout Cloudberry source
         uses: actions/checkout@v4
         with:
-          repository: apache/cloudberry
+          repository: open-gpdb/cloudberry
           ref: ${{ env.CLOUDBERRY_VERSION }}
           path: cloudberry
           submodules: true
