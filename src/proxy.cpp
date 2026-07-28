@@ -80,7 +80,7 @@ int readprepare(std::shared_ptr<IOadv> ioadv, SMGRFile yezzey_fd) {
 #endif
   try {
     YVirtFD_cache[yezzey_fd].handler =
-        make_unique<YIO>(ioadv, GpIdentity.segindex);
+        std::make_unique<YIO>(ioadv, static_cast<int>(GpIdentity.segindex));
   } catch (...) {
     return -1;
   }
@@ -95,7 +95,7 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
                  SMGRFile yezzey_fd) {
   try {
     YVirtFD_cache[yezzey_fd].handler =
-        make_unique<YIO>(ioadv, GpIdentity.segindex, modcount, "");
+        std::make_unique<YIO>(ioadv, static_cast<int>(GpIdentity.segindex), modcount, "");
   } catch (...) {
     return -1;
   }
