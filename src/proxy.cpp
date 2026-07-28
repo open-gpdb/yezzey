@@ -531,7 +531,7 @@ EXTERNC off_t yezzey_FileDiskSize(File file) {
     return 0;
   }
 
-  return FileDiskSize(file);
+  return FileDiskSize(actual_fd);
 }
 
 EXTERNC off_t yezzey_FileSize(File file) {
