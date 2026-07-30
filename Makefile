@@ -74,7 +74,8 @@ REGRESS = \
           yezzey-vi-eh-unique_cbdb \
           yezzey-stat_cbdb \
           yezzey-alter-ts_cbdb \
-          yezzey-create-offloaded_cbdb
+          yezzey-create-offloaded_cbdb \
+          yezzey-offload-errors_cbdb
           
 else
 REGRESS = \
@@ -97,7 +98,8 @@ REGRESS = \
 	  yezzey-vi-eh-unique \
 	  yezzey-stat \
 	  yezzey-alter-ts \
-	  yezzey-create-offloaded
+	  yezzey-create-offloaded \
+	  yezzey-offload-errors
 endif
 
 ifdef USE_PGXS
