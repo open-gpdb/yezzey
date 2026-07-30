@@ -93,7 +93,8 @@ void getYezzeyExternalStoragePathByCoords(const char *nspname,
   auto coords = relnodeCoord(spcNode, dbNode, relNode, segblockno);
   auto prefix = getYezzeyRelationUrl_internal(nspname, relname, coords, segid);
 
-  *dest = (char *)palloc(sizeof(char) * prefix.size());
+  /* +1 for the terminating null byte that strcpy writes */
+  *dest = (char *)palloc(sizeof(char) * (prefix.size() + 1));
   strcpy(*dest, prefix.c_str());
   return;
 }
