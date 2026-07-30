@@ -40,7 +40,10 @@ relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
 
   auto len = fileName.size();
 
-  size_t start_off = len - 1;
+  /*
+   * Scan backwards for the second-to-last '/'.
+   */
+  ssize_t start_off = (ssize_t)len - 1;
   int slash_cntr = 0;
   while (start_off >= 0) {
     if (fileName[start_off] == '/') {
