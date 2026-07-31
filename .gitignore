@@ -9,4 +9,6 @@ regression.out
 *.a
 *.d
 *.gcda
+*.gcov
 yezzey_test
+test/googletest/

@@ -43,6 +43,34 @@ env:
 
 jobs:
 
+  ## Stage 0: Fast standalone unit tests (no cluster required)
+
+  unit-tests:
+    name: Unit Tests (googletest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Yezzey source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          set -eo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            g++ make libssl-dev libxml2-dev libcurl4-openssl-dev zlib1g-dev
+
+      - name: Fetch googletest
+        run: |
+          set -eo pipefail
+          # release-1.11.0 is the last googletest release that builds with -std=c++11
+          git clone --depth 1 --branch release-1.11.0 \
+            https://github.com/google/googletest.git test/googletest
+
+      - name: Build and run unit tests
+        run: |
+          set -eo pipefail
+          make -C test test
+
   ## Stage 1: Build artifacts and run tests for cloudberry
 
   test-cloudberry:
