@@ -60,6 +60,9 @@ bool YProxyWriter::write(const char *buffer, size_t *amount) {
   auto msg = ConstructCopyDataRequest(buffer, *amount);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
+    // Be tidy
+    ::close(client_fd_);
+    client_fd_ = -1;
     *amount = 0;
     return false;
   }
@@ -78,6 +81,9 @@ int YProxyWriter::prepareYproxyConnection() {
   auto msg = ConstructPutRequest(storage_path_);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
+    // Be tidy
+    ::close(client_fd_);
+    client_fd_ = -1;
     return -1;
   }
 
