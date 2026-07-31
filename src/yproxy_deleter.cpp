@@ -1,4 +1,5 @@
 #include "yproxy_deleter.h"
+#include "scope_guard.h"
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                              bool confirm)
@@ -16,10 +17,10 @@ YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv)
 YProxyDeleter::~YProxyDeleter() { close(); }
 
 bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
+  auto connGuard = makeScopeGuard([this] { this->close(); });
+
   if (client_fd_ == -1) {
     if (prepareYproxyConnection() == -1) {
-      // Throw here?
-      close();
       return false;
     }
   }
@@ -28,15 +29,14 @@ bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
   auto msg = ConstructDeleteRequest(chunkName);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
-    close();
     return false;
   }
   // wait for responce
   if (commonReadRFQResponce(client_fd_) != 0) {
-    close();
     return false;
   }
 
+  connGuard.dismiss();
   return true;
 }
 

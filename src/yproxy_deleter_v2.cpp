@@ -1,4 +1,5 @@
 #include "yproxy_deleter_v2.h"
+#include "scope_guard.h"
 
 YProxyDeleterV2::YProxyDeleterV2(std::shared_ptr<IOadv> adv, ssize_t segindx,
                                  std::string dbname, bool crazy_drop_)
@@ -12,10 +13,10 @@ YProxyDeleterV2::YProxyDeleterV2(std::shared_ptr<IOadv> adv, ssize_t segindx,
 YProxyDeleterV2::~YProxyDeleterV2() { close(); }
 
 bool YProxyDeleterV2::Delete(const std::string &chunkName) {
+  auto connGuard = makeScopeGuard([this] { this->close(); });
+
   if (client_fd_ == -1) {
     if (prepareYproxyConnection() == -1) {
-      // Throw here?
-      close();
       return false;
     }
   }
@@ -24,23 +25,22 @@ bool YProxyDeleterV2::Delete(const std::string &chunkName) {
   auto msg = ConstructDeleteRequest(chunkName);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
-    close();
     return false;
   }
   // wait for responce
   if (commonReadRFQResponce(client_fd_) != 0) {
-    close();
     return false;
   }
 
+  connGuard.dismiss();
   return true;
 }
 
 bool YProxyDeleterV2::Collect(const std::string &chunkName) {
+  auto connGuard = makeScopeGuard([this] { this->close(); });
+
   if (client_fd_ == -1) {
     if (prepareYproxyConnection() == -1) {
-      // Throw here?
-      close();
       return false;
     }
   }
@@ -49,16 +49,15 @@ bool YProxyDeleterV2::Collect(const std::string &chunkName) {
   auto msg = ConstructCollectRequest(chunkName);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
-    close();
     return false;
   }
 
   // wait for responce
   if (commonReadRFQResponce(client_fd_) != 0) {
-    close();
     return false;
   }
 
+  connGuard.dismiss();
   return true;
 }
 

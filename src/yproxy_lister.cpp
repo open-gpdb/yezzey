@@ -1,40 +1,11 @@
 #include "yproxy_lister.h"
+#include "scope_guard.h"
 #include "url.h"
 
-#include <utility>
-
 /*
+ *
  *  Yproxy Lister
  */
-
-namespace {
-
-template <typename F> class ScopeGuard {
-public:
-  explicit ScopeGuard(F fn) : fn_(std::move(fn)), active_(true) {}
-  ScopeGuard(ScopeGuard &&other) noexcept
-      : fn_(std::move(other.fn_)), active_(other.active_) {
-    other.active_ = false;
-  }
-  ~ScopeGuard() {
-    if (active_) {
-      fn_();
-    }
-  }
-  ScopeGuard(const ScopeGuard &) = delete;
-  ScopeGuard &operator=(const ScopeGuard &) = delete;
-  ScopeGuard &operator=(ScopeGuard &&) = delete;
-
-private:
-  F fn_;
-  bool active_;
-};
-
-template <typename F> ScopeGuard<F> makeScopeGuard(F fn) {
-  return ScopeGuard<F>(std::move(fn));
-}
-
-} // namespace
 
 YProxyLister::YProxyLister(std::shared_ptr<IOadv> adv, ssize_t segindx)
     : YProxyConnector(adv, segindx) {}
