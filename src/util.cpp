@@ -42,8 +42,6 @@ relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
 
   /*
    * Walk backwards from the end of the path looking for the second '/'.
-   * start_off is unsigned, so we iterate over [0, len) and stop before it
-   * would underflow instead of testing "start_off >= 0" (always true).
    */
   size_t start_off = len;
   int slash_cntr = 0;
