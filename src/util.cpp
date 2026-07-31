@@ -40,15 +40,20 @@ relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
 
   auto len = fileName.size();
 
-  size_t start_off = len - 1;
+  /*
+   * Walk backwards from the end of the path looking for the second '/'.
+   * start_off is unsigned, so we iterate over [0, len) and stop before it
+   * would underflow instead of testing "start_off >= 0" (always true).
+   */
+  size_t start_off = len;
   int slash_cntr = 0;
-  while (start_off >= 0) {
+  while (start_off > 0) {
+    --start_off;
     if (fileName[start_off] == '/') {
       ++slash_cntr;
       if (slash_cntr == 2)
         break;
     }
-    --start_off;
   }
   if (slash_cntr != 2) {
     elog(ERROR, "yezzey: corrupted data file path %s", fileName.c_str());
