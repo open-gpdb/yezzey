@@ -1,10 +1,40 @@
 #include "yproxy_lister.h"
 #include "url.h"
 
+#include <utility>
+
 /*
- *
  *  Yproxy Lister
  */
+
+namespace {
+
+template <typename F> class ScopeGuard {
+public:
+  explicit ScopeGuard(F fn) : fn_(std::move(fn)), active_(true) {}
+  ScopeGuard(ScopeGuard &&other) noexcept
+      : fn_(std::move(other.fn_)), active_(other.active_) {
+    other.active_ = false;
+  }
+  ~ScopeGuard() {
+    if (active_) {
+      fn_();
+    }
+  }
+  ScopeGuard(const ScopeGuard &) = delete;
+  ScopeGuard &operator=(const ScopeGuard &) = delete;
+  ScopeGuard &operator=(ScopeGuard &&) = delete;
+
+private:
+  F fn_;
+  bool active_;
+};
+
+template <typename F> ScopeGuard<F> makeScopeGuard(F fn) {
+  return ScopeGuard<F>(std::move(fn));
+}
+
+} // namespace
 
 YProxyLister::YProxyLister(std::shared_ptr<IOadv> adv, ssize_t segindx)
     : YProxyConnector(adv, segindx) {}
@@ -20,17 +50,19 @@ int YProxyLister::prepareYproxyConnection() {
 
 std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
   std::vector<storageChunkMeta> res;
+
+  /* close the connection on every exit path */
+  auto connGuard = makeScopeGuard([this] { this->close(); });
+
   auto ret = prepareYproxyConnection();
   if (ret != 0) {
-    // throw?
     return res;
   }
 
   auto msg = ConstructListRequest(yezzey_block_db_file_path(
       adv_->nspname, adv_->relname, adv_->coords_, segindx_));
-  size_t rc = ::write(client_fd_, msg.data(), msg.size());
+  auto rc = ::write(client_fd_, msg.data(), msg.size());
   if (rc <= 0) {
-    // throw?
     return res;
   }
 
