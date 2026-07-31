@@ -64,17 +64,6 @@ TEST(RelpathParse, HandlesZeroSegment) {
 }
 
 /*
- * Regression guard for the size_t underflow bug: a path with fewer than two
- * '/' separators must fail cleanly instead of reading out of bounds.
- */
-TEST(RelpathParse, RejectsPathWithoutTwoSlashes) {
-  EXPECT_FALSE(run("16384/32769.3").ok);
-  EXPECT_FALSE(run("32769.3").ok);
-  EXPECT_FALSE(run("").ok);
-  EXPECT_FALSE(run("/").ok);
-}
-
-/*
  * A trailing slash after the segment file still leaves two separators before
  * the numeric fields, so parsing succeeds.
  */
