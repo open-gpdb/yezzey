@@ -42,11 +42,7 @@ bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
 
   auto oldtuple = heap_getnext(scan, ForwardScanDirection);
 
-  bool found = false;
-
-  if (HeapTupleIsValid(oldtuple)) {
-    found = true;
-  }
+  bool found = HeapTupleIsValid(oldtuple);
 
   heap_close(offrel, RowExclusiveLock);
 
