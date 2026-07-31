@@ -55,10 +55,9 @@ int YProxyReader::prepareYproxyConnection(const ChunkInfo &ci,
 
   auto msg = ConstructCatRequest(ci, start_off);
 
-  size_t rc = ::write(client_fd_, msg.data(), msg.size());
+  ssize_t rc = ::write(client_fd_, msg.data(), msg.size());
 
   if (rc <= 0) {
-    // handle
     return -1;
   }
 
