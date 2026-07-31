@@ -2,7 +2,7 @@
 
 #include "pg.h"
 
-#if PG_VERSION_NUM >= 16000
+#if PG_VERSION_NUM >= 160000
 #define YezzeyLocator RelFileLocator
 #define YezzeyGetRelFileLocator(rel) (rel->rd_locator)
 #define YezzeyGetRelSpcOid(rnode) (rnode.spcOid)
