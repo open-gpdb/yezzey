@@ -72,6 +72,9 @@
 #include "offload_tablespace_map.h"
 
 #include "xvacuum.h"
+#include "relfilelocator.h"
+
+
 // options for yezzey logging
 static const struct config_enum_entry loglevel_options[] = {
     {"debug5", DEBUG5, false},   {"debug4", DEBUG4, false},
@@ -527,7 +530,7 @@ Datum yezzey_binary_upgrade_1_8_3_to_1_8_4(PG_FUNCTION_ARGS) {
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   Relation aorel;
-  RelFileNode rnode;
+  YezzeyLocator rnode;
   int32 segno;
   char *ptr;
   HeapTuple tp;

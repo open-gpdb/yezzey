@@ -202,11 +202,11 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   auto iohandler = YIO(ioadv, GpIdentity.segindex);
   size_t position = 0;
 
-  RelFileNode rnode;
+  YezzeyLocator rnode;
   /* coords does contain origin tablespace */
-  rnode.spcNode = coords.spcNode;
-  rnode.dbNode = YezzeyGetRelFileLocator(rel).dbOid;
-  rnode.relNode = rel->rd_node.relNode;
+  YezzeyGetRelSpcOid(rnode) = coords.spcNode;
+  YezzeyGetRelDbOid(rnode) = YezzeyGetRelDbOid(YezzeyGetRelFileLocator(rel));
+  YezzeyGetRelNode(rnode) = YezzeyGetRelNode(YezzeyGetRelFileLocator(rel));
 
   /*WAL-create new segfile */
   xlog_ao_insert(rnode, segno, 0, NULL, 0);
@@ -241,7 +241,7 @@ int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
                         int segno, const char *dest_path) {
   auto rnode = YezzeyGetRelFileLocator(aorel);
 
-  auto coords = relnodeCoord(rnode.spcNode, YezzeyGetRelDbOid(rnode), orig_relnode, segno);
+  auto coords = relnodeCoord(YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode), orig_relnode, segno);
 
   std::string nspname;
   std::string relname;
@@ -308,7 +308,7 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   auto rnode = YezzeyGetRelFileLocator(aorel);
   int rc;
 
-  auto coords = relnodeCoord(rnode.spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno);
+  auto coords = relnodeCoord(YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno);
 
   /* xlog goes first */
   // xlog_smgr_local_truncate(rnode, MAIN_FORKNUM, 'a');
@@ -485,7 +485,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   *local_bytes = 0;
 
-  if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
+  if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
 #if IsGreenplum6
     auto f = PathNameOpenFile((FileName)local_path.c_str(),
@@ -573,7 +573,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   auto local_path = getlocalpath(coords);
   *local_bytes = 0;
 
-  if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
+  if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
 #if IsGreenplum6
     auto f = PathNameOpenFile((FileName)local_path.c_str(),

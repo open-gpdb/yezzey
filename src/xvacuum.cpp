@@ -11,6 +11,8 @@
 #include <string>
 #include <url.h>
 #include <util.h>
+#include "relfilelocator.h"
+
 /*
  * yezzey_delete_chunk_internal:
  * Given external chunk path, remove it from external storage
