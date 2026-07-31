@@ -6,7 +6,13 @@ COMMON_LINK_OPTIONS = -lstdc++ -lxml2 -lpthread -lcrypto -lcurl -lz
 COMMON_CPP_FLAGS = -fPIC -lstdc++fs -lstdc++ -lz -g3 -ggdb -Wall -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -fno-strict-aliasing -fwrapv -fno-aggressive-loop-optimizations -Wno-unused-but-set-variable -Wno-address -Werror=format-security -Wno-format-truncation -Wno-stringop-truncation -g -ggdb -std=c++11 -fPIC -I/usr/local/opt/openssl/include -Iinclude -Ilib  -g -I. -I. -I../../src/include -I../../../src/include -D_GNU_SOURCE
 
 
+# Tests that pair with a production object built from src/ (via #include).
 TEST_OBJS = $(patsubst %.o,%_test.o,$(COMMON_OBJS))
+
+# Standalone tests that only exercise header-only, PG-independent helpers and
+# therefore need no matching src/ object file.
+STANDALONE_TEST_OBJS = relpath_parse_test.o
+TEST_OBJS += $(STANDALONE_TEST_OBJS)
 
 # Options
 ARCH = $(shell uname -s)

@@ -19,6 +19,8 @@
 
 #include "url.h"
 
+#include "relpath_parse.h"
+
 #define DEFAULTTABLESPACE_OID 1663 /* FIXME */
 
 const char *baseYezzeyPath = "/basebackups_005/yezzey/";
@@ -35,49 +37,11 @@ std::string storage_url_add_options(const std::string &s3path,
 }
 
 relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
-  Oid dbOid = 0, relfilenodeOid = 0;
+  uint32_t dbOid = 0, relfilenodeOid = 0;
   int64_t blkno = 0;
 
-  auto len = fileName.size();
-
-  size_t start_off = len - 1;
-  int slash_cntr = 0;
-  while (start_off >= 0) {
-    if (fileName[start_off] == '/') {
-      ++slash_cntr;
-      if (slash_cntr == 2)
-        break;
-    }
-    --start_off;
-  }
-  if (slash_cntr != 2) {
+  if (!parseRelnodePath(fileName, &dbOid, &relfilenodeOid, &blkno)) {
     elog(ERROR, "yezzey: corrupted data file path %s", fileName.c_str());
-  }
-
-  for (size_t it = start_off; it < len;) {
-    if (!isdigit(fileName[it])) {
-      ++it;
-      continue;
-    }
-    if (dbOid && relfilenodeOid && blkno) {
-      break; // seg num follows
-    }
-    if (dbOid == 0) {
-      while (it < len && isdigit(fileName[it])) {
-        dbOid *= 10;
-        dbOid += fileName[it++] - '0';
-      }
-    } else if (relfilenodeOid == 0) {
-      while (it < len && isdigit(fileName[it])) {
-        relfilenodeOid *= 10;
-        relfilenodeOid += fileName[it++] - '0';
-      }
-    } else if (blkno == 0) {
-      while (it < len && isdigit(fileName[it])) {
-        blkno *= 10;
-        blkno += fileName[it++] - '0';
-      }
-    }
   }
 
   return relnodeCoord(spcNode, dbOid, relfilenodeOid, blkno);
