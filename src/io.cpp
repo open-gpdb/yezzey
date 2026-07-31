@@ -63,7 +63,7 @@ YIO::YIO(std::shared_ptr<IOadv> adv, ssize_t segindx)
 
 bool YIO::io_read(char *buffer, size_t *amount) {
   if (reader_.get() == nullptr) {
-    *amount = -1;
+    *amount = 0;
     return false;
   }
   return reader_->read(buffer, amount);
@@ -71,7 +71,7 @@ bool YIO::io_read(char *buffer, size_t *amount) {
 
 bool YIO::io_write(char *buffer, size_t *amount) {
   if (writer_.get() == nullptr) {
-    *amount = -1;
+    *amount = 0;
     return false;
   }
 
