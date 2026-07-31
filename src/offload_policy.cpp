@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "offload_tablespace_map.h"
+#include "relfilelocator.h"
 
 /*
 
