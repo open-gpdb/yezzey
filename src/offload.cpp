@@ -8,6 +8,7 @@
 #include "gucs.h"
 
 #include "storage.h"
+#include "relfilelocator.h"
 
 /*
  * yezzey_offload_relation_internal_rel: do the offloading job
