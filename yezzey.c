@@ -63,9 +63,6 @@
 
 #include "virtual_tablespace.h"
 
-#include "storage.h"
-#include "yezzey.h"
-
 #include "tcop/utility.h"
 
 #include "binary_upgrade.h"
@@ -400,12 +397,11 @@ Datum yezzey_offload_relation(PG_FUNCTION_ARGS) {
    */
   Oid reloid;
   bool remove_locally;
-  int rc;
 
   reloid = PG_GETARG_OID(0);
   remove_locally = PG_GETARG_BOOL(1);
 
-  rc = yezzey_offload_relation_internal(reloid, remove_locally, NULL);
+  yezzey_offload_relation_internal(reloid, remove_locally, NULL);
 
   PG_RETURN_VOID();
 }
@@ -424,13 +420,12 @@ Datum yezzey_offload_relation_to_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   bool remove_locally;
   const char *external_path;
-  int rc;
 
   reloid = PG_GETARG_OID(0);
   remove_locally = PG_GETARG_BOOL(1);
   external_path = GET_STR(PG_GETARG_TEXT_P(2));
 
-  rc = yezzey_offload_relation_internal(reloid, remove_locally, external_path);
+  yezzey_offload_relation_internal(reloid, remove_locally, external_path);
 
   PG_RETURN_VOID();
 }
@@ -438,7 +433,6 @@ Datum yezzey_offload_relation_to_external_path(PG_FUNCTION_ARGS) {
 /* Given external yezzey chunk path, remove it from external storage */
 Datum yezzey_delete_chunk(PG_FUNCTION_ARGS) {
   const char *chunk_path;
-  int rc;
 
   chunk_path = GET_STR(PG_GETARG_TEXT_P(0));
 
@@ -446,7 +440,7 @@ Datum yezzey_delete_chunk(PG_FUNCTION_ARGS) {
     elog(ERROR, "yezzey_delete_chunk should be executed on MASTER");
   }
 
-  rc = yezzey_delete_chunk_internal(chunk_path);
+  yezzey_delete_chunk_internal(chunk_path);
 
   PG_RETURN_VOID();
 }
@@ -455,7 +449,6 @@ Datum yezzey_delete_chunk(PG_FUNCTION_ARGS) {
 Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
   bool confirm;
   bool crazyDrop;
-  int rc;
 
   confirm = PG_GETARG_BOOL(0);
 
@@ -469,7 +462,7 @@ Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
     elog(ERROR, "crazyDrop forbidden for non-superuser");
   }
 
-  rc = yezzey_vacuum_garbage_internal(GpIdentity.segindex, confirm, crazyDrop);
+  yezzey_vacuum_garbage_internal(GpIdentity.segindex, confirm, crazyDrop);
 
 #if IsModernYezzey
   /* Return dummy bool because CBDB does not allow
@@ -484,7 +477,6 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
   Oid reloid = PG_GETARG_OID(0);
   bool confirm;
   bool crazyDrop;
-  int rc;
   confirm = PG_GETARG_BOOL(1);
   crazyDrop = PG_GETARG_BOOL(2);
   if (GpIdentity.segindex == -1) {
@@ -495,7 +487,7 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
     elog(ERROR, "crazyDrop forbidden for non-superuser");
   }
 
-  rc = yezzey_vacuum_garbage_relation_internal_oid(reloid, GpIdentity.segindex,
+  yezzey_vacuum_garbage_relation_internal_oid(reloid, GpIdentity.segindex,
                                                    confirm, crazyDrop);
 
 #if IsModernYezzey
@@ -861,9 +853,6 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     PG_FUNCTION_ARGS) {
   Oid reloid;
   Relation aorel;
-  int i;
-  int nvp;
-  Snapshot appendOnlyMetaDataSnapshot;
   FuncCallContext *funcctx;
   MemoryContext oldcontext;
   AttInMetadata *attinmeta;
@@ -879,12 +868,9 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
    */
   aorel = relation_open(reloid, AccessShareLock);
 
-  nvp = aorel->rd_att->natts;
-
   /* GetAllFileSegInfo_pg_aoseg_rel */
 
   /* acquire snapshot for aoseg table lookup */
-  appendOnlyMetaDataSnapshot = SnapshotSelf;
 
   /* stuff done only on the first call of the function */
   if (SRF_IS_FIRSTCALL()) {
@@ -897,11 +883,9 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
     size_t local_bytes = 0;
-    size_t external_bytes = 0;
     size_t local_commited_bytes = 0;
 
     size_t curr_local_bytes = 0;
-    size_t curr_external_bytes = 0;
     size_t curr_local_commited_bytes = 0;
     yezzeyChunkMeta *list;
     size_t cnt_chunks;
@@ -913,7 +897,6 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     }
 
     local_bytes = curr_local_bytes;
-    external_bytes = curr_external_bytes;
     local_commited_bytes = curr_local_commited_bytes;
 
     chunkInfo = palloc0(sizeof(yezzeyChunkMetaInfo) * (cnt_chunks));
@@ -1007,7 +990,7 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
     SRF_RETURN_DONE(funcctx);
   }
 
-  i = call_cntr;
+  int i = call_cntr;
 
   /* segment if loaded */
   Datum values[NUM_USED_OFFLOAD_PER_SEGMENT_STATUS_STRUCT];
@@ -1336,7 +1319,6 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
 #endif
 {
   RangeVar *post_alter_offload_rel;
-  ListCell *lcmd;
 
 #if IsModernYezzey
   Node *parsetree;
@@ -1371,6 +1353,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
     Relation rel = relation_openrv(stmt->relation, NoLock);
 
     if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID) {
+      ListCell *lcmd;
       foreach (lcmd, stmt->cmds) {
         AlterTableCmd *cmd = (AlterTableCmd *)lfirst(lcmd);
         if (cmd->subtype == AT_SetTableSpace) {
@@ -1598,8 +1581,7 @@ Datum yezzey_delete_obsolete(PG_FUNCTION_ARGS) {
   db = (Name)palloc(NAMEDATALEN);
   namestrcpy(db, get_database_name(MyDatabaseId));
 
-  int rc;
-  rc = yezzey_delele_obsolete_internal(GpIdentity.segindex, crazyDrop, db->data,
+  yezzey_delele_obsolete_internal(GpIdentity.segindex, crazyDrop, db->data,
                                        MyDatabaseTableSpace, MyDatabaseId);
   PG_RETURN_VOID();
 }
@@ -1613,8 +1595,7 @@ Datum yezzey_collect_obsolete(PG_FUNCTION_ARGS) {
   db = (Name)palloc(NAMEDATALEN);
   namestrcpy(db, get_database_name(MyDatabaseId));
 
-  int rc;
-  rc = yezzey_collect_obsolete_internal(GpIdentity.segindex, db->data,
+  yezzey_collect_obsolete_internal(GpIdentity.segindex, db->data,
                                         MyDatabaseTableSpace, MyDatabaseId);
   pfree(db);
 

@@ -444,9 +444,7 @@ void FixupOffloadMetadata(Oid i_reloid) {
   auto oldtuple = heap_getnext(scan, ForwardScanDirection);
 
   if (HeapTupleIsValid(oldtuple)) {
-    auto meta = (Form_yezzey_offload_metadata)GETSTRUCT(oldtuple);
-
-    Assert(meta->reloid == i_reloid);
+    Assert(((Form_yezzey_offload_metadata)GETSTRUCT(oldtuple))->reloid == i_reloid);
 
     simple_heap_delete(offrel, &oldtuple->t_self);
   }
@@ -459,3 +457,4 @@ void FixupOffloadMetadata(Oid i_reloid) {
   /* make changes visible */
   CommandCounterIncrement();
 }
+
