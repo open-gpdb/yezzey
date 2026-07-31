@@ -74,7 +74,7 @@ int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
 int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
                                             bool confirm, bool crazyDrop) {
   try {
-    auto rnode = aorel->rd_node;
+    auto rnode = YezzeyGetRelFileLocator(aorel);
 
     auto tp = SearchSysCache1(NAMESPACEOID,
                               ObjectIdGetDatum(RelationGetNamespace(aorel)));
@@ -90,8 +90,8 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     auto spcNode = resolveTablespaceOidByName(
         YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-    relnodeCoord coords{spcNode, rnode.dbNode, rnode.relNode, segindx};
-    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, rnode.dbNode, rnode.relNode,
+    relnodeCoord coords{spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segindx};
+    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode),
                             segindx};
     ReleaseSysCache(tp);
 

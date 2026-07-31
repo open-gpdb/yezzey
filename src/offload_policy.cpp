@@ -267,7 +267,7 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
 void YezzeyDefineOffloadPolicyPrepare(Oid reloid) {
   auto aorel = relation_open(reloid, AccessExclusiveLock);
 
-  YezzeyRegisterRelationOriginTablespace(reloid, aorel->rd_node.spcNode);
+  YezzeyRegisterRelationOriginTablespace(reloid, YezzeyGetRelFileLocator(aorel).spcNode);
 
   relation_close(aorel, NoLock);
 }

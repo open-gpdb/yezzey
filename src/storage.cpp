@@ -24,6 +24,7 @@
 #include "yezzey_meta.h"
 #include "ygpver.h"
 #include "yproxy.h"
+#include "relfilelocator.h"
 
 #define USE_YPX_LISTER = 1
 
@@ -204,7 +205,7 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   RelFileNode rnode;
   /* coords does contain origin tablespace */
   rnode.spcNode = coords.spcNode;
-  rnode.dbNode = rel->rd_node.dbNode;
+  rnode.dbNode = YezzeyGetRelFileLocator(rel).dbOid;
   rnode.relNode = rel->rd_node.relNode;
 
   /*WAL-create new segfile */
@@ -238,9 +239,9 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
 
 int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
                         int segno, const char *dest_path) {
-  auto rnode = aorel->rd_node;
+  auto rnode = YezzeyGetRelFileLocator(aorel);
 
-  auto coords = relnodeCoord(rnode.spcNode, rnode.dbNode, orig_relnode, segno);
+  auto coords = relnodeCoord(rnode.spcNode, YezzeyGetRelDbOid(rnode), orig_relnode, segno);
 
   std::string nspname;
   std::string relname;
@@ -265,7 +266,7 @@ int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
     path = std::string(dest_path);
   } else {
     path = getlocalpath(
-        relnodeCoord(loadSpcOid, rnode.dbNode, rnode.relNode, segno));
+        relnodeCoord(loadSpcOid, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno));
   }
 
   elog(yezzey_ao_log_level, "contructed path %s", path.c_str());
@@ -277,26 +278,6 @@ int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
 
   return loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords,
                                         path);
-}
-
-bool ensureFileLocal(RelFileNode rnode, BackendId backend, ForkNumber forkNum,
-                     BlockNumber blkno) {
-  /* MDB-19689: do not consult catalog */
-
-#if IsModernYezzey
-  elog(yezzey_log_level, "ensuring %u is local", rnode.relNode);
-#else
-  elog(yezzey_log_level, "ensuring %d is local", rnode.relNode);
-#endif
-
-  bool result = true;
-
-  auto path = std::string(relpathbackend(rnode, backend, forkNum));
-  /* TBD: construct path*/
-
-  // result = ensureFilepathLocal(path);
-
-  return result;
 }
 
 int removeLocalFile(const char *localPath) {
@@ -324,10 +305,10 @@ std::string getlocalpath(const relnodeCoord &coords) {
 int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                            int64 logicalEof,
                            const char *external_storage_path) {
-  auto rnode = aorel->rd_node;
+  auto rnode = YezzeyGetRelFileLocator(aorel);
   int rc;
 
-  auto coords = relnodeCoord(rnode.spcNode, rnode.dbNode, rnode.relNode, segno);
+  auto coords = relnodeCoord(rnode.spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno);
 
   /* xlog goes first */
   // xlog_smgr_local_truncate(rnode, MAIN_FORKNUM, 'a');
@@ -425,7 +406,7 @@ Oid resolveTablespaceOidByName(std::string tablespacename) {
 }
 
 int statExternalTotal(Relation aorel, int segindx) {
-  auto rnode = aorel->rd_node;
+  auto rnode = YezzeyGetRelFileLocator(aorel);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -447,7 +428,7 @@ int statExternalTotal(Relation aorel, int segindx) {
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
   auto coords =
-      relnodeCoord(spcNode, rnode.dbNode, rnode.relNode, -1 /* not used */);
+      relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), -1 /* not used */);
 
   auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
@@ -462,7 +443,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                            size_t *local_committed_bytes,
                            size_t *external_bytes) {
 
-  auto rnode = aorel->rd_node;
+  auto rnode = YezzeyGetRelFileLocator(aorel);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -483,7 +464,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   auto spcNode = resolveTablespaceOidByName(
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-  auto coords = relnodeCoord(spcNode, rnode.dbNode, rnode.relNode, segno);
+  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno);
 
   auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
@@ -536,7 +517,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
                                  size_t *local_commited_bytes,
                                  yezzeyChunkMeta **list, size_t *cnt_chunks) {
-  auto rnode = aorel->rd_node;
+  auto rnode = YezzeyGetRelFileLocator(aorel);
 
   /* rnode.spcNode == YEZZEYTABLESPACEOID here. we need
   to lookup in metadata table to resolve origin tablespace */
@@ -544,7 +525,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   auto spcNode = resolveTablespaceOidByName(
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-  auto coords = relnodeCoord(spcNode, rnode.dbNode, rnode.relNode, 0);
+  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), 0);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
