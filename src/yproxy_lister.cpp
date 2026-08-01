@@ -1,4 +1,5 @@
 #include "yproxy_lister.h"
+#include "scope_guard.h"
 #include "url.h"
 
 /*
@@ -20,17 +21,19 @@ int YProxyLister::prepareYproxyConnection() {
 
 std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
   std::vector<storageChunkMeta> res;
+
+  /* close the connection on every exit path */
+  auto connGuard = makeScopeGuard([this] { this->close(); });
+
   auto ret = prepareYproxyConnection();
   if (ret != 0) {
-    // throw?
     return res;
   }
 
   auto msg = ConstructListRequest(yezzey_block_db_file_path(
       adv_->nspname, adv_->relname, adv_->coords_, segindx_));
-  size_t rc = ::write(client_fd_, msg.data(), msg.size());
+  auto rc = ::write(client_fd_, msg.data(), msg.size());
   if (rc <= 0) {
-    // throw?
     return res;
   }
 
