@@ -23,8 +23,6 @@ extern "C" {
 #include "utils/timestamp.h"
 #if PG_VERSION_NUM >= 100000
 #include "common/file_perm.h"
-#else
-#include "access/xact.h"
 #endif
 
 #if IsModernYezzey
@@ -76,30 +74,13 @@ extern "C" {
 
 #include "fmgr.h"
 
-#if PG_VERSION_NUM >= 130000
-#include "postmaster/interrupt.h"
-#endif
-
-#if PG_VERSION_NUM >= 100000
-#include "common/file_perm.h"
-#else
-#endif
-
 #include "access/xact.h"
-
-#include "utils/elog.h"
 
 // For GpIdentity
 #if IsGreenplum6 || IsModernYezzey
-#include "catalog/pg_tablespace.h"
 #include "cdb/cdbappendonlyxlog.h"
 #include "cdb/cdbvars.h"
 #endif
-
-#include "catalog/pg_namespace.h"
-#include "utils/catcache.h"
-#include "utils/lsyscache.h"
-#include "utils/syscache.h"
 
 #include "catalog/heap.h"
 

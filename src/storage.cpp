@@ -4,7 +4,6 @@
 #include "util.h"
 
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
