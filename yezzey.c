@@ -72,6 +72,9 @@
 #include "offload_tablespace_map.h"
 
 #include "xvacuum.h"
+#include "relfilelocator.h"
+
+
 // options for yezzey logging
 static const struct config_enum_entry loglevel_options[] = {
     {"debug5", DEBUG5, false},   {"debug4", DEBUG4, false},
@@ -226,9 +229,9 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
    */
 
 #if IsModernYezzey
-  elog(yezzey_log_level, "loading relnode %u", aorel->rd_node.relNode);
+  elog(yezzey_log_level, "loading relnode %u", YezzeyGetRelFileLocator(aorel).relNode);
 #else
-  elog(yezzey_log_level, "loading relnode %d", aorel->rd_node.relNode);
+  elog(yezzey_log_level, "loading relnode %d", YezzeyGetRelFileLocator(aorel).relNode);
 #endif
   /* for now, we locked relation */
 
@@ -237,7 +240,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   /* acquire snapshot for aoseg table lookup */
   appendOnlyMetaDataSnapshot = SnapshotSelf;
   /*sanity check */
-  if (aorel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
+  if (YezzeyGetRelFileLocator(aorel).spcNode != YEZZEYTABLESPACE_OID) {
     /* shoulde never happen*/
     elog(ERROR, "attempted to load non-offloaded relation");
   }
@@ -527,7 +530,7 @@ Datum yezzey_binary_upgrade_1_8_3_to_1_8_4(PG_FUNCTION_ARGS) {
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   Relation aorel;
-  RelFileNode rnode;
+  YezzeyLocator rnode;
   int32 segno;
   char *ptr;
   HeapTuple tp;
@@ -539,7 +542,7 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
 
   aorel = relation_open(reloid, AccessShareLock);
 
-  rnode = aorel->rd_node;
+  rnode = YezzeyGetRelFileLocator(aorel);
 
   tp = SearchSysCache1(NAMESPACEOID,
                        ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -554,8 +557,8 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   }
 
   (void)getYezzeyExternalStoragePathByCoords(
-      nspname, RelationGetRelationName(aorel), rnode.spcNode, rnode.dbNode,
-      rnode.relNode, segno, GpIdentity.segindex, &ptr);
+      nspname, RelationGetRelationName(aorel), rnode.spcNode, YezzeyGetRelDbOid(rnode),
+      YezzeyGetRelNode(rnode), segno, GpIdentity.segindex, &ptr);
 
   pfree(nspname);
 

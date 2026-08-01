@@ -274,7 +274,7 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
 
 #if IsModernYezzey
 
-EXTERNC File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum,
+EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node, int32 segmentFileNum,
                                          int fileFlags) {
   char path[MAXPGPATH];
   auto dbPath = GetDatabasePath(node.dbNode, node.spcNode);

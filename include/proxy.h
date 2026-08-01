@@ -7,6 +7,7 @@
 #include "storage.h"
 
 #include "ygpver.h"
+#include "relfilelocator.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -31,7 +32,7 @@ EXTERNC int yezzey_FileSync(SMGRFile file);
 #if IsModernYezzey
 EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
                                      int fileFlags);
-EXTERNC File yezzey_AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum,
+EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node, int32 segmentFileNum,
                                          int fileFlags);
 #else
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, const char *nspname,
