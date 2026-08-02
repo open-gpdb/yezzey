@@ -30,7 +30,7 @@ int YProxyConnector::prepareYproxyConnection() {
   strncpy(addr.sun_path, adv_->yproxy_socket.c_str(),
           sizeof(addr.sun_path) - 1);
 
-  auto ret =
+  const auto ret =
       ::connect(client_fd_, (const struct sockaddr *)&addr, sizeof(addr));
 
   if (ret == -1) {
@@ -43,11 +43,11 @@ int YProxyConnector::prepareYproxyConnection() {
 }
 
 int commonReadRFQResponce(int client_fd_) {
-  int len = MSG_HEADER_SIZE;
+  const int len = MSG_HEADER_SIZE;
   char buffer[len];
   // try to read small number of bytes in one op
   // if failed, give up
-  int rc = ::read(client_fd_, buffer, len);
+  const int rc = ::read(client_fd_, buffer, len);
   if (rc != len) {
     // handle
     return -1;
@@ -68,11 +68,11 @@ int commonReadRFQResponce(int client_fd_) {
   msgLen -= len;
 
   char data[msgLen];
-  rc = ::read(client_fd_, data, msgLen);
-  if (rc < 0) {
+  const int rc2 = ::read(client_fd_, data, msgLen);
+  if (rc2 < 0) {
     return -1;
   }
-  if (uint64_t(rc) != msgLen) {
+  if (uint64_t(rc2) != msgLen) {
     // handle
     return -1;
   }
@@ -88,7 +88,7 @@ int commonWriteFull(int client_fd_, const std::vector<char> &msg) {
   int sync_offset = 0;
   while (len > 0) {
     CHECK_FOR_INTERRUPTS();
-    auto rc = ::write(client_fd_, msg.data() + sync_offset, len);
+    const auto rc = ::write(client_fd_, msg.data() + sync_offset, len);
 
     if (rc <= 0) {
       // handle

@@ -26,7 +26,7 @@ bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
   }
 
   // TODO: split to chunks
-  auto msg = ConstructDeleteRequest(chunkName);
+  const auto msg = ConstructDeleteRequest(chunkName);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
     return false;
@@ -47,7 +47,8 @@ bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
         Confirm bool
         Garbage bool
 */
-std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
+std::vector<char>
+YProxyDeleter::ConstructDeleteRequest(const std::string fileName) {
 
   MsgBuilder builder = MsgBuilder()
                            .fieldProto()

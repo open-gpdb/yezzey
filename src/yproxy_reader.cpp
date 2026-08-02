@@ -15,8 +15,8 @@ bool YProxyReader::close() { return YProxyConnector::close(); }
 std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
                                                     size_t start_off) {
 
-  uint64_t settingsCnt = 1;
-  std::vector<std::pair<std::string, std::string>> settings = {
+  const uint64_t settingsCnt = 1;
+  const std::vector<std::pair<std::string, std::string>> settings = {
       {"TableSpace", adv_->tableSpace},
   };
 
@@ -48,14 +48,14 @@ std::vector<char> YProxyReader::ConstructCatRequest(const ChunkInfo &ci,
 
 int YProxyReader::prepareYproxyConnection(const ChunkInfo &ci,
                                           size_t start_off) {
-  int rb = YProxyConnector::prepareYproxyConnection();
+  const auto rb = YProxyConnector::prepareYproxyConnection();
   if (rb != 0) {
     return rb;
   }
 
-  auto msg = ConstructCatRequest(ci, start_off);
+  const auto msg = ConstructCatRequest(ci, start_off);
 
-  ssize_t rc = ::write(client_fd_, msg.data(), msg.size());
+  const ssize_t rc = ::write(client_fd_, msg.data(), msg.size());
 
   if (rc <= 0) {
     return -1;
@@ -93,7 +93,7 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
       current_chunk_remaining_bytes_ = order_[order_ptr_].size;
     }
 
-    auto rc = ::read(client_fd_, buffer, *amount);
+    const auto rc = ::read(client_fd_, buffer, *amount);
     if (rc <= 0) {
       elog(WARNING, "reacquiring connection on offset %lu",
            current_chunk_offset_);
@@ -102,8 +102,8 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
       client_fd_ = -1;
 
       if (++this->current_retry < this->retry_limit) {
-        auto rrc = this->prepareYproxyConnection(order_[order_ptr_],
-                                                 current_chunk_offset_);
+        const auto rrc = this->prepareYproxyConnection(order_[order_ptr_],
+                                                       current_chunk_offset_);
         if (rrc < 0) {
           sleep(1);
           continue;

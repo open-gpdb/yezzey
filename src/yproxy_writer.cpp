@@ -20,7 +20,7 @@ bool YProxyWriter::close() {
   if (client_fd_ == -1) {
     return true;
   }
-  auto msg = CommonCostructCopyDoneRequest();
+  const auto msg = CommonCostructCopyDoneRequest();
 
   // signal that current chunk is full
   if (commonWriteFull(client_fd_, msg) == -1) {
@@ -57,7 +57,7 @@ bool YProxyWriter::write(const char *buffer, size_t *amount) {
   }
 
   // TODO: split to chunks
-  auto msg = ConstructCopyDataRequest(buffer, *amount);
+  const auto msg = ConstructCopyDataRequest(buffer, *amount);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
     // Be tidy
@@ -71,14 +71,14 @@ bool YProxyWriter::write(const char *buffer, size_t *amount) {
   return true;
 }
 
+// Initialize extental storage access guts
 int YProxyWriter::prepareYproxyConnection() {
-  // open unix data socket
-  int rb = YProxyConnector::prepareYproxyConnection();
+  const auto rb = YProxyConnector::prepareYproxyConnection();
   if (rb != 0) {
     return rb;
   }
 
-  auto msg = ConstructPutRequest(storage_path_);
+  const auto msg = ConstructPutRequest(storage_path_);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
     // Be tidy
@@ -91,11 +91,11 @@ int YProxyWriter::prepareYproxyConnection() {
 }
 
 int YProxyWriter::readPutCompleteResponce(int client_fd_) {
-  int len = MSG_HEADER_SIZE;
+  const auto len = MSG_HEADER_SIZE;
   char buffer[len];
-  // try to read small number of bytes in one op
+  // try to read small number of bytes in one go
   // if failed, give up
-  int rc = ::read(client_fd_, buffer, len);
+  const auto rc = ::read(client_fd_, buffer, len);
   if (rc != len) {
     // handle
     return -1;
@@ -116,11 +116,11 @@ int YProxyWriter::readPutCompleteResponce(int client_fd_) {
   msgLen -= len;
 
   char data[msgLen];
-  rc = ::read(client_fd_, data, msgLen);
-  if (rc < 0) {
+  const auto rc2 = ::read(client_fd_, data, msgLen);
+  if (rc2 < 0) {
     return -1;
   }
-  if (uint64_t(rc) != msgLen) {
+  if (uint64_t(rc2) != msgLen) {
     // handle
     return -1;
   }
@@ -128,16 +128,17 @@ int YProxyWriter::readPutCompleteResponce(int client_fd_) {
   if (data[0] != MessageTypePutComplete) {
     return -1;
   }
-  uint16_t kv = uint8_t(data[4]) + (1 << 8) * uint16_t(data[5]);
+  const uint16_t kv = uint8_t(data[4]) + (1 << 8) * uint16_t(data[5]);
   key_version = kv;
 
   return 0;
 }
 
-std::vector<char> YProxyWriter::ConstructPutRequest(std::string fileName) {
-  uint64_t settingsCnt = 4;
+std::vector<char>
+YProxyWriter::ConstructPutRequest(const std::string fileName) {
+  const uint64_t settingsCnt = 4;
 
-  std::vector<std::pair<std::string, std::string>> settings = {
+  const std::vector<std::pair<std::string, std::string>> settings = {
       {"StorageClass", adv_->storage_class},
       {"MultipartChunksize", std::to_string(adv_->multipart_chunksize)},
       {"MultipartUpload", adv_->multipart_upload ? "1" : "0"},
