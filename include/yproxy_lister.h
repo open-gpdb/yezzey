@@ -15,7 +15,7 @@ public:
   virtual bool close();
 
 protected:
-  std::vector<char> ConstructListRequest(std::string fileName);
+  std::vector<char> ConstructListRequest(const std::string fileName);
 
   virtual int prepareYproxyConnection();
 
@@ -25,5 +25,6 @@ protected:
     int retCode;
   };
   message readMessage();
-  std::vector<storageChunkMeta> readObjectMetaBody(std::vector<char> *body);
+  std::vector<storageChunkMeta>
+  readObjectMetaBody(const std::vector<char> *body);
 };

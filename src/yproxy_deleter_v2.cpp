@@ -22,7 +22,7 @@ bool YProxyDeleterV2::Delete(const std::string &chunkName) {
   }
 
   // TODO: split to chunks
-  auto msg = ConstructDeleteRequest(chunkName);
+  const auto msg = ConstructDeleteRequest(chunkName);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
     return false;
@@ -46,7 +46,7 @@ bool YProxyDeleterV2::Collect(const std::string &chunkName) {
   }
 
   // TODO: split to chunks
-  auto msg = ConstructCollectRequest(chunkName);
+  const auto msg = ConstructCollectRequest(chunkName);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
     return false;
@@ -69,7 +69,7 @@ bool YProxyDeleterV2::Collect(const std::string &chunkName) {
         Garbage bool
 */
 std::vector<char>
-YProxyDeleterV2::ConstructDeleteRequest(std::string fileName) {
+YProxyDeleterV2::ConstructDeleteRequest(const std::string fileName) {
 
   MsgBuilder builder = MsgBuilder()
                            .fieldProto()
@@ -88,7 +88,7 @@ YProxyDeleterV2::ConstructDeleteRequest(std::string fileName) {
   return builder.get();
 }
 std::vector<char>
-YProxyDeleterV2::ConstructCollectRequest(std::string fileName) {
+YProxyDeleterV2::ConstructCollectRequest(const std::string fileName) {
 
   MsgBuilder builder = MsgBuilder()
                            .fieldProto()

@@ -25,21 +25,21 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
   /* close the connection on every exit path */
   auto connGuard = makeScopeGuard([this] { this->close(); });
 
-  auto ret = prepareYproxyConnection();
+  const auto ret = prepareYproxyConnection();
   if (ret != 0) {
     return res;
   }
 
-  auto msg = ConstructListRequest(yezzey_block_db_file_path(
+  const auto msg = ConstructListRequest(yezzey_block_db_file_path(
       adv_->nspname, adv_->relname, adv_->coords_, segindx_));
-  auto rc = ::write(client_fd_, msg.data(), msg.size());
+  const auto rc = ::write(client_fd_, msg.data(), msg.size());
   if (rc <= 0) {
     return res;
   }
 
   std::vector<storageChunkMeta> meta;
   while (true) {
-    auto message = readMessage();
+    const auto message = readMessage();
     switch (message.type) {
     case MessageTypeObjectMeta:
       meta = readObjectMetaBody(&message.content);
@@ -56,7 +56,7 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
 }
 
 std::vector<std::string> YProxyLister::list_chunk_names() {
-  auto chunk_meta = list_relation_chunks();
+  const auto chunk_meta = list_relation_chunks();
   std::vector<std::string> res(chunk_meta.size());
 
   for (size_t i = 0; i < chunk_meta.size(); i++) {
@@ -65,10 +65,11 @@ std::vector<std::string> YProxyLister::list_chunk_names() {
   return res;
 }
 
-std::vector<char> YProxyLister::ConstructListRequest(std::string fileName) {
+std::vector<char>
+YProxyLister::ConstructListRequest(const std::string fileName) {
 
-  uint64_t settingsCnt = 1;
-  std::vector<std::pair<std::string, std::string>> settings = {
+  const uint64_t settingsCnt = 1;
+  const std::vector<std::pair<std::string, std::string>> settings = {
       {"TableSpace", adv_->tableSpace},
   };
 
@@ -94,11 +95,11 @@ std::vector<char> YProxyLister::ConstructListRequest(std::string fileName) {
 
 YProxyLister::message YProxyLister::readMessage() {
   YProxyLister::message res;
-  size_t len = MSG_HEADER_SIZE;
+  const size_t len = MSG_HEADER_SIZE;
   char buffer[len];
-  // try to read small number of bytes in one op
+  // try to read small number of bytes in one go
   // if failed, give up
-  int rc = ::read(client_fd_, buffer, len);
+  const auto rc = ::read(client_fd_, buffer, len);
   if (rc < 0 || (size_t)rc != len) {
     // handle
     res.retCode = -1;
@@ -112,18 +113,24 @@ YProxyLister::message YProxyLister::readMessage() {
   }
 
   // substract header
+  if (msgLen < len)
+  {
+    // protocol violation. XXX: maybe separate errcode/return code?
+    res.retCode = -1;
+    return res;
+  }
   msgLen -= len;
 
   char data[msgLen];
-  rc = ::read(client_fd_, data, msgLen);
+  const auto rc2 = ::read(client_fd_, data, msgLen);
 
-  if (rc < 0) {
+  if (rc2 < 0) {
     // handle
     res.retCode = -1;
     return res;
   }
 
-  if ((uint64_t)rc != msgLen) {
+  if ((uint64_t)rc2 != msgLen) {
     // handle
     res.retCode = -1;
     return res;
@@ -135,7 +142,7 @@ YProxyLister::message YProxyLister::readMessage() {
 }
 
 std::vector<storageChunkMeta>
-YProxyLister::readObjectMetaBody(std::vector<char> *body) {
+YProxyLister::readObjectMetaBody(const std::vector<char> *body) {
   std::vector<storageChunkMeta> res;
   size_t i = PROTO_HEADER_SIZE;
   while (i < body->size()) {
@@ -145,7 +152,7 @@ YProxyLister::readObjectMetaBody(std::vector<char> *body) {
       i++;
     }
     i++;
-    std::string path(buff.begin(), buff.end());
+    const std::string path(buff.begin(), buff.end());
     if (body->size() - i < 8) {
       // throw?
       return res;
