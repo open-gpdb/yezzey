@@ -43,11 +43,11 @@ int YProxyConnector::prepareYproxyConnection() {
 }
 
 int commonReadRFQResponce(int client_fd_) {
-  const int len = MSG_HEADER_SIZE;
+  const auto len = MSG_HEADER_SIZE;
   char buffer[len];
   // try to read small number of bytes in one op
   // if failed, give up
-  const int rc = ::read(client_fd_, buffer, len);
+  const auto rc = ::read(client_fd_, buffer, len);
   if (rc != len) {
     // handle
     return -1;
@@ -68,7 +68,7 @@ int commonReadRFQResponce(int client_fd_) {
   msgLen -= len;
 
   char data[msgLen];
-  const int rc2 = ::read(client_fd_, data, msgLen);
+  const auto rc2 = ::read(client_fd_, data, msgLen);
   if (rc2 < 0) {
     return -1;
   }

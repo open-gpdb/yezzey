@@ -122,15 +122,15 @@ YProxyLister::message YProxyLister::readMessage() {
   msgLen -= len;
 
   char data[msgLen];
-  rc = ::read(client_fd_, data, msgLen);
+  const auto rc2 = ::read(client_fd_, data, msgLen);
 
-  if (rc < 0) {
+  if (rc2 < 0) {
     // handle
     res.retCode = -1;
     return res;
   }
 
-  if ((uint64_t)rc != msgLen) {
+  if ((uint64_t)rc2 != msgLen) {
     // handle
     res.retCode = -1;
     return res;
