@@ -17,13 +17,13 @@
 #include "gucs.h"
 #include "io.h"
 #include "offload_tablespace_map.h"
+#include "relfilelocator.h"
 #include "url.h"
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
 #include "ygpver.h"
 #include "yproxy.h"
-#include "relfilelocator.h"
 
 #define USE_YPX_LISTER = 1
 
@@ -240,7 +240,8 @@ int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
                         int segno, const char *dest_path) {
   auto rnode = YezzeyGetRelFileLocator(aorel);
 
-  auto coords = relnodeCoord(YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode), orig_relnode, segno);
+  auto coords = relnodeCoord(YezzeyGetRelSpcOid(rnode),
+                             YezzeyGetRelDbOid(rnode), orig_relnode, segno);
 
   std::string nspname;
   std::string relname;
@@ -264,8 +265,8 @@ int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   if (dest_path) {
     path = std::string(dest_path);
   } else {
-    path = getlocalpath(
-        relnodeCoord(loadSpcOid, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno));
+    path = getlocalpath(relnodeCoord(loadSpcOid, YezzeyGetRelDbOid(rnode),
+                                     YezzeyGetRelNode(rnode), segno));
   }
 
   elog(yezzey_ao_log_level, "contructed path %s", path.c_str());
@@ -307,7 +308,9 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   auto rnode = YezzeyGetRelFileLocator(aorel);
   int rc;
 
-  auto coords = relnodeCoord(YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno);
+  auto coords =
+      relnodeCoord(YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode),
+                   YezzeyGetRelNode(rnode), segno);
 
   /* xlog goes first */
   // xlog_smgr_local_truncate(rnode, MAIN_FORKNUM, 'a');
@@ -420,14 +423,14 @@ int statExternalTotal(Relation aorel, int segindx) {
 
   ReleaseSysCache(tp);
 
-  /* rnode.spcNode == YEZZEYTABLESPACEOID here. we need
+  /* YezzeyGetRelSpcOid(rnode) == YEZZEYTABLESPACEOID here. we need
   to lookup in metadata table to resolve origin tablespace */
 
   auto spcNode = resolveTablespaceOidByName(
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-  auto coords =
-      relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), -1 /* not used */);
+  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
+                             YezzeyGetRelNode(rnode), -1 /* not used */);
 
   auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
@@ -457,13 +460,14 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   ReleaseSysCache(tp);
 
-  /* rnode.spcNode == YEZZEYTABLESPACEOID here. we need
+  /* YezzeyGetRelSpcOid(rnode) == YEZZEYTABLESPACEOID here. we need
   to lookup in metadata table to resolve origin tablespace */
 
   auto spcNode = resolveTablespaceOidByName(
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno);
+  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
+                             YezzeyGetRelNode(rnode), segno);
 
   auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
@@ -518,13 +522,14 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
                                  yezzeyChunkMeta **list, size_t *cnt_chunks) {
   auto rnode = YezzeyGetRelFileLocator(aorel);
 
-  /* rnode.spcNode == YEZZEYTABLESPACEOID here. we need
+  /* YezzeyGetRelSpcOid(rnode) == YEZZEYTABLESPACEOID here. we need
   to lookup in metadata table to resolve origin tablespace */
 
   auto spcNode = resolveTablespaceOidByName(
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), 0);
+  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
+                             YezzeyGetRelNode(rnode), 0);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));

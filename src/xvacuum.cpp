@@ -6,12 +6,12 @@
 #include "gucs.h"
 #include "offload_tablespace_map.h"
 #include "pg.h"
+#include "relfilelocator.h"
 #include "storage.h"
 #include "yproxy.h"
 #include <string>
 #include <url.h>
 #include <util.h>
-#include "relfilelocator.h"
 
 /*
  * yezzey_delete_chunk_internal:
@@ -92,9 +92,10 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     auto spcNode = resolveTablespaceOidByName(
         YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-    relnodeCoord coords{spcNode, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segindx};
-    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode),
-                            segindx};
+    relnodeCoord coords{spcNode, YezzeyGetRelDbOid(rnode),
+                        YezzeyGetRelNode(rnode), segindx};
+    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, YezzeyGetRelDbOid(rnode),
+                            YezzeyGetRelNode(rnode), segindx};
     ReleaseSysCache(tp);
 
     std::string relname = RelationGetRelationName(aorel);

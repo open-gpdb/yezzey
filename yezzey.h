@@ -45,21 +45,21 @@ void yezzey_close(SMgrRelation reln, ForkNumber forkNum);
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo);
 
 #if IsGreenplum6 || IsModernYezzey
-void yezzey_create_ao(RelFileNodeBackend rnode, int32 segmentFileNum,
+void yezzey_create_ao(YezzeyLocatorBackend rnode, int32 segmentFileNum,
                       bool isRedo);
 #endif
 
 bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum);
 
 #if IsModernYezzey
-void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo);
+void yezzey_unlink(YezzeyLocatorBackend rnode, ForkNumber forkNum, bool isRedo);
 #else
-void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
+void yezzey_unlink(YezzeyLocatorBackend rnode, ForkNumber forkNum, bool isRedo,
                    char relstorage);
 #endif
 
 #if IsModernYezzey
-void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo);
+void yezzey_unlink_ao(YezzeyLocatorBackend rnode, ForkNumber forkNum, bool isRedo);
 #endif
 
 

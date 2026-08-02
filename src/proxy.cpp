@@ -274,15 +274,17 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
 
 #if IsModernYezzey
 
-EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node, int32 segmentFileNum,
-                                         int fileFlags) {
+EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
+                                         int32 segmentFileNum, int fileFlags) {
   char path[MAXPGPATH];
-  auto dbPath = GetDatabasePath(node.dbNode, node.spcNode);
+  auto dbPath =
+      GetDatabasePath(YezzeyGetRelDbOid(node), YezzeyGetRelSpcOid(node));
 
   if (segmentFileNum == 0)
-    snprintf(path, MAXPGPATH, "%s/%u", dbPath, node.relNode);
+    snprintf(path, MAXPGPATH, "%s/%u", dbPath, YezzeyGetRelNode(node));
   else
-    snprintf(path, MAXPGPATH, "%s/%u.%u", dbPath, node.relNode, segmentFileNum);
+    snprintf(path, MAXPGPATH, "%s/%u.%u", dbPath, YezzeyGetRelNode(node),
+             segmentFileNum);
 
   auto rt = yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, path,
                                              fileFlags, 0, -1);
