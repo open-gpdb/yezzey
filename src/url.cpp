@@ -14,10 +14,20 @@ std::string yezzey_fqrelname_md5(const std::string &nspname,
   char md[MD5_HASH_LEN + 1];
   md[MD5_HASH_LEN] = 0;
   std::string full_name = nspname + "." + relname;
+
+#if PG_VERSION_NUM >= 150000
+  /* ABI changed in b69aba7. */
+  const char *errstr = NULL;
+  /* compute AO/AOCS relation name, just like WAL-G does*/
+  if (!pg_md5_hash(full_name.c_str(), full_name.size(), md, &errstr)) {
+    elog(ERROR, "failed to calculated RFQN md5 hash");
+  }
+#else
   /* compute AO/AOCS relation name, just like WAL-G does*/
   if (!pg_md5_hash(full_name.c_str(), full_name.size(), md)) {
     elog(ERROR, "failed to calculated RFQN md5 hash");
   }
+#endif
 
   return std::string(md);
 }

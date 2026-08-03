@@ -6,8 +6,8 @@
 #include "gucs.h"
 #include "storage.h"
 
-#include "ygpver.h"
 #include "relfilelocator.h"
+#include "ygpver.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -32,8 +32,8 @@ EXTERNC int yezzey_FileSync(SMGRFile file);
 #if IsModernYezzey
 EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
                                      int fileFlags);
-EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node, int32 segmentFileNum,
-                                         int fileFlags);
+EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
+                                         int32 segmentFileNum, int fileFlags);
 #else
 EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, const char *nspname,
                                          const char *relname, FileName fName,

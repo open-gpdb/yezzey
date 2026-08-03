@@ -113,8 +113,7 @@ YProxyLister::message YProxyLister::readMessage() {
   }
 
   // substract header
-  if (msgLen < len)
-  {
+  if (msgLen < len) {
     // protocol violation. XXX: maybe separate errcode/return code?
     res.retCode = -1;
     return res;
