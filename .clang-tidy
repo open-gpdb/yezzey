@@ -1,0 +1,14 @@
+---
+# clang-tidy config for yezzey.
+# Scoped to const-correctness + auto qualification checks.
+# Intentionally narrow: avoid noise on legacy C-style code.
+Checks: >
+  -*,
+  readability-qualified-auto,
+  readability-non-const-parameter,
+  cppcoreguidelines-pro-type-cstyle-cast,
+  readability-isolate-declaration
+WarningsAsErrors: >
+  readability-qualified-auto,
+  readability-non-const-parameter
+...

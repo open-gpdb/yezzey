@@ -1,0 +1,28 @@
+TIDY_FILES := $(wildcard src/*.cpp)
+CLANG_TIDY ?= clang-tidy
+CLANG_TIDY_IMAGE ?= silkeh/clang:16
+
+# If you change this, make sure you changed Makefile CPPFLAGS
+TIDY_FLAGS := -std=c++11 -isystem include -Ilib -DGPBUILD
+
+.PHONY: tidy tidy-check tidy-docker tidy-check-docker
+
+tidy:
+	@for f in $(TIDY_FILES); do \
+		$(CLANG_TIDY) "$$f" -- $(TIDY_FLAGS) 2>&1 || true; \
+	done
+
+tidy-check:
+	@rc=0; \
+	for f in $(TIDY_FILES); do \
+		$(CLANG_TIDY) "$$f" -- $(TIDY_FLAGS) 2>&1 || true; \
+	done | grep -E 'readability-|cppcoreguidelines-' && rc=1 || true; \
+	exit $$rc
+
+tidy-docker:
+	docker run --rm -v "$(CURDIR)":/src -w /src $(CLANG_TIDY_IMAGE) \
+		sh -c 'make -f Makefile.tidy tidy'
+
+tidy-check-docker:
+	docker run --rm -v "$(CURDIR)":/src -w /src $(CLANG_TIDY_IMAGE) \
+		sh -c 'make -f Makefile.tidy tidy-check'
