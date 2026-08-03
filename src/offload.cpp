@@ -13,8 +13,8 @@
  * yezzey_offload_relation_internal_rel: do the offloading job
  * aorel should be locked in AccessExclusiveLock
  */
-int yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
-                                         const char *external_storage_path) {
+void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
+                                          const char *external_storage_path) {
   int total_segfiles;
   FileSegInfo **segfile_array;
   AOCSFileSegInfo **segfile_array_cs;
@@ -63,14 +63,7 @@ int yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
            "offloading segment no %d, modcount %ld up to logial eof %ld", segno,
            modcount, logicalEof);
 
-      auto rc = offloadRelationSegment(aorel, segno, modcount, logicalEof,
-                                       external_storage_path);
-
-      if (rc < 0) {
-        elog(ERROR,
-             "failed to offload segment number %d, modcount %ld, up to %ld",
-             segno, modcount, logicalEof);
-      }
+      yezzey_offload_relation_internal_rel(aorel, true, NULL);
       /* segment if offloaded */
     }
 
@@ -103,15 +96,8 @@ int yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
              "eof %ld",
              segno, pseudosegno, modcount, logicalEof);
 
-        auto rc = offloadRelationSegment(aorel, pseudosegno, modcount,
-                                         logicalEof, external_storage_path);
-
-        if (rc < 0) {
-          elog(ERROR,
-               "failed to offload cs segment number %d, pseudosegno %d, up to "
-               "%ld",
-               segno, pseudosegno, logicalEof);
-        }
+        offloadRelationSegment(aorel, pseudosegno, modcount, logicalEof,
+                               external_storage_path);
         /* segment if offloaded */
       }
     }
@@ -127,8 +113,6 @@ int yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
   /* insert entry in relocate table, is no any */
 
   /* cleanup */
-
-  return 0;
 }
 
 /*
@@ -139,10 +123,9 @@ int yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
  * which will result in local-storage files drops (on both primary and mirror
  * segments)
  */
-int yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
-                                     const char *external_storage_path) {
+void yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
+                                      const char *external_storage_path) {
   Relation aorel;
-  int rc;
   /* need sanity checks */
 
   /*  This mode guarantees that the holder is the only transaction accessing the
@@ -153,9 +136,8 @@ int yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
   aorel = relation_open(reloid, AccessExclusiveLock);
   RelationOpenSmgr(aorel);
 
-  rc = yezzey_offload_relation_internal_rel(aorel, remove_locally,
-                                            external_storage_path);
+  yezzey_offload_relation_internal_rel(aorel, remove_locally,
+                                       external_storage_path);
 
   relation_close(aorel, NoLock);
-  return rc;
 }
