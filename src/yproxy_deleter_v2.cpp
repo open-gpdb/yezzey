@@ -69,7 +69,7 @@ bool YProxyDeleterV2::Collect(const std::string &chunkName) {
         Garbage bool
 */
 std::vector<char>
-YProxyDeleterV2::ConstructDeleteRequest(const std::string fileName) {
+YProxyDeleterV2::ConstructDeleteRequest(const std::string &fileName) {
 
   MsgBuilder builder = MsgBuilder()
                            .fieldProto()
@@ -88,7 +88,7 @@ YProxyDeleterV2::ConstructDeleteRequest(const std::string fileName) {
   return builder.get();
 }
 std::vector<char>
-YProxyDeleterV2::ConstructCollectRequest(const std::string fileName) {
+YProxyDeleterV2::ConstructCollectRequest(const std::string &fileName) {
 
   MsgBuilder builder = MsgBuilder()
                            .fieldProto()

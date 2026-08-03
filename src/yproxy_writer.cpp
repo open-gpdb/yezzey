@@ -135,7 +135,7 @@ int YProxyWriter::readPutCompleteResponce(int client_fd_) {
 }
 
 std::vector<char>
-YProxyWriter::ConstructPutRequest(const std::string fileName) {
+YProxyWriter::ConstructPutRequest(const std::string &fileName) {
   const uint64_t settingsCnt = 4;
 
   const std::vector<std::pair<std::string, std::string>> settings = {

@@ -15,7 +15,7 @@ public:
   virtual bool close();
 
 protected:
-  std::vector<char> ConstructListRequest(const std::string fileName);
+  std::vector<char> ConstructListRequest(const std::string &fileName);
 
   virtual int prepareYproxyConnection();
 
