@@ -62,13 +62,11 @@
 #include "offload_policy.h"
 #include "offload_tablespace_map.h"
 #include "partition.h"
-#include "relfilelocator.h"
 #include "storage.h"
 #include "util.h"
 #include "virtual_index.h"
 #include "virtual_tablespace.h"
 #include "xvacuum.h"
-
 // options for yezzey logging
 static const struct config_enum_entry loglevel_options[] = {
     {"debug5", DEBUG5, false},   {"debug4", DEBUG4, false},
@@ -223,11 +221,9 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
    */
 
 #if IsModernYezzey
-  elog(yezzey_log_level, "loading relnode %u",
-       YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
+  elog(yezzey_log_level, "loading relnode %u", aorel->rd_node.relNode);
 #else
-  elog(yezzey_log_level, "loading relnode %d",
-       YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
+  elog(yezzey_log_level, "loading relnode %d", aorel->rd_node.relNode);
 #endif
   /* for now, we locked relation */
 
@@ -236,8 +232,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   /* acquire snapshot for aoseg table lookup */
   appendOnlyMetaDataSnapshot = SnapshotSelf;
   /*sanity check */
-  if (YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(aorel)) !=
-      YEZZEYTABLESPACE_OID) {
+  if (aorel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
     /* shoulde never happen*/
     elog(ERROR, "attempted to load non-offloaded relation");
   }
@@ -527,7 +522,7 @@ Datum yezzey_binary_upgrade_1_8_3_to_1_8_4(PG_FUNCTION_ARGS) {
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   Relation aorel;
-  YezzeyLocator rnode;
+  RelFileNode rnode;
   int32 segno;
   char *ptr;
   HeapTuple tp;
@@ -539,7 +534,7 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
 
   aorel = relation_open(reloid, AccessShareLock);
 
-  rnode = YezzeyGetRelFileLocator(aorel);
+  rnode = aorel->rd_node;
 
   tp = SearchSysCache1(NAMESPACEOID,
                        ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -554,9 +549,8 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   }
 
   (void)getYezzeyExternalStoragePathByCoords(
-      nspname, RelationGetRelationName(aorel), YezzeyGetRelSpcOid(rnode),
-      YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno,
-      GpIdentity.segindex, &ptr);
+      nspname, RelationGetRelationName(aorel), rnode.spcNode, rnode.dbNode,
+      rnode.relNode, segno, GpIdentity.segindex, &ptr);
 
   pfree(nspname);
 
@@ -1260,8 +1254,11 @@ Datum yezzey_set_relation_expirity_seg(PG_FUNCTION_ARGS) {
  * yezzey_check_part_exr
  */
 Datum yezzey_check_part_exr(PG_FUNCTION_ARGS) {
-  /* TODO: drop */
-  PG_RETURN_NULL();
+  /*
+    0: i_expr pg_node_tree,
+  */
+  text *expr = PG_GETARG_TEXT_P(0);
+  PG_RETURN_TEXT_P(yezzey_get_expr_worker(expr));
 }
 
 /* Plugin provides a hook function matching this signature. */
@@ -1288,14 +1285,13 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
 
   if (access == OAT_DROP && subId == 0) {
     offRel = relation_open(objectId, AccessShareLock);
-    if (YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(offRel)) !=
-        YEZZEYTABLESPACE_OID) {
+    if (offRel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
       relation_close(offRel, AccessShareLock);
       return;
     }
 
     (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(offRel)),
-                           YezzeyGetRelNode(YezzeyGetRelFileLocator(offRel)));
+                           offRel->rd_node.relNode);
     (void)FixupOffloadMetadata(RelationGetRelid(offRel));
 
     relation_close(offRel, AccessShareLock);
@@ -1335,9 +1331,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
 #endif
 {
   RangeVar *post_alter_offload_rel;
-#if IsGreenplum6
   ListCell *lcmd;
-#endif
 
 #if IsModernYezzey
   Node *parsetree;

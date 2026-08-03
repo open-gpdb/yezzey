@@ -7,7 +7,6 @@
 #include "offload.h"
 #include "gucs.h"
 
-#include "relfilelocator.h"
 #include "storage.h"
 
 /*
@@ -27,17 +26,15 @@ int yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
 #endif
 
   /*
-   * Relation segments named base/DBOID/YezzeyGetRelFileLocator(aorel).*
+   * Relation segments named base/DBOID/aorel->rd_node.*
    */
 
 #if IsModernYezzey
   elog(yezzey_log_level, "offloading relation %s, relnode %u",
-       RelationGetRelationName(aorel),
-       YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
+       RelationGetRelationName(aorel), aorel->rd_node.relNode);
 #else
   elog(yezzey_log_level, "offloading relation %s, relnode %d",
-       RelationGetRelationName(aorel),
-       YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
+       RelationGetRelationName(aorel), aorel->rd_node.relNode);
 #endif
 
   /* for now, we locked relation */

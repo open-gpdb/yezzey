@@ -45,6 +45,9 @@ EXTERNC int loadRelationSegment(Relation aorel, Oid loadSpcOid,
                                 Oid orig_relnode, int segno,
                                 const char *dest_path);
 
+EXTERNC bool ensureFileLocal(RelFileNode rnode, BackendId backend,
+                             ForkNumber forkNum, BlockNumber blkno);
+
 EXTERNC int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                                    int64 logicalEof, size_t *local_bytes,
                                    size_t *local_commited_bytes,
