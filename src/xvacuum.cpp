@@ -174,6 +174,7 @@ void yezzey_collect_obsolete_internal(int segindx, char *dbname, Oid nspoid,
   } catch (...) {
     elog(ERROR,
          "yezzey: failed to prepare x-storage obsolete collection for "
-         "database %s", dbname);
+         "database %s",
+         dbname);
   }
 }

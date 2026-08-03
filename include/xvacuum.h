@@ -19,7 +19,8 @@ EXTERNC void yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
                                                      bool confirm,
                                                      bool crazyDrop);
 
-EXTERNC void yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
+EXTERNC void yezzey_vacuum_garbage_relation_internal_oid(Oid reloid,
+                                                         int segindx,
                                                          bool confirm,
                                                          bool crazyDrop);
 

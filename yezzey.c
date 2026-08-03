@@ -162,7 +162,7 @@ void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop);
 void yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
                                                  bool confirm, bool crazyDrop);
 void yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
-                                            bool confirm, bool crazyDrop);
+                                             bool confirm, bool crazyDrop);
 
 void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
                                Oid objectId, int subId, void *arg);
@@ -288,7 +288,7 @@ void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
         elog(yezzey_log_level, "loading cs segment no %d pseudosegno %d", segno,
              pseudosegno);
 
-        loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno, 
+        loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno,
                             dest_path);
         /* segment if loaded */
       }
@@ -386,7 +386,7 @@ Datum yezzey_offload_relation(PG_FUNCTION_ARGS) {
   reloid = PG_GETARG_OID(0);
   remove_locally = PG_GETARG_BOOL(1);
 
-  ryezzey_offload_relation_internal(reloid, remove_locally, NULL);
+  yezzey_offload_relation_internal(reloid, remove_locally, NULL);
 
   PG_RETURN_VOID();
 }
