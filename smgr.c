@@ -78,15 +78,18 @@ int loadFileFromExternalStorage(YezzeyLocator rnode, BackendId backend,
 
 static void yezzeyCheatRelfilenode(YezzeyLocatorBackend *rnode) {
 #if IsGreenplum6
-  rnode->node.spcNode = runningRewriteSpcOidHint ? runningRewriteSpcOidHint
-                                                 : DEFAULTTABLESPACE_OID;
+  YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltorPtr(rnode)) =
+      runningRewriteSpcOidHint ? runningRewriteSpcOidHint
+                               : DEFAULTTABLESPACE_OID;
 #else
-  rnode->node.spcNode = DEFAULTTABLESPACE_OID;
+  YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltorPtr(rnode)) =
+      DEFAULTTABLESPACE_OID;
 #endif
 }
 
 static void yezzeyRevertCheatRelfilenode(YezzeyLocatorBackend *rnode) {
-  rnode->node.spcNode = YEZZEYTABLESPACE_OID;
+  YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltorPtr(rnode)) =
+      YEZZEYTABLESPACE_OID;
 }
 
 void yezzey_init(void) {
@@ -98,7 +101,8 @@ void yezzey_init(void) {
 
 #if IsModernYezzey
 void yezzey_open(SMgrRelation reln) {
-  if (IsYezzeyOperateSpc(YezzeySMGRLocator(reln).node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -120,7 +124,8 @@ void yezzey_open(SMgrRelation reln) {
 
 void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 
-  if (IsYezzeyOperateSpc(YezzeySMGRLocator(reln).node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -140,7 +145,8 @@ void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 }
 
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -161,7 +167,9 @@ void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
 
 void yezzey_create_ao(YezzeyLocatorBackend rnode, int32 segmentFileNum,
                       bool isRedo) {
-  if (IsYezzeyOperateSpc(rnode.node.spcNode)) {
+
+  if (IsYezzeyOperateSpc(
+          YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltor(rnode)))) {
 
     yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
@@ -183,7 +191,8 @@ void yezzey_create_ao(YezzeyLocatorBackend rnode, int32 segmentFileNum,
 bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum) {
 
   bool ret;
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -213,7 +222,8 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #endif
 {
 
-  if (IsYezzeyOperateSpc(rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(
+          YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltor(rnode)))) {
 
     yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
@@ -244,7 +254,9 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #if IsModernYezzey
 void yezzey_unlink_ao(YezzeyLocatorBackend rnode, ForkNumber forkNum,
                       bool isRedo) {
-  if (IsYezzeyOperateSpc(rnode.node.spcNode)) {
+
+  if (IsYezzeyOperateSpc(
+          YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltor(rnode)))) {
 
     yezzeyCheatRelfilenode(&rnode);
     PG_TRY();
@@ -266,7 +278,8 @@ void yezzey_unlink_ao(YezzeyLocatorBackend rnode, ForkNumber forkNum,
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                    char *buffer, bool skipFsync) {
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -296,7 +309,8 @@ yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
 #if IsModernYezzey
   bool ret;
 #endif
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
     {
@@ -330,7 +344,8 @@ yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
 void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                  char *buffer) {
 
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
     {
@@ -351,7 +366,8 @@ void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                   char *buffer, bool skipFsync) {
 
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -375,7 +391,8 @@ void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
 #if IsGreenplum6
   /*do nothing */
 #else
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -397,7 +414,8 @@ void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
 
 BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
   BlockNumber n;
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -421,7 +439,8 @@ BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
 BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum) {
   BlockNumber n;
 
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -445,7 +464,8 @@ BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum) {
 
 void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
                      BlockNumber nBlocks) {
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
@@ -467,7 +487,8 @@ void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
 
 void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum) {
 
-  if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
