@@ -9,6 +9,7 @@
 /* reader using yproxy */
 class YProxyReader : YProxyConnector {
 public:
+  using YProxyConnector::prepareYproxyConnection;
   friend class ExternalWriter;
   explicit YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
                         std::vector<ChunkInfo> order);
