@@ -66,7 +66,7 @@ std::vector<std::string> YProxyLister::list_chunk_names() {
 }
 
 std::vector<char>
-YProxyLister::ConstructListRequest(const std::string fileName) {
+YProxyLister::ConstructListRequest(const std::string &fileName) {
 
   const uint64_t settingsCnt = 1;
   const std::vector<std::pair<std::string, std::string>> settings = {

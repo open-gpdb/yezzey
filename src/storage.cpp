@@ -51,16 +51,15 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   int rc;
   int tot;
-  size_t chunkSize = 1 << 20;
-  File vfd;
+  /* XXX: chunk size should normally be configurable. */
+  const size_t chunkSize = 1 << 20;
   int64 curr_read_chunk;
-  int64 virtual_size;
 
   std::vector<char> buffer(chunkSize);
 #if IsGreenplum6
-  vfd = PathNameOpenFile((FileName)localPath.c_str(), O_RDONLY, 0600);
+  const auto vfd = PathNameOpenFile((FileName)localPath.c_str(), O_RDONLY, 0600);
 #else
-  vfd = PathNameOpenFile(localPath.c_str(), O_RDONLY);
+  const auto vfd = PathNameOpenFile(localPath.c_str(), O_RDONLY);
 #endif
   if (vfd <= 0) {
     elog(ERROR,
@@ -75,7 +74,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
    * size. this is needed to skip offloading of data already present in external
    * storage.
    */
-  virtual_size = yezzey_calc_virtual_relation_size(
+  const auto virtual_size = yezzey_calc_virtual_relation_size(
       ioadv, GpIdentity.segindex, modcount, external_storage_path);
 
   if (virtual_size == -1) {
@@ -85,10 +84,10 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   elog(NOTICE, "yezzey: relation virtual size calculated: %ld", virtual_size);
   auto progress = virtual_size;
-  auto offset_start = progress;
+  const auto offset_start = progress;
 
 #if PG_VERSION_NUM < 120000
-  auto fLen = FileSeek(vfd, 0L, SEEK_END);
+  const auto fLen = FileSeek(vfd, 0L, SEEK_END);
 
   if (fLen < logicalEof) {
     elog(ERROR,
@@ -101,7 +100,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   FileSeek(vfd, progress, SEEK_SET);
 
 #else
-  auto fLen = FileSize(vfd);
+  const auto fLen = FileSize(vfd);
 
   if (fLen < logicalEof) {
     elog(ERROR,
@@ -154,7 +153,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
     progress += rc;
   }
 
-  auto offset_finish = progress;
+  const auto offset_finish = progress;
 
   /* data persisted in external storage, we can update out metadata relations */
   /* insert chunk metadata in virtual index  */
@@ -181,14 +180,11 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
                                    const std::string &relname, int segno,
                                    const relnodeCoord &coords,
                                    const std::string &dest_path) {
-  size_t chunkSize;
-
-  chunkSize = 1 << 20;
+  /* TODO: pass this as argument? */
+  const size_t chunkSize = 1 << 20;
   std::vector<char> buffer(chunkSize);
 
   std::ofstream ostrm(dest_path, std::ios::binary);
-
-  /* FIXME */
 
   auto ioadv = std::make_shared<IOadv>(
       nspname, relname, storage_class /* storage_class */, multipart_chunksize,
@@ -237,17 +233,17 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
 }
 
 int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
-                        int segno, const char *dest_path) {
-  auto rnode = YezzeyGetRelFileLocator(aorel);
+                         int segno, const char *dest_path) {
+  const auto rnode = YezzeyGetRelFileLocator(aorel);
 
-  auto coords = relnodeCoord(YezzeyGetRelSpcOid(rnode),
+  const auto coords = relnodeCoord(YezzeyGetRelSpcOid(rnode),
                              YezzeyGetRelDbOid(rnode), orig_relnode, segno);
 
   std::string nspname;
   std::string relname;
   {
     /* c-function calls, need to release memory by-hand */
-    auto tp = SearchSysCache1(NAMESPACEOID,
+    const auto tp = SearchSysCache1(NAMESPACEOID,
                               ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
     if (!HeapTupleIsValid(tp)) {
@@ -281,7 +277,7 @@ int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
 }
 
 int removeLocalFile(const char *localPath) {
-  auto res = std::remove(localPath);
+  const auto res = std::remove(localPath);
   elog(yezzey_ao_log_level,
        "[YEZZEY_SMGR_BG] remove local file \"%s\", result: %d", localPath, res);
   return res;
@@ -304,11 +300,11 @@ std::string getlocalpath(const relnodeCoord &coords) {
 
 int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                            int64 logicalEof,
-                           const char *external_storage_path) {
-  auto rnode = YezzeyGetRelFileLocator(aorel);
+                            const char *external_storage_path) {
+  const auto rnode = YezzeyGetRelFileLocator(aorel);
   int rc;
 
-  auto coords =
+  const auto coords =
       relnodeCoord(YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode),
                    YezzeyGetRelNode(rnode), segno);
 
@@ -323,14 +319,14 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
          RelationGetRelationName(aorel));
   }
 
-  auto nsptup = (Form_pg_namespace)GETSTRUCT(tp);
-  auto nspname = std::string(NameStr(nsptup->nspname));
-  auto relname = std::string(RelationGetRelationName(aorel));
-  auto storage_path =
+  const auto nsptup = (Form_pg_namespace)GETSTRUCT(tp);
+  const auto nspname = std::string(NameStr(nsptup->nspname));
+  const auto relname = std::string(RelationGetRelationName(aorel));
+  const auto storage_path =
       !external_storage_path ? "" : std::string(external_storage_path);
   ReleaseSysCache(tp);
 
-  auto ioadv = std::make_shared<IOadv>(
+  const auto ioadv = std::make_shared<IOadv>(
       nspname, relname, storage_class /* storage_class */, multipart_chunksize,
       coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
@@ -346,7 +342,7 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
 
   /* we dont need to interact with s3 while in recovery*/
 
-  int64_t virtual_sz = 0;
+  const int64_t virtual_sz = 0;
 
 #if 0
   if (/* support this feature */)
@@ -367,7 +363,7 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   return 0;
 }
 
-Oid resolveTablespaceOidByName(std::string tablespacename) {
+Oid resolveTablespaceOidByName(const std::string &tablespacename) {
   Relation rel;
   SysScanDesc scan;
   HeapTuple tuple;
@@ -378,7 +374,7 @@ Oid resolveTablespaceOidByName(std::string tablespacename) {
    */
   rel = yezzey_relation_open(TableSpaceRelationId, RowExclusiveLock);
 
-  auto snap = RegisterSnapshot(GetTransactionSnapshot());
+  const auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
   ScanKeyInit(&entry[0], Anum_pg_tablespace_spcname, BTEqualStrategyNumber,
               F_NAMEEQ, CStringGetDatum(tablespacename.c_str()));
@@ -408,7 +404,7 @@ Oid resolveTablespaceOidByName(std::string tablespacename) {
 }
 
 int statExternalTotal(Relation aorel, int segindx) {
-  auto rnode = YezzeyGetRelFileLocator(aorel);
+  const auto rnode = YezzeyGetRelFileLocator(aorel);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -419,20 +415,20 @@ int statExternalTotal(Relation aorel, int segindx) {
   }
 
   Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
-  auto nspname = std::string(NameStr(nsptup->nspname));
+  const auto nspname = std::string(NameStr(nsptup->nspname));
 
   ReleaseSysCache(tp);
 
   /* YezzeyGetRelSpcOid(rnode) == YEZZEYTABLESPACEOID here. we need
   to lookup in metadata table to resolve origin tablespace */
 
-  auto spcNode = resolveTablespaceOidByName(
+  const auto spcNode = resolveTablespaceOidByName(
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
+  const auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
                              YezzeyGetRelNode(rnode), -1 /* not used */);
 
-  auto ioadv = std::make_shared<IOadv>(
+  const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
       std::string(storage_class /*storage_class*/), multipart_chunksize,
       coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
@@ -445,7 +441,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                            size_t *local_committed_bytes,
                            size_t *external_bytes) {
 
-  auto rnode = YezzeyGetRelFileLocator(aorel);
+  const auto rnode = YezzeyGetRelFileLocator(aorel);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -456,27 +452,27 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   }
 
   Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
-  auto nspname = std::string(NameStr(nsptup->nspname));
+  const auto nspname = std::string(NameStr(nsptup->nspname));
 
   ReleaseSysCache(tp);
 
   /* YezzeyGetRelSpcOid(rnode) == YEZZEYTABLESPACEOID here. we need
   to lookup in metadata table to resolve origin tablespace */
 
-  auto spcNode = resolveTablespaceOidByName(
+  const auto spcNode = resolveTablespaceOidByName(
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
+  const auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
                              YezzeyGetRelNode(rnode), segno);
 
-  auto ioadv = std::make_shared<IOadv>(
+  const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
       std::string(storage_class /*storage_class*/), multipart_chunksize,
       coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
       yproxy_socket);
   /* we dont need to interact with s3 while in recovery*/
   /* stat external storage usage */
-  auto virtual_sz = yezzey_relation_metadata_size(ioadv);
+  const auto virtual_sz = yezzey_relation_metadata_size(ioadv);
   if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
          RelationGetRelationName(aorel));
@@ -484,17 +480,17 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   *external_bytes = virtual_sz;
 
   /* No local storage cache logic for now */
-  auto local_path = getlocalpath(coords);
+  const auto local_path = getlocalpath(coords);
 
   *local_bytes = 0;
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
 #if IsGreenplum6
-    auto f = PathNameOpenFile((FileName)local_path.c_str(),
+    const auto f = PathNameOpenFile((FileName)local_path.c_str(),
                               O_RDONLY | PG_BINARY, S_IRUSR);
 #else
-    auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
+    const auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
 #endif
 
     if (f < 0)
@@ -520,15 +516,15 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
                                  size_t *local_commited_bytes,
                                  yezzeyChunkMeta **list, size_t *cnt_chunks) {
-  auto rnode = YezzeyGetRelFileLocator(aorel);
+  const auto rnode = YezzeyGetRelFileLocator(aorel);
 
   /* YezzeyGetRelSpcOid(rnode) == YEZZEYTABLESPACEOID here. we need
   to lookup in metadata table to resolve origin tablespace */
 
-  auto spcNode = resolveTablespaceOidByName(
+  const auto spcNode = resolveTablespaceOidByName(
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-  auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
+  const auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
                              YezzeyGetRelNode(rnode), 0);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
@@ -539,12 +535,12 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
          RelationGetRelationName(aorel));
   }
 
-  auto nsptup = (Form_pg_namespace)GETSTRUCT(tp);
-  auto nspname = std::string(NameStr(nsptup->nspname));
+  const auto nsptup = (Form_pg_namespace)GETSTRUCT(tp);
+  const auto nspname = std::string(NameStr(nsptup->nspname));
 
   ReleaseSysCache(tp);
 
-  auto ioadv = std::make_shared<IOadv>(
+  const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
       std::string(storage_class /*storage_class*/), multipart_chunksize,
       coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
@@ -559,7 +555,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
   /* stat external storage usage */
 
-  auto meta = lister.list_relation_chunks();
+  const auto meta = lister.list_relation_chunks();
   *cnt_chunks = meta.size();
 
   Assert((*cnt_chunks) >= 0);
@@ -574,16 +570,16 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   }
 
   /* No local storage cache logic for now */
-  auto local_path = getlocalpath(coords);
+  const auto local_path = getlocalpath(coords);
   *local_bytes = 0;
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
 #if IsGreenplum6
-    auto f = PathNameOpenFile((FileName)local_path.c_str(),
+    const auto f = PathNameOpenFile((FileName)local_path.c_str(),
                               O_RDONLY | PG_BINARY, S_IRUSR);
 #else
-    auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
+    const auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
 #endif
 
     if (f < 0)
@@ -606,13 +602,13 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 }
 
 int yezzey_get_block_from_file_path(const char *path) {
-  std::string pathstr = path;
+  const std::string pathstr = path;
   int i = 0;
   int previ = 0;
   for (int n = 0; n < 7; ++n) {
     previ = i;
     i = pathstr.find('_', i + 1);
   }
-  auto blkno = pathstr.substr(previ + 1, i - previ);
+  const auto blkno = pathstr.substr(previ + 1, i - previ);
   return atoi(blkno.c_str());
 }

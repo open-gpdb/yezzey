@@ -48,7 +48,7 @@ bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
         Garbage bool
 */
 std::vector<char>
-YProxyDeleter::ConstructDeleteRequest(const std::string fileName) {
+YProxyDeleter::ConstructDeleteRequest(const std::string &fileName) {
 
   MsgBuilder builder = MsgBuilder()
                            .fieldProto()
