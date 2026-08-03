@@ -16,7 +16,7 @@ public:
 
 protected:
   /* prepare connection for chunk reading */
-  std::vector<char> ConstructPutRequest(std::string fileName);
+  std::vector<char> ConstructPutRequest(const std::string &fileName);
   std::vector<char> ConstructCopyDataRequest(const char *buffer, size_t amount);
 
   virtual int prepareYproxyConnection();

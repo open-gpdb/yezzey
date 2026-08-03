@@ -13,12 +13,11 @@
 #ifndef YEZZEY_H
 #define YEZZEY_H
 
-
 #include "postgres.h"
 
 #include "gucs.h"
-#include "ystat.h"
 #include "ygpver.h"
+#include "ystat.h"
 
 void yezzey_prepare(void);
 void yezzey_finish(void);
@@ -57,9 +56,9 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #endif
 
 #if IsModernYezzey
-void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo);
+void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
+                      bool isRedo);
 #endif
-
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                    char *buffer, bool skipFsync);
@@ -101,7 +100,8 @@ const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode);
 #elif IsGreenplum7
 const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode, SMgrImpl which);
 #else
-void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which, Relation rel);
+void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which,
+                 Relation rel);
 #endif
 
 #if IsGreenplum6

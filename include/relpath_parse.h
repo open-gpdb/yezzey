@@ -28,7 +28,7 @@ inline bool parseRelnodePath(const std::string &fileName, uint32_t *dbOidOut,
     }
     --start_off;
   }
-  
+
   if (slash_cntr != 2) {
     return false;
   }

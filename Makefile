@@ -119,9 +119,9 @@ cleanall:
 	rm -f src/*.o src/*.d
 
 apply_fmt:
-	clang-format -i ./src/*.cpp ./include/*.h  *.c
+	clang-format -i ./src/*.cpp ./include/*.h *.c *.h
 
 test:
 	@-$(MAKE) -C test test
 
-.PHONY: test
+.PHONY: test apply_fmt check-format format

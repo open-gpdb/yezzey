@@ -1,0 +1,10 @@
+FMT_FILES := src/*.cpp include *.c *.h
+FMT_IMAGE := yezzey/clang-format-runner
+
+check-format:
+	docker build -f docker/format/Dockerfile --tag=$(FMT_IMAGE) .
+	docker run --rm -v $(CURDIR):/yezzey:ro $(FMT_IMAGE) $(FMT_FILES)
+
+format:
+	docker build -f docker/format/Dockerfile --tag=$(FMT_IMAGE) .
+	docker run --rm --user=$$(stat -c '%u:%g' .) -v $(CURDIR):/yezzey:rw $(FMT_IMAGE) -i $(FMT_FILES)

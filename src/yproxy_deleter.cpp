@@ -1,4 +1,5 @@
 #include "yproxy_deleter.h"
+#include "scope_guard.h"
 
 YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv, ssize_t segindx,
                              bool confirm)
@@ -16,27 +17,26 @@ YProxyDeleter::YProxyDeleter(std::shared_ptr<IOadv> adv)
 YProxyDeleter::~YProxyDeleter() { close(); }
 
 bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
+  auto connGuard = makeScopeGuard([this] { this->close(); });
+
   if (client_fd_ == -1) {
     if (prepareYproxyConnection() == -1) {
-      // Throw here?
-      close();
       return false;
     }
   }
 
   // TODO: split to chunks
-  auto msg = ConstructDeleteRequest(chunkName);
+  const auto msg = ConstructDeleteRequest(chunkName);
 
   if (commonWriteFull(client_fd_, msg) == -1) {
-    close();
     return false;
   }
   // wait for responce
   if (commonReadRFQResponce(client_fd_) != 0) {
-    close();
     return false;
   }
 
+  connGuard.dismiss();
   return true;
 }
 
@@ -47,7 +47,8 @@ bool YProxyDeleter::deleteChunk(const std::string &chunkName) {
         Confirm bool
         Garbage bool
 */
-std::vector<char> YProxyDeleter::ConstructDeleteRequest(std::string fileName) {
+std::vector<char>
+YProxyDeleter::ConstructDeleteRequest(const std::string &fileName) {
 
   MsgBuilder builder = MsgBuilder()
                            .fieldProto()

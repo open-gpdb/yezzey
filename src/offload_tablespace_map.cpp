@@ -6,7 +6,6 @@
 #include "offload_policy.h"
 #include "pg.h"
 #include "yezzey_heap_api.h"
-#include <unistd.h>
 
 #include "gucs.h"
 

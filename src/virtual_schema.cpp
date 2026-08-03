@@ -1,6 +1,5 @@
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
-#include <algorithm>
 
 #include "yezzey_meta.h"
 

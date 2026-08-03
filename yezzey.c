@@ -1,76 +1,71 @@
 
 #include "postgres.h"
 
-#include "catalog/dependency.h"
-#include "catalog/pg_extension.h"
-#include "commands/extension.h"
+/* c.h / GpIdentity */
+#include "c.h"
 
-#include "access/xlog.h"
-#include "catalog/storage_xlog.h"
-#include "common/relpath.h"
-#include "executor/spi.h"
-#include "funcapi.h"
-#include "pgstat.h"
-#include "utils/builtins.h"
-
+/* access */
 #include "access/aocssegfiles.h"
 #include "access/aosegfiles.h"
+#include "access/xact.h"
+#include "access/xlog.h"
+
+/* catalog */
+#include "catalog/catalog.h"
+#include "catalog/dependency.h"
+#include "catalog/heap.h"
+#include "catalog/indexing.h"
+#include "catalog/namespace.h"
+#include "catalog/objectaccess.h"
+#include "catalog/oid_dispatch.h"
+#include "catalog/pg_extension.h"
+#include "catalog/pg_namespace.h"
+#include "catalog/pg_tablespace.h"
+#include "catalog/storage.h"
+#include "catalog/storage_xlog.h"
+
+/* cdb */
+#include "cdb/cdbvars.h"
+
+/* commands / executor / tcop */
+#include "commands/extension.h"
+#include "executor/spi.h"
+#include "tcop/utility.h"
+
+/* common / nodes */
+#include "common/relpath.h"
+#include "nodes/primnodes.h"
+
+/* storage */
 #include "storage/lmgr.h"
+
+/* utils */
+#include "utils/builtins.h"
+#include "utils/catcache.h"
+#include "utils/fmgroids.h"
+#include "utils/guc.h"
+#include "utils/syscache.h"
 
 #if PG_VERSION_NUM < 10000
 #include "utils/tqual.h"
 #endif
 
-#include "utils/fmgroids.h"
-
-#include "catalog/catalog.h"
-#include "catalog/namespace.h"
-#include "catalog/objectaccess.h"
-#include "catalog/pg_tablespace.h"
-#include "catalog/storage.h"
-
-#include "access/xact.h"
-#include "catalog/indexing.h"
-
-#include "utils/guc.h"
-
 #include "fmgr.h"
+#include "funcapi.h"
+#include "pgstat.h"
 
-// For GpIdentity
-#include "c.h"
-#include "catalog/pg_namespace.h"
-#include "cdb/cdbvars.h"
-#include "utils/catcache.h"
-#include "utils/syscache.h"
-
-#include "catalog/heap.h"
-#include "catalog/pg_namespace.h"
-
-#include "nodes/primnodes.h"
-
+/* yezzey local headers */
 #include "yezzey.h"
 
+#include "binary_upgrade.h"
+#include "offload.h"
+#include "offload_policy.h"
+#include "offload_tablespace_map.h"
+#include "partition.h"
 #include "storage.h"
 #include "util.h"
 #include "virtual_index.h"
-
-#include "catalog/oid_dispatch.h"
-
-#include "offload.h"
-#include "offload_policy.h"
-
-#include "partition.h"
-
 #include "virtual_tablespace.h"
-
-#include "storage.h"
-#include "yezzey.h"
-
-#include "tcop/utility.h"
-
-#include "binary_upgrade.h"
-#include "offload_tablespace_map.h"
-
 #include "xvacuum.h"
 // options for yezzey logging
 static const struct config_enum_entry loglevel_options[] = {
@@ -1339,7 +1334,9 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
       foreach (lcmd, stmt->cmds) {
         AlterTableCmd *cmd = (AlterTableCmd *)lfirst(lcmd);
         if (cmd->subtype == AT_SetTableSpace) {
-          elog(ERROR, "altering YEZZEY relation TABLESPACE is forbidden");
+          ereport(ERROR,
+                  (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+                   errmsg("altering YEZZEY relation TABLESPACE is forbidden")));
         }
         newTOASTTableSpace = YezzeyGetRelationOriginTablespaceOid(
             get_namespace_name(rel->rd_rel->relnamespace),

@@ -1,5 +1,4 @@
 #include "msgproto.h"
-#include <cstdint>
 
 MsgBuilder::MsgBuilder() : length(UINT64_SZ), cursor(0), data() {}
 

@@ -5,7 +5,6 @@
 #include "yezzey_meta.h"
 
 #include "yezzey_heap_api.h"
-#include <algorithm>
 
 // STAGE needed?
 Oid YezzeyFindAuxIndex_internal(Oid reloid);
