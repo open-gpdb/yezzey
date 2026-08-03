@@ -57,7 +57,8 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   std::vector<char> buffer(chunkSize);
 #if IsGreenplum6
-  const auto vfd = PathNameOpenFile((FileName)localPath.c_str(), O_RDONLY, 0600);
+  const auto vfd =
+      PathNameOpenFile((FileName)localPath.c_str(), O_RDONLY, 0600);
 #else
   const auto vfd = PathNameOpenFile(localPath.c_str(), O_RDONLY);
 #endif
@@ -233,18 +234,18 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
 }
 
 int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
-                         int segno, const char *dest_path) {
+                        int segno, const char *dest_path) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
 
-  const auto coords = relnodeCoord(YezzeyGetRelSpcOid(rnode),
-                             YezzeyGetRelDbOid(rnode), orig_relnode, segno);
+  const auto coords = relnodeCoord(
+      YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode), orig_relnode, segno);
 
   std::string nspname;
   std::string relname;
   {
     /* c-function calls, need to release memory by-hand */
-    const auto tp = SearchSysCache1(NAMESPACEOID,
-                              ObjectIdGetDatum(aorel->rd_rel->relnamespace));
+    const auto tp = SearchSysCache1(
+        NAMESPACEOID, ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
     if (!HeapTupleIsValid(tp)) {
       elog(ERROR, "yezzey: failed to get namescape name of relation %s",
@@ -300,7 +301,7 @@ std::string getlocalpath(const relnodeCoord &coords) {
 
 int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                            int64 logicalEof,
-                            const char *external_storage_path) {
+                           const char *external_storage_path) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
   int rc;
 
@@ -426,7 +427,7 @@ int statExternalTotal(Relation aorel, int segindx) {
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
   const auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
-                             YezzeyGetRelNode(rnode), -1 /* not used */);
+                                   YezzeyGetRelNode(rnode), -1 /* not used */);
 
   const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
@@ -463,7 +464,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
   const auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
-                             YezzeyGetRelNode(rnode), segno);
+                                   YezzeyGetRelNode(rnode), segno);
 
   const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
@@ -488,7 +489,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
 #if IsGreenplum6
     const auto f = PathNameOpenFile((FileName)local_path.c_str(),
-                              O_RDONLY | PG_BINARY, S_IRUSR);
+                                    O_RDONLY | PG_BINARY, S_IRUSR);
 #else
     const auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
 #endif
@@ -525,7 +526,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
       YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
   const auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
-                             YezzeyGetRelNode(rnode), 0);
+                                   YezzeyGetRelNode(rnode), 0);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -577,7 +578,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
 #if IsGreenplum6
     const auto f = PathNameOpenFile((FileName)local_path.c_str(),
-                              O_RDONLY | PG_BINARY, S_IRUSR);
+                                    O_RDONLY | PG_BINARY, S_IRUSR);
 #else
     const auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
 #endif
