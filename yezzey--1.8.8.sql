@@ -583,7 +583,7 @@ LANGUAGE PLPGSQL;
 CREATE FUNCTION yezzey_delete_obsolete(
     crazyDrop BOOLEAN DEFAULT FALSE
 )
-RETURNS TABLE (status BOOLEAN)
+RETURNS SETOF VOID
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
@@ -603,7 +603,7 @@ CREATE FUNCTION yezzey_vacuum_garbage(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )
-RETURNS TABLE (status BOOLEAN)
+RETURNS SETOF VOID
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
@@ -615,7 +615,7 @@ CREATE FUNCTION yezzey_vacuum_relation(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )
-RETURNS TABLE (status BOOLEAN)
+RETURNS SETOF VOID
 AS 'MODULE_PATHNAME'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
@@ -627,10 +627,11 @@ CREATE FUNCTION yezzey_vacuum_relation(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )
-RETURNS TABLE (status BOOLEAN)
+RETURNS SETOF VOID
 AS $$ 
 BEGIN
-RETURN QUERY SELECT yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop);
+PERFORM yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop);
+RETURN
 END;
 $$
 LANGUAGE PLPGSQL;
@@ -642,7 +643,7 @@ CREATE FUNCTION yezzey_vacuum_garbage_relation(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )
-RETURNS TABLE (status BOOLEAN)
+RETURNS SETOF VOID
 AS $$
 DECLARE
     v_reloid OID;
@@ -655,9 +656,10 @@ BEGIN
     WHERE 
         relname = i_offload_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_offload_nspname);
 
-    RETURN QUERY SELECT yezzey_vacuum_relation(
+    PERFORM yezzey_vacuum_relation(
         v_reloid,confirm,crazyDrop
     );
+    RETURN;
 END;
 $$
 LANGUAGE PLPGSQL;
@@ -668,10 +670,11 @@ yezzey_vacuum_garbage_relation(
     i_offload_relname TEXT,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE)
-RETURNS TABLE (status BOOLEAN)
+RETURNS SETOF VOID
 AS $$
 BEGIN
-    RETURN QUERY SELECT yezzey_vacuum_garbage_relation('public', i_offload_relname, confirm, crazyDrop);
+    PERFORM yezzey_vacuum_garbage_relation('public', i_offload_relname, confirm, crazyDrop);
+    RETURN;
 END;
 $$
 LANGUAGE PLPGSQL;

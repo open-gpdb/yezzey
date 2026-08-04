@@ -288,7 +288,6 @@ void YezzeyDefineOffloadPolicyPrepare(Oid reloid) {
  */
 void YezzeyDefineOffloadPolicy(Oid reloid) {
   ObjectAddress relationAddr, extensionAddr;
-  int rc;
 
   relationAddr.classId = RelationRelationId;
   relationAddr.objectId = reloid;
@@ -329,13 +328,7 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
    */
   if (Gp_role != GP_ROLE_DISPATCH) {
     /*  */
-    if ((rc = yezzey_offload_relation_internal_rel(aorel, true, NULL)) < 0) {
-      elog(ERROR,
-           "failed to offload relation (oid=%d) to external storage: return "
-           "code "
-           "%d",
-           reloid, rc);
-    }
+    yezzey_offload_relation_internal_rel(aorel, true, NULL);
   } else {
     /* clear all pre-assigned oids
      * for auxiliary yezzey table relation
