@@ -35,7 +35,8 @@ std::string storage_url_add_options(const std::string &s3path,
 }
 
 relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
-  uint32_t dbOid = 0, relfilenodeOid = 0;
+  uint32_t dbOid = 0;
+  uint32_t relfilenodeOid = 0;
   int64_t blkno = 0;
 
   if (!parseRelnodePath(fileName, &dbOid, &relfilenodeOid, &blkno)) {
@@ -96,7 +97,7 @@ std::vector<int64_t> parseModcounts(const std::string &prefix,
 
 std::string make_yezzey_url(const std::string &prefix, int64_t modcount,
                             XLogRecPtr current_recptr) {
-  auto rv = prefix + ("_DY_" + std::to_string(modcount));
+  std::string rv = prefix + ("_DY_" + std::to_string(modcount));
   if (current_recptr != InvalidXLogRecPtr) {
     rv += "_xlog_" + std::to_string(current_recptr);
   }

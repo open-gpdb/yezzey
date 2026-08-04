@@ -1,7 +1,7 @@
 
 #include "partition.h"
 
-bool yezzey_check_const_expr(Const *constval) {
+bool yezzey_check_const_expr(const Const *constval) {
   if (constval->constisnull) {
     return false;
   }

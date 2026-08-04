@@ -43,7 +43,21 @@ env:
 
 jobs:
 
-  ## Stage 0: Fast standalone unit tests (no cluster required)
+  ## Stage 0: Fast standalone lint / unit tests (no cluster required)
+
+  clang-tidy:
+    name: clang-tidy (const-correctness)
+    runs-on: ubuntu-latest
+    container:
+      image: silkeh/clang:16
+    steps:
+      - name: Checkout Yezzey source
+        uses: actions/checkout@v4
+
+      - name: Run clang-tidy
+        shell: bash
+        run: |
+          make -f Makefile.tidy tidy-check
 
   unit-tests:
     name: Unit Tests (googletest)
