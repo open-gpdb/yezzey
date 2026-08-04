@@ -23,7 +23,7 @@ name: Yezzey CI Pipeline
 
 on:
   push:
-    branches: [ v1.8_opengpdb ]
+    branches: [ v1.8_opengpdb, master ]
   pull_request:
     types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
