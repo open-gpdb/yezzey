@@ -17,7 +17,7 @@
  * TBD: check, that chunk status is obsolete and other sanity checks
  * to avoid deleting chunk, which can we needed to read relation data
  */
-int yezzey_delete_chunk_internal(const char *external_chunk_path) {
+void yezzey_delete_chunk_internal(const char *external_chunk_path) {
   try {
     auto ioadv = std::make_shared<IOadv>(
         "", "", std::string(storage_class /*storage_class*/),
@@ -28,16 +28,14 @@ int yezzey_delete_chunk_internal(const char *external_chunk_path) {
 
     auto deleter = std::make_shared<YProxyDeleter>(ioadv);
 
-    if (deleter->deleteChunk(storage_path)) {
-      return 0;
+    if (!deleter->deleteChunk(storage_path)) {
+      elog(ERROR, "yezzey: failed to delete chunk at path '%s'",
+           storage_path.c_str());
     }
-
-    return -1;
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
-    return 0;
+    elog(ERROR, "yezzey: failed to prepare x-storage deleter for chunk '%s'",
+         external_chunk_path);
   }
-  return 0;
 }
 
 /*
@@ -47,7 +45,7 @@ int yezzey_delete_chunk_internal(const char *external_chunk_path) {
  * TBD: check, that chunk status is obsolete and other sanity checks
  * to avoid deleting chunk, which can we needed to read relation data
  */
-int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
+void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
   try {
     auto ioadv = std::make_shared<IOadv>(
         "", "", std::string(storage_class /*storage_class*/),
@@ -59,20 +57,18 @@ int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
     auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
                                                    confirm, crazyDrop);
 
-    if (deleter->deleteChunk(storage_path)) {
-      return 0;
+    if (!deleter->deleteChunk(storage_path)) {
+      elog(ERROR, "yezzey: failed to delete garbage chunk at path '%s'",
+           storage_path.c_str());
     }
-
-    return -1;
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
-    return 0;
+    elog(ERROR, "yezzey: failed to prepare x-storage deleter for segment %d",
+         segindx);
   }
-  return 0;
 }
 
-int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
-                                            bool confirm, bool crazyDrop) {
+void yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
+                                             bool confirm, bool crazyDrop) {
   try {
     auto rnode = aorel->rd_node;
 
@@ -97,8 +93,6 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
 
     std::string relname = RelationGetRelationName(aorel);
 
-    auto deleted = false;
-
     auto ioadv = std::make_shared<IOadv>(
         nspname, relname, std::string(storage_class), multipart_chunksize,
         coords, aorel->rd_id, use_gpg_crypto, yproxy_socket);
@@ -110,36 +104,35 @@ int yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     {
       auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
                                                      confirm, crazyDrop);
-      deleted |= deleter->deleteChunk(storage_path);
+      if (!deleter->deleteChunk(storage_path)) {
+        elog(ERROR, "yezzey: failed to delete garbage chunk at path '%s'",
+             storage_path.c_str());
+      }
     }
     {
       auto deleter = std::make_shared<YProxyDeleter>(ioadv, ssize_t(segindx),
                                                      confirm, crazyDrop);
       deleted |= deleter->deleteChunk(storage_path_old);
     }
-    if (deleted) {
-      return 0;
+    if (!deleter->deleteChunk(storage_path_old)) {
+      elog(ERROR, "yezzey: failed to delete garbage chunk at path '%s'",
+           storage_path_old.c_str());
     }
-
-    return -1;
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
-    return 0;
+    elog(ERROR, "yezzey: failed to prepare x-storage deleter for relation %s",
+         RelationGetRelationName(aorel));
   }
-  return 0;
 }
 
-int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
-                                                bool confirm, bool crazyDrop) {
+void yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
+                                                 bool confirm, bool crazyDrop) {
   auto rel = relation_open(reloid, AccessShareLock);
-  int rc =
-      yezzey_vacuum_garbage_relation_internal(rel, segindx, confirm, crazyDrop);
+  yezzey_vacuum_garbage_relation_internal(rel, segindx, confirm, crazyDrop);
   relation_close(rel, AccessShareLock);
-  return rc;
 }
 
-int yezzey_delele_obsolete_internal(int segindx, bool crazy_drop, char *dbname,
-                                    Oid nspoid, Oid dboid) {
+void yezzey_delele_obsolete_internal(int segindx, bool crazy_drop, char *dbname,
+                                     Oid nspoid, Oid dboid) {
   try {
     auto ioadv = std::make_shared<IOadv>(
         "", "", std::string(storage_class /*storage_class*/),
@@ -151,20 +144,18 @@ int yezzey_delele_obsolete_internal(int segindx, bool crazy_drop, char *dbname,
     auto deleter = std::make_shared<YProxyDeleterV2>(
         ioadv, ssize_t(segindx), std::string(dbname), crazy_drop);
 
-    if (deleter->Delete(storage_path)) {
-      return 0;
+    if (!deleter->Delete(storage_path)) {
+      elog(ERROR, "yezzey: failed to delete obsolete files at path '%s'",
+           storage_path.c_str());
     }
-
-    return -1;
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage delete");
-    return 0;
+    elog(ERROR, "yezzey: failed to prepare x-storage delete for database %s",
+         dbname);
   }
-  return 0;
 }
 
-int yezzey_collect_obsolete_internal(int segindx, char *dbname, Oid nspoid,
-                                     Oid dboid) {
+void yezzey_collect_obsolete_internal(int segindx, char *dbname, Oid nspoid,
+                                      Oid dboid) {
   try {
     auto ioadv = std::make_shared<IOadv>(
         "", "", std::string(storage_class /*storage_class*/),
@@ -176,14 +167,14 @@ int yezzey_collect_obsolete_internal(int segindx, char *dbname, Oid nspoid,
     auto deleter = std::make_shared<YProxyDeleterV2>(ioadv, ssize_t(segindx),
                                                      std::string(dbname));
     // TODO get lock on smthng
-    if (deleter->Collect(storage_path)) {
-      return 0;
+    if (!deleter->Collect(storage_path)) {
+      elog(ERROR, "yezzey: failed to collect obsolete files at path '%s'",
+           storage_path.c_str());
     }
-
-    return -1;
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage obsolete");
-    return 0;
+    elog(ERROR,
+         "yezzey: failed to prepare x-storage obsolete collection for "
+         "database %s",
+         dbname);
   }
-  return 0;
 }
