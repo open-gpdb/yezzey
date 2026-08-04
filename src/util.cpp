@@ -97,7 +97,7 @@ std::vector<int64_t> parseModcounts(const std::string &prefix,
 
 std::string make_yezzey_url(const std::string &prefix, int64_t modcount,
                             XLogRecPtr current_recptr) {
-  auto rv = prefix + ("_DY_" + std::to_string(modcount));
+  std::string rv = prefix + ("_DY_" + std::to_string(modcount));
   if (current_recptr != InvalidXLogRecPtr) {
     rv += "_xlog_" + std::to_string(current_recptr);
   }
