@@ -35,9 +35,9 @@ std::string storage_url_add_options(const std::string &s3path,
 }
 
 relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
-  const uint32_t dbOid = 0;
-  const uint32_t relfilenodeOid = 0;
-  const int64_t blkno = 0;
+  uint32_t dbOid = 0;
+  uint32_t relfilenodeOid = 0;
+  int64_t blkno = 0;
 
   if (!parseRelnodePath(fileName, &dbOid, &relfilenodeOid, &blkno)) {
     elog(ERROR, "yezzey: corrupted data file path %s", fileName.c_str());
@@ -97,7 +97,7 @@ std::vector<int64_t> parseModcounts(const std::string &prefix,
 
 std::string make_yezzey_url(const std::string &prefix, int64_t modcount,
                             XLogRecPtr current_recptr) {
-  const auto rv = prefix + ("_DY_" + std::to_string(modcount));
+  auto rv = prefix + ("_DY_" + std::to_string(modcount));
   if (current_recptr != InvalidXLogRecPtr) {
     rv += "_xlog_" + std::to_string(current_recptr);
   }
