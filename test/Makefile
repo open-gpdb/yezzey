@@ -73,7 +73,13 @@ test: $(TEST_APP)
 coverage: test
 	@gcov $(TEST_SRC) | grep -A 1 "src/.*.cpp"
 
+SAN_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer -g
+
+sanitize: CPPFLAGS += $(SAN_FLAGS)
+sanitize: LDFLAGS += $(SAN_FLAGS)
+sanitize: clean test
+
 clean:
 	rm -f *.o *.d *.a *.gcov *.gcda *.gcno $(TEST_APP)
 
-.PHONY: buildtest test coverage clean
+.PHONY: buildtest test coverage sanitize clean
