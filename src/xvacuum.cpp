@@ -142,7 +142,7 @@ int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
 }
 
 int yezzey_delele_obsolete_internal(int segindx, bool crazy_drop,
-                                     const char *dbname, Oid nspoid, Oid dboid) {
+                                    const char *dbname, Oid nspoid, Oid dboid) {
   try {
     auto ioadv = std::make_shared<IOadv>(
         "", "", std::string(storage_class /*storage_class*/),
@@ -167,7 +167,7 @@ int yezzey_delele_obsolete_internal(int segindx, bool crazy_drop,
 }
 
 int yezzey_collect_obsolete_internal(int segindx, const char *dbname,
-                                      Oid nspoid, Oid dboid) {
+                                     Oid nspoid, Oid dboid) {
   try {
     auto ioadv = std::make_shared<IOadv>(
         "", "", std::string(storage_class /*storage_class*/),

@@ -24,8 +24,8 @@ EXTERNC int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
                                                         bool crazyDrop);
 
 EXTERNC int yezzey_collect_obsolete_internal(int segindx, const char *dbname,
-                                              Oid nspoid, Oid dboid);
+                                             Oid nspoid, Oid dboid);
 EXTERNC int yezzey_delele_obsolete_internal(int segindx, bool crazy_drop,
-                                             const char *dbname, Oid nspoid,
-                                             Oid dboid);
+                                            const char *dbname, Oid nspoid,
+                                            Oid dboid);
 #endif /* YEZZEY_XVACUUM_H */
