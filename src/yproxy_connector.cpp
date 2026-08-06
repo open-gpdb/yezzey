@@ -105,7 +105,7 @@ int commonReadFull(int client_fd_, void *buf, size_t len) {
   size_t offset = 0;
   while (len > 0) {
     CHECK_FOR_INTERRUPTS();
-    const auto rc = ::read(client_fd_, (char *)buf + offset, len);
+    const auto rc = ::read(client_fd_, static_cast<char *>(buf) + offset, len);
 
     if (rc < 0) {
       if (errno == EINTR) {
