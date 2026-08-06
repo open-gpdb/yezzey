@@ -32,8 +32,7 @@ std::vector<storageChunkMeta> YProxyLister::list_relation_chunks() {
 
   const auto msg = ConstructListRequest(yezzey_block_db_file_path(
       adv_->nspname, adv_->relname, adv_->coords_, segindx_));
-  const auto rc = ::write(client_fd_, msg.data(), msg.size());
-  if (rc <= 0) {
+  if (commonWriteFull(client_fd_, msg) == -1) {
     return res;
   }
 
@@ -99,8 +98,8 @@ YProxyLister::message YProxyLister::readMessage() {
   char buffer[len];
   // try to read small number of bytes in one go
   // if failed, give up
-  const auto rc = ::read(client_fd_, buffer, len);
-  if (rc < 0 || (size_t)rc != len) {
+  const auto rc = commonReadFull(client_fd_, buffer, len);
+  if (rc != 0) {
     // handle
     res.retCode = -1;
     return res;
@@ -121,15 +120,9 @@ YProxyLister::message YProxyLister::readMessage() {
   msgLen -= len;
 
   char data[msgLen];
-  const auto rc2 = ::read(client_fd_, data, msgLen);
+  const auto rc2 = commonReadFull(client_fd_, data, msgLen);
 
-  if (rc2 < 0) {
-    // handle
-    res.retCode = -1;
-    return res;
-  }
-
-  if ((uint64_t)rc2 != msgLen) {
+  if (rc2 != 0) {
     // handle
     res.retCode = -1;
     return res;

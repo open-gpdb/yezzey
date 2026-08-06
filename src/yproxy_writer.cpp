@@ -95,8 +95,8 @@ int YProxyWriter::readPutCompleteResponce(int client_fd_) {
   char buffer[len];
   // try to read small number of bytes in one go
   // if failed, give up
-  const auto rc = ::read(client_fd_, buffer, len);
-  if (rc != len) {
+  const auto rc = commonReadFull(client_fd_, buffer, len);
+  if (rc != 0) {
     // handle
     return -1;
   }
@@ -116,12 +116,8 @@ int YProxyWriter::readPutCompleteResponce(int client_fd_) {
   msgLen -= len;
 
   char data[msgLen];
-  const auto rc2 = ::read(client_fd_, data, msgLen);
-  if (rc2 < 0) {
-    return -1;
-  }
-  if (uint64_t(rc2) != msgLen) {
-    // handle
+  const auto rc2 = commonReadFull(client_fd_, data, msgLen);
+  if (rc2 != 0) {
     return -1;
   }
 
