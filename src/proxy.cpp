@@ -369,8 +369,13 @@ void yezzey_FileClose(SMGRFile file) {
 #define ALLOW_MODIFY_EXTERNAL_TABLE
 
 #if IsModernYezzey
+#if PG_VERSION_NUM >= 160000
+int yezzey_FileWrite(SMGRFile file, const void *buffer, size_t amount, off_t offset,
+                     uint32 wait_event_info)
+#else
 int yezzey_FileWrite(SMGRFile file, char *buffer, int amount, off_t offset,
                      uint32 wait_event_info)
+#endif
 #else
 int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
 #endif
@@ -429,8 +434,13 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
 }
 
 #if IsModernYezzey
+#if PG_VERSION_NUM >= 160000
+int yezzey_FileRead(SMGRFile file, void *buffer, size_t amount, off_t offset,
+                    uint32 wait_event_info) {
+#else
 int yezzey_FileRead(SMGRFile file, char *buffer, int amount, off_t offset,
                     uint32 wait_event_info) {
+#endif
 #else
 int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
 #endif
