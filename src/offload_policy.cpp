@@ -322,7 +322,11 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
    * chunks
    */
   auto aorel = relation_open(reloid, AccessExclusiveLock);
+#if PG_VERSION_NUM >= 160000
+  RelationGetSmgr(aorel);
+#else
   RelationOpenSmgr(aorel);
+#endif
   /*
    * @brief do main offload job on segments
    *

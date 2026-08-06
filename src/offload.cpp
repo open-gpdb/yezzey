@@ -154,7 +154,11 @@ int yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
    * from local storage
    */
   aorel = relation_open(reloid, AccessExclusiveLock);
+#if PG_VERSION_NUM >= 160000
+  RelationGetSmgr(aorel);
+#else
   RelationOpenSmgr(aorel);
+#endif
 
   rc = yezzey_offload_relation_internal_rel(aorel, remove_locally,
                                             external_storage_path);
