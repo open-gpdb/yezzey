@@ -92,11 +92,6 @@ extern void yezzey_sync(void);
 extern void yezzey_post_ckpt(void);
 #endif
 
-#if 0 /* not implemented */
-void addToMoveTable(char *tableName);
-void processTables(void);
-#endif
-
 #if IsGreenplum6
 const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode);
 #elif IsGreenplum7
