@@ -80,8 +80,8 @@ int commonReadRFQResponce(int client_fd_) {
 }
 
 int commonWriteFull(int client_fd_, const std::vector<char> &msg) {
-  int len = msg.size();
-  int sync_offset = 0;
+  auto len = msg.size();
+  size_t sync_offset = 0;
   while (len > 0) {
     CHECK_FOR_INTERRUPTS();
     const auto rc = ::write(client_fd_, msg.data() + sync_offset, len);
