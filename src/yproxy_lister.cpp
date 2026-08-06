@@ -138,8 +138,11 @@ YProxyLister::readObjectMetaBody(const std::vector<char> *body) {
   std::vector<storageChunkMeta> res;
   size_t i = PROTO_HEADER_SIZE;
   while (i < body->size()) {
+    /* Listing may be very expensive */
+    CHECK_FOR_INTERRUPTS();
+    
     std::vector<char> buff;
-    while (body->at(i) != 0 && i < body->size()) {
+    while (i < body->size() && body->at(i) != 0) {
       buff.push_back(body->at(i));
       i++;
     }
