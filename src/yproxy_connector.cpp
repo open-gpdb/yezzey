@@ -44,10 +44,10 @@ int YProxyConnector::prepareYproxyConnection() {
 
 int commonReadRFQResponce(int client_fd_) {
   const auto len = MSG_HEADER_SIZE;
-  char buffer[len];
+  std::vector<char> buffer(len);
   // try to read small number of bytes in one op
   // if failed, give up
-  const auto rc = commonReadFull(client_fd_, buffer, len);
+  const auto rc = commonReadFull(client_fd_, buffer.data(), len);
   if (rc != 0) {
     // handle
     return -1;
@@ -67,8 +67,8 @@ int commonReadRFQResponce(int client_fd_) {
   // substract header
   msgLen -= len;
 
-  char data[msgLen];
-  const auto rc2 = commonReadFull(client_fd_, data, msgLen);
+  std::vector<char> data(msgLen);
+  const auto rc2 = commonReadFull(client_fd_, data.data(), msgLen);
   if (rc2 != 0) {
     return -1;
   }
