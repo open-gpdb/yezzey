@@ -409,13 +409,18 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
 /* CACHE_LOCAL_WRITES_FEATURE to do*/
 #endif
     size_t rc = amount;
-    if (!yfd.handler->io_write(buffer, &rc)) {
+    if (!yfd.handler->io_write((char *)buffer, &rc)) {
       elog(WARNING, "failed to write to external storage");
       return -1;
     }
     elog(yezzey_ao_log_level,
+#if PG_VERSION_NUM >= 160000
+         "yezzey_FileWrite: write %ld bytes, %ld transfered, yezzey fd %d",
+         (long)amount, (long)rc, file);
+#else
          "yezzey_FileWrite: write %d bytes, %ld transfered, yezzey fd %d",
          amount, rc, file);
+#endif
     yfd.offset += rc;
     yfd.op_write += rc;
     return rc;
@@ -463,7 +468,7 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
 /* CACHE_LOCAL_WRITES_FEATURE to do*/
 #endif
     } else {
-      if (!yfd.handler->io_read(buffer, &curr)) {
+      if (!yfd.handler->io_read((char *)buffer, &curr)) {
         elog(yezzey_ao_log_level,
              "yezzey_FileRead: problem while direct read from s3 read with %d "
              "curr: %ld",
@@ -478,8 +483,13 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
     yfd.offset += curr;
 
     elog(yezzey_ao_log_level,
+#if PG_VERSION_NUM >= 160000
+         "yezzey_FileRead: file read with %d, actual %d, amount %ld real %ld",
+         file, actual_fd, (long)amount, (long)curr);
+#else
          "yezzey_FileRead: file read with %d, actual %d, amount %d real %ld",
          file, actual_fd, amount, curr);
+#endif
     return curr;
   }
 
