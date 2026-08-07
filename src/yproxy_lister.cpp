@@ -140,7 +140,7 @@ YProxyLister::readObjectMetaBody(const std::vector<char> *body) {
   while (i < body->size()) {
     /* Listing may be very expensive */
     CHECK_FOR_INTERRUPTS();
-    
+
     std::vector<char> buff;
     while (i < body->size() && body->at(i) != 0) {
       buff.push_back(body->at(i));
