@@ -77,9 +77,9 @@ void yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum,
 #endif
 void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 #if PG_VERSION_NUM >= 160000
-                void *buffer);
+                 void *buffer);
 #else
-                char *buffer);
+                 char *buffer);
 #endif
 void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 #if PG_VERSION_NUM >= 160000
