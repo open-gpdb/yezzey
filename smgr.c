@@ -277,7 +277,11 @@ void yezzey_unlink_ao(YezzeyLocatorBackend rnode, ForkNumber forkNum,
 #endif
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
+#if PG_VERSION_NUM >= 160000
+                   const void *buffer, bool skipFsync) {
+#else
                    char *buffer, bool skipFsync) {
+#endif
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
@@ -342,7 +346,11 @@ yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
 }
 
 void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
+#if PG_VERSION_NUM >= 160000
+                 void *buffer) {
+#else
                  char *buffer) {
+#endif
 
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
@@ -364,7 +372,11 @@ void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 }
 
 void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
+#if PG_VERSION_NUM >= 160000
+                  const void *buffer, bool skipFsync) {
+#else
                   char *buffer, bool skipFsync) {
+#endif
 
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
@@ -463,14 +475,22 @@ BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum) {
 }
 
 void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
+#if PG_VERSION_NUM >= 160000
+                     BlockNumber old_blocks, BlockNumber nBlocks) {
+#else
                      BlockNumber nBlocks) {
+#endif
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     PG_TRY();
     {
+#if PG_VERSION_NUM >= 160000
+      mdtruncate(reln, forkNum, old_blocks, nBlocks);
+#else
       mdtruncate(reln, forkNum, nBlocks);
+#endif
 
       yezzeyRevertCheatRelfilenode(&(YezzeySMGRLocator(reln)));
     }
@@ -481,7 +501,11 @@ void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
     }
     PG_END_TRY();
   } else {
+#if PG_VERSION_NUM >= 160000
+    mdtruncate(reln, forkNum, old_blocks, nBlocks);
+#else
     mdtruncate(reln, forkNum, nBlocks);
+#endif
   }
 }
 

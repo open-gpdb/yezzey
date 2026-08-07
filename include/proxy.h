@@ -42,10 +42,17 @@ EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, const char *nspname,
 #endif
 
 #if IsModernYezzey
+#if PG_VERSION_NUM >= 160000
+EXTERNC int yezzey_FileWrite(SMGRFile file, const void *buffer, size_t amount,
+                             off_t offset, uint32 wait_event_info);
+EXTERNC int yezzey_FileRead(SMGRFile file, void *buffer, size_t amount,
+                            off_t offset, uint32 wait_event_info);
+#else
 EXTERNC int yezzey_FileWrite(SMGRFile file, char *buffer, int amount,
                              off_t offset, uint32 wait_event_info);
 EXTERNC int yezzey_FileRead(SMGRFile file, char *buffer, int amount,
                             off_t offset, uint32 wait_event_info);
+#endif
 #else
 EXTERNC int yezzey_FileWrite(SMGRFile file, char *buffer, int amount);
 EXTERNC int yezzey_FileRead(SMGRFile file, char *buffer, int amount);

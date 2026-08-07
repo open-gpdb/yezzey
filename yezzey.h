@@ -63,7 +63,11 @@ void yezzey_unlink_ao(YezzeyLocatorBackend rnode, ForkNumber forkNum,
 #endif
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
+#if PG_VERSION_NUM >= 160000
+                   const void *buffer, bool skipFsync);
+#else
                    char *buffer, bool skipFsync);
+#endif
 #if PG_VERSION_NUM >= 130000
 bool yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum,
                      BlockNumber blockNum);
@@ -72,16 +76,28 @@ void yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum,
                      BlockNumber blockNum);
 #endif
 void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
+#if PG_VERSION_NUM >= 160000
+                 void *buffer);
+#else
                  char *buffer);
+#endif
 void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
+#if PG_VERSION_NUM >= 160000
+                  const void *buffer, bool skipFsync);
+#else
                   char *buffer, bool skipFsync);
+#endif
 
 void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
                       BlockNumber blockNum, BlockNumber nBlocks);
 
 BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum);
 void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
+#if PG_VERSION_NUM >= 160000
+                     BlockNumber old_blocks, BlockNumber nBlocks);
+#else
                      BlockNumber nBlocks);
+#endif
 void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum);
 
 BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum);
