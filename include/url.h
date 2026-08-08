@@ -14,10 +14,12 @@ std::string yezzey_fqrelname_md5(const std::string &nspname,
  *
  */
 std::string yezzey_block_file_path(const std::string &nspname,
-                                   const std::string &relname,
-                                   relnodeCoord coords, int32_t segid);
+                                    const std::string &relname,
+                                    relnodeCoord coords, int32_t segid);
 
-std::string yezzey_block_namespace_path(int32_t segid);
+/* yezzey_block_namespace_path is defined inline in yezzey_standalone.h
+ * (included via util.h) */
+
 std::string yezzey_block_db_file_path(const std::string &nspname,
                                       const std::string &relname,
                                       relnodeCoord coords, int32_t segid);

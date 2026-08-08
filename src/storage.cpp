@@ -562,6 +562,11 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   Assert((*cnt_chunks) >= 0);
 
   // do copy;
+  if (*cnt_chunks > 0 &&
+      *cnt_chunks > SIZE_MAX / sizeof(struct yezzeyChunkMeta)) {
+    elog(ERROR, "yezzey: chunk count overflow in list_relation_chunks");
+  }
+
   *list = (struct yezzeyChunkMeta *)palloc(sizeof(struct yezzeyChunkMeta) *
                                            (*cnt_chunks));
 
