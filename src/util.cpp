@@ -18,21 +18,11 @@
 #include "url.h"
 
 #include "relpath_parse.h"
+#include "yezzey_standalone.h"
 
 #define DEFAULTTABLESPACE_OID 1663 /* FIXME */
 
 const char *baseYezzeyPath = "/basebackups_005/yezzey/";
-
-std::string storage_url_add_options(const std::string &s3path,
-                                    const char *config_path) {
-  auto ret = s3path;
-
-  ret += " config=";
-  ret += config_path;
-  ret += " region=us-east-1";
-
-  return ret;
-}
 
 relnodeCoord getRelnodeCoordinate(Oid spcNode, const std::string &fileName) {
   uint32_t dbOid = 0;
@@ -62,10 +52,6 @@ void getYezzeyExternalStoragePathByCoords(const char *nspname,
   return;
 }
 
-/*
- * fileName is in form 'base=DEFAULTTABLESPACE_OID/<dboid>/<tableoid>.<seg>'
- */
-
 std::vector<int64_t> parseModcounts(const std::string &prefix,
                                     std::string name) {
   std::vector<int64_t> res;
@@ -81,27 +67,21 @@ std::vector<int64_t> parseModcounts(const std::string &prefix,
   /* name[endindx] -> not digit */
   /* mc1_D_mc2_D_mc3_D_mc4 */
   for (size_t it = indx; it <= endindx; ++it) {
-    if (!isdigit(name[it])) {
+    if (!isdigit((unsigned char)name[it])) {
       if (prev) {
         res.push_back(prev);
       }
       prev = 0;
       continue;
     }
+    if (prev > SIZE_MAX / 10) {
+      elog(ERROR, "yezzey: modcount overflow in path %s", name.c_str());
+    }
     prev *= 10;
     prev += name[it] - '0';
   }
 
   return res;
-}
-
-std::string make_yezzey_url(const std::string &prefix, int64_t modcount,
-                            XLogRecPtr current_recptr) {
-  std::string rv = prefix + ("_DY_" + std::to_string(modcount));
-  if (current_recptr != InvalidXLogRecPtr) {
-    rv += "_xlog_" + std::to_string(current_recptr);
-  }
-  return rv;
 }
 
 /* calc size of external files */
