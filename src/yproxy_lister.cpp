@@ -127,7 +127,7 @@ YProxyLister::message YProxyLister::readMessage() {
     return res;
   }
 
-  res.type = data[0];
+  res.type = res.content[0];
   return res;
 }
 
