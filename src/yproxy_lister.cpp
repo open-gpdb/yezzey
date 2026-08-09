@@ -95,10 +95,10 @@ YProxyLister::ConstructListRequest(const std::string &fileName) {
 YProxyLister::message YProxyLister::readMessage() {
   YProxyLister::message res;
   const size_t len = MSG_HEADER_SIZE;
-  char buffer[len];
+  std::vector<char> buffer(len);
   // try to read small number of bytes in one go
   // if failed, give up
-  const auto rc = commonReadFull(client_fd_, buffer, len);
+  const auto rc = commonReadFull(client_fd_, buffer.data(), len);
   if (rc != 0) {
     // handle
     res.retCode = -1;
@@ -119,17 +119,15 @@ YProxyLister::message YProxyLister::readMessage() {
   }
   msgLen -= len;
 
-  char data[msgLen];
-  const auto rc2 = commonReadFull(client_fd_, data, msgLen);
+  res.content = std::vector<char>(msgLen);
 
-  if (rc2 != 0) {
+  if (0 != commonReadFull(client_fd_, res.content.data(), msgLen)) {
     // handle
     res.retCode = -1;
     return res;
   }
 
-  res.type = data[0];
-  res.content = std::vector<char>(data, data + msgLen);
+  res.type = res.content[0];
   return res;
 }
 
