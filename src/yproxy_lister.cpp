@@ -119,17 +119,15 @@ YProxyLister::message YProxyLister::readMessage() {
   }
   msgLen -= len;
 
-  std::vector<char> data(msgLen);
-  const auto rc2 = commonReadFull(client_fd_, data.data(), msgLen);
+  res.content = std::vector<char>(msgLen);
 
-  if (rc2 != 0) {
+  if (0 != commonReadFull(client_fd_, res.content.data(), msgLen)) {
     // handle
     res.retCode = -1;
     return res;
   }
 
   res.type = data[0];
-  res.content = std::vector<char>(data.begin(), data.end());
   return res;
 }
 
