@@ -37,13 +37,13 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 Oid resolveTablespaceOidByName(const std::string &tablespacename);
 #endif
 
-EXTERNC int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
-                                   int64 logicalEof,
-                                   const char *external_storage_path);
+EXTERNC void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
+                                    int64 logicalEof,
+                                    const char *external_storage_path);
 
-EXTERNC int loadRelationSegment(Relation aorel, Oid loadSpcOid,
-                                Oid orig_relnode, int segno,
-                                const char *dest_path);
+EXTERNC void loadRelationSegment(Relation aorel, Oid loadSpcOid,
+                                 Oid orig_relnode, int segno,
+                                 const char *dest_path);
 
 EXTERNC bool ensureFileLocal(RelFileNode rnode, BackendId backend,
                              ForkNumber forkNum, BlockNumber blkno);
