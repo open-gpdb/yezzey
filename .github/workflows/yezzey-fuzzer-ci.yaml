@@ -297,8 +297,10 @@ jobs:
 
           chmod 777 /tmp/yproxy.sock
 
-          # Run only simple.sql regress test
-          if ! time su - gpadmin -c "cd ${SRC_DIR}/gpcontrib/yezzey && source /opt/greenplum-db-6/greenplum_path.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && make installcheck REGRESS=simple"; then
+          # Run only simple_fuzzer regress test (listing API calls are
+          # wrapped in DO blocks so the randomized yfuzzer output does
+          # not produce a non-deterministic regression diff)
+          if ! time su - gpadmin -c "cd ${SRC_DIR}/gpcontrib/yezzey && source /opt/greenplum-db-6/greenplum_path.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && make installcheck REGRESS=simple_fuzzer"; then
             echo "::error::Test yezzey failed"
             cat ${SRC_DIR}/gpcontrib/yezzey/regression.diffs
             exit 1
