@@ -27,8 +27,8 @@
 
 #define USE_YPX_LISTER = 1
 
-int yezzey_log_level = INFO;
-int yezzey_ao_log_level = INFO;
+int yezzey_log_level = DEBUG1;
+int yezzey_ao_log_level = DEBUG1;
 
 /*
  * This function used by AO-related realtion functions
