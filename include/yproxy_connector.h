@@ -31,4 +31,6 @@ extern std::vector<char> CommonCostructCopyDoneRequest();
 
 extern int commonWriteFull(int client_fd_, const std::vector<char> &msg);
 
+extern int commonReadFull(int client_fd_, void *buf, size_t len);
+
 extern int commonReadRFQResponce(int client_fd_);
