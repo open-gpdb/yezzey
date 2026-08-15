@@ -47,8 +47,8 @@ int commonReadRFQResponce(int client_fd_) {
   char buffer[len];
   // try to read small number of bytes in one op
   // if failed, give up
-  const auto rc = ::read(client_fd_, buffer, len);
-  if (rc != len) {
+  const auto rc = commonReadFull(client_fd_, buffer, len);
+  if (rc != 0) {
     // handle
     return -1;
   }
@@ -68,12 +68,8 @@ int commonReadRFQResponce(int client_fd_) {
   msgLen -= len;
 
   char data[msgLen];
-  const auto rc2 = ::read(client_fd_, data, msgLen);
-  if (rc2 < 0) {
-    return -1;
-  }
-  if (uint64_t(rc2) != msgLen) {
-    // handle
+  const auto rc2 = commonReadFull(client_fd_, data, msgLen);
+  if (rc2 != 0) {
     return -1;
   }
 
@@ -90,12 +86,39 @@ int commonWriteFull(int client_fd_, const std::vector<char> &msg) {
     CHECK_FOR_INTERRUPTS();
     const auto rc = ::write(client_fd_, msg.data() + sync_offset, len);
 
-    if (rc <= 0) {
-      // handle
+    if (rc < 0) {
+      if (errno == EINTR) {
+        continue;
+      }
+      return -1;
+    }
+    if (rc == 0) {
       return -1;
     }
     len -= rc;
     sync_offset += rc;
+  }
+  return 0;
+}
+
+int commonReadFull(int client_fd_, void *buf, size_t len) {
+  size_t offset = 0;
+  while (len > 0) {
+    CHECK_FOR_INTERRUPTS();
+    const auto rc = ::read(client_fd_, static_cast<char *>(buf) + offset, len);
+
+    if (rc < 0) {
+      if (errno == EINTR) {
+        continue;
+      }
+      return -1;
+    }
+    if (rc == 0) {
+      // EOF
+      return -1;
+    }
+    len -= rc;
+    offset += rc;
   }
   return 0;
 }
