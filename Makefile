@@ -124,4 +124,8 @@ apply_fmt:
 test:
 	@-$(MAKE) -C test test
 
-.PHONY: test apply_fmt check-format format
+golden golden-cloudberry golden-cloudberry-3 golden-gpdb golden-clean:
+	@$(MAKE) -f Makefile.golden $@
+
+.PHONY: test apply_fmt check-format format cleanall \
+        golden golden-cloudberry golden-cloudberry-3 golden-gpdb golden-clean

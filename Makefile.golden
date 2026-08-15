@@ -1,0 +1,157 @@
+# Makefile.golden — "golden run" targets.
+#
+# `make golden-cloudberry` (or `make golden-gpdb`) spins up the same Docker
+# build container that CI uses, reproduces the full regress test suite there
+# (configure + build of the DB, build of yezzey, demo cluster, installcheck),
+# and then promotes the freshly generated `results/*.out` files into the
+# `expected/` directory checked into the repo.  The next `make installcheck`
+# run will then treat that output as the golden (reference) output.
+#
+# Everything happens *inside* the container.  The yezzey source tree is
+# COPYed into the Docker image at build time (no bind-mount of the host
+# tree).  The host only bind-mounts a scratch directory (.golden-work/)
+# where the container writes the freshly generated results/*.out files.
+# After the container exits, the Makefile copies those files into expected/.
+#
+# Variables (all optional):
+#
+#   GOLDEN_TESTS   Space-separated list of test names to promote into
+#                  expected/.  Defaults to *all* tests that actually ran
+#                  (i.e. every file present in results/ after installcheck).
+#                  Example: `make golden-cloudberry GOLDEN_TESTS="simple versions"`
+#
+#   CBDB_REF       Cloudberry git ref to checkout   (default: REL_2_STABLE)
+#   GPDB_REF       GPDB git ref to checkout         (default: OPENGPDB_STABLE)
+#   YPROXY_REF     Yproxy git ref to checkout       (default: master)
+#
+#   CBDB_IMAGE     Docker image for cloudberry build
+#                  (default: apache/incubator-cloudberry:cbdb-build-ubuntu22.04-latest)
+#   GPDB_IMAGE     Docker image for gpdb build
+#                  (default: ghcr.io/open-gpdb/gpdb-env:jammy-latest)
+#
+#   GOLDEN_WORK    Host scratch directory bind-mounted as /work inside the
+#                  container (default: .golden-work under the repo root).
+#                  The container writes results to /work/results/, which
+#                  the Makefile then promotes into expected/.
+#
+#   EXTRA_REGRESS  Extra REGRESS overrides forwarded to `make installcheck`
+#                  inside the container.
+#                  Example: `make golden-cloudberry-3 EXTRA_REGRESS="REGRESS=simple_cbdb"`
+#
+# Example:
+#   make -f Makefile.golden golden-cloudberry
+#   make -f Makefile.golden golden-cloudberry GOLDEN_TESTS="simple versions"
+#   make -f Makefile.golden golden-gpdb
+#
+
+CBDB_IMAGE  ?= apache/incubator-cloudberry:cbdb-build-ubuntu22.04-latest
+GPDB_IMAGE  ?= ghcr.io/open-gpdb/gpdb-env:jammy-latest
+CBDB_REF    ?= REL_2_STABLE
+GPDB_REF    ?= OPENGPDB_STABLE
+YPROXY_REF  ?= master
+GOLDEN_WORK ?= $(CURDIR)/.golden-work
+
+GOLDEN_DOCKERFILE = docker/golden/Dockerfile
+GOLDEN_IMAGE_TAG  = yezzey/golden
+
+DOCKER_RUN = docker run --rm \
+  --user root \
+  -h cdw \
+  -v $(GOLDEN_WORK):/work \
+  -e GOLDEN_TESTS='$(GOLDEN_TESTS)' \
+  -e EXTRA_REGRESS='$(EXTRA_REGRESS)' \
+  -e YPROXY_REF='$(YPROXY_REF)'
+
+GOLDEN_SCRIPT = devops/scripts/golden_run.sh
+
+# ---------------------------------------------------------------------------
+# Cloudberry
+# ---------------------------------------------------------------------------
+
+.PHONY: golden-cloudberry golden-cloudberry-3
+
+golden-cloudberry: _golden-prepare _golden-build-cbdb
+	$(DOCKER_RUN) \
+	  -e DB_FLAVOR=cloudberry \
+	  -e CBDB_REF='$(CBDB_REF)' \
+	  $(GOLDEN_IMAGE_TAG)-cbdb
+	@$(MAKE) -f Makefile.golden _golden-promote
+
+golden-cloudberry-3: _golden-prepare _golden-build-cbdb
+	$(DOCKER_RUN) \
+	  -e DB_FLAVOR=cloudberry \
+	  -e CBDB_REF='$(CBDB_REF)' \
+	  -e EXTRA_REGRESS='REGRESS=simple_cbdb' \
+	  $(GOLDEN_IMAGE_TAG)-cbdb
+	@$(MAKE) -f Makefile.golden _golden-promote
+
+# ---------------------------------------------------------------------------
+# GPDB
+# ---------------------------------------------------------------------------
+
+.PHONY: golden-gpdb
+
+golden-gpdb: _golden-prepare _golden-build-gpdb
+	$(DOCKER_RUN) \
+	  -e DB_FLAVOR=gpdb \
+	  -e GPDB_REF='$(GPDB_REF)' \
+	  $(GOLDEN_IMAGE_TAG)-gpdb
+	@$(MAKE) -f Makefile.golden _golden-promote
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+.PHONY: _golden-prepare _golden-promote golden-clean \
+        _golden-build-cbdb _golden-build-gpdb
+
+_golden-prepare:
+	@mkdir -p $(GOLDEN_WORK)/results
+
+_golden-build-cbdb:
+	docker build -f $(GOLDEN_DOCKERFILE) \
+	  --build-arg BASE_IMAGE='$(CBDB_IMAGE)' \
+	  -t $(GOLDEN_IMAGE_TAG)-cbdb .
+
+_golden-build-gpdb:
+	docker build -f $(GOLDEN_DOCKERFILE) \
+	  --build-arg BASE_IMAGE='$(GPDB_IMAGE)' \
+	  -t $(GOLDEN_IMAGE_TAG)-gpdb .
+
+# After the container finishes, copy results/*.out from the scratch dir
+# into expected/.  If GOLDEN_TESTS is set, only those test names are copied;
+# otherwise every file present in results/ is promoted.
+_golden-promote:
+	@if [ ! -d "$(GOLDEN_WORK)/results" ] || [ -z "$$(ls -A $(GOLDEN_WORK)/results 2>/dev/null)" ]; then \
+	  echo "::error::No results found in $(GOLDEN_WORK)/results — installcheck did not produce output"; \
+	  exit 1; \
+	fi
+	@mkdir -p $(CURDIR)/expected
+	@if [ -n "$(GOLDEN_TESTS)" ]; then \
+	  for t in $(GOLDEN_TESTS); do \
+	    if [ -f "$(GOLDEN_WORK)/results/$$t.out" ]; then \
+	      cp "$(GOLDEN_WORK)/results/$$t.out" "$(CURDIR)/expected/$$t.out"; \
+	      echo "::promoted::$$t.out"; \
+	    else \
+	      echo "::warning::results/$$t.out not found, skipping"; \
+	    fi; \
+	  done; \
+	else \
+	  for f in "$(GOLDEN_WORK)/results/"*.out; do \
+	    [ -e "$$f" ] || continue; \
+	    cp "$$f" "$(CURDIR)/expected/"; \
+	    echo "::promoted::$$(basename $$f)"; \
+	  done; \
+	fi
+	@echo "::done::Promoted golden files to expected/"
+
+golden-clean:
+	@rm -rf $(GOLDEN_WORK)
+
+# ---------------------------------------------------------------------------
+# Aggregate convenience target
+# ---------------------------------------------------------------------------
+
+.PHONY: golden
+
+golden: golden-cloudberry golden-gpdb
