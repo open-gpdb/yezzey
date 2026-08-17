@@ -1,0 +1,345 @@
+# --------------------------------------------------------------------
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed
+# with this work for additional information regarding copyright
+# ownership. The ASF licenses this file to You under the Apache
+# License, Version 2.0 (the "License"); you may not use this file
+# except in compliance with the License. You may obtain a copy of the
+# License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# --------------------------------------------------------------------
+# Yezzey Fuzzer CI Workflow
+# --------------------------------------------------------------------
+name: Yezzey Fuzzer Pipeline
+
+on:
+  push:
+    branches: [ v1.8_opengpdb ]
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  GPDB_HOME: "/opt/greenplum-db-6"
+  GPDB_VERSION: "OPENGPDB_STABLE"
+
+jobs:
+
+  test-gpdb-fuzzer:
+    name: Build and Test Yezzey GPDB (Fuzzer)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/open-gpdb/gpdb-env:jammy-latest
+      options: >-
+        --user root
+        -h cdw
+        -v /usr/share:/host_usr_share
+        -v /usr/local:/host_usr_local
+        -v /opt:/host_opt
+
+    services:
+      # Define the MinIO service container
+      minio:
+        image: lazybit/minio  # Use a specific MinIO image tag
+        ports:
+          - 9000:9000  # Expose MinIO's API port (9000)
+          - 9001:9001  # Expose MinIO's console port (optional, for web UI)
+        env:
+          # MinIO root credentials (required for admin access)
+          MINIO_ROOT_USER: some_key
+          MINIO_ROOT_PASSWORD: some_key
+        # Healthcheck to ensure MinIO is ready before the job proceeds
+        options: >-
+          --name minio
+          --health-cmd "curl --fail http://localhost:9000/minio/health/live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        volumes:
+          - ${{ github.workspace }}/data:/data
+
+    steps:
+      - name: Checkout GPDB source
+        uses: actions/checkout@v4
+        with:
+          repository: open-gpdb/gpdb
+          ref: ${{ env.GPDB_VERSION }}
+          path: gpdb
+          submodules: true
+
+      - name: Checkout Yezzey source
+        uses: actions/checkout@v4
+        with:
+          path: yezzey
+
+      - name: Checkout Yproxy source
+        uses: actions/checkout@v4
+        with:
+          repository: open-gpdb/yproxy
+          path: yproxy
+          ref: master
+
+      - name: Checkout CI Build/Test Scripts
+        uses: actions/checkout@v4
+        with:
+          repository: open-gpdb/gpdb-devops
+          ref: main
+          path: gpdb-devops
+          fetch-depth: 1
+
+      - name: GPDB Environment Initialization
+        shell: bash
+        env:
+          LOGS_DIR: build-logs
+          SRC_DIR: ${{ github.workspace }}/gpdb
+        run: |
+          set -eo pipefail
+          if ! su - gpadmin -c "/tmp/init_system.sh"; then
+            echo "::error::Container initialization failed"
+            exit 1
+          fi
+
+          mkdir -p "${SRC_DIR}/build-logs"
+          chown -R gpadmin:gpadmin "${SRC_DIR}/build-logs"
+          mkdir -p "${LOGS_DIR}/details"
+          chown -R gpadmin:gpadmin .
+          chmod -R 755 .
+          chmod 777 "${LOGS_DIR}"
+
+          df -kh /
+          rm -rf /__t/*
+          df -kh /
+
+          df -h | tee -a "${LOGS_DIR}/details/disk-usage.log"
+          free -h | tee -a "${LOGS_DIR}/details/memory-usage.log"
+
+          {
+            echo "=== Environment Information ==="
+            uname -a
+            df -h
+            free -h
+            env
+          } | tee -a "${LOGS_DIR}/details/environment.log"
+
+          echo "SRC_DIR=${GITHUB_WORKSPACE}" | tee -a "$GITHUB_ENV"
+
+      - name: Install MinIO Client (mc)
+        run: |
+          set -ex pipefail
+          # Download mc for Linux (amd64)
+          curl -fsSL -o mc https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/mc  # Make mc available system-wide
+
+      - name: Configure MinIO service
+        run: |
+          set -ex pipefail
+          # Add the MinIO service as an "alias" in mc (name it "minio-ci")
+          mc alias set minio-ci http://minio:9000 some_key some_key
+
+          # Verify the connection
+          mc admin info minio-ci
+
+          # Create buckets
+          mc mb minio-ci/gpyezzey
+          mc mb minio-ci/gpyezzey2
+          mc mb minio-ci/gpyezzey3
+
+      - name: Run Greenplum configure script
+        env:
+          SRC_DIR: ${{ github.workspace }}/gpdb
+        run: |
+          set -ex pipefail
+
+          # set env for debian build
+          sudo rm -rf /opt/greenplum-db-6
+          sudo mkdir -p /opt/greenplum-db-6
+          sudo chown gpadmin:gpadmin /opt/greenplum-db-6
+          export BUILD_DESTINATION=/opt/greenplum-db-6
+
+          if ! su - gpadmin -c "cd ${SRC_DIR} && SRC_DIR=${SRC_DIR} ENABLE_DEBUG=${{ env.ENABLE_DEBUG }} BUILD_DESTINATION=${BUILD_DESTINATION} ${SRC_DIR}/../gpdb-devops/build_automation/gpdb/scripts/configure-gpdb.sh"; then
+            echo "::error::Configure script failed"
+            exit 1
+          fi
+
+      - name: Run Greenplum build script
+        env:
+          SRC_DIR: ${{ github.workspace }}/gpdb
+        run: |
+          set -ex pipefail
+
+          # set env for debian build
+          export BUILD_DESTINATION=/opt/greenplum-db-6
+
+          if ! su - gpadmin -c "cd ${SRC_DIR} && SRC_DIR=${SRC_DIR} BUILD_DESTINATION=${BUILD_DESTINATION} ${SRC_DIR}/../gpdb-devops/build_automation/gpdb/scripts/build-gpdb.sh"; then
+            echo "::error::Build script failed"
+            exit 1
+          fi
+
+          # copy sugar and xerces shared libraries
+          if ! cp /usr/local/lib/libsigar.so ${BUILD_DESTINATION}/lib; then
+            echo "::error::Copy libsigar.so failed"
+            exit 1
+          fi
+
+          if ! cp /usr/local/lib/libxerces* ${BUILD_DESTINATION}/lib; then
+            echo "::error::Copy libxerces failed"
+            exit 1
+          fi
+
+
+      - name: Run Yezzey build script
+        shell: bash
+        env:
+          SRC_DIR: ${{ github.workspace }}/yezzey
+        run: |
+          set -eo pipefail
+
+          # move yezzey to cloudberry gpcontrib
+          rm -rf ${SRC_DIR}/../gpdb/gpcontrib/yezzey
+          cp -r ${SRC_DIR} ${SRC_DIR}/../gpdb/gpcontrib/
+          chown -R gpadmin:gpadmin ${SRC_DIR}/../gpdb/gpcontrib/yezzey
+
+          if ! time su - gpadmin -c "cd ${SRC_DIR}/../gpdb/gpcontrib/yezzey && make && make install"; then
+            echo "::error::Build yezzey failed"
+            exit 1
+          fi
+
+      - name: Deploy yezzey config
+        shell: bash
+        env:
+          SRC_DIR: ${{ github.workspace }}/yezzey
+        run: |
+          set -eo pipefail
+
+          chmod +x "${SRC_DIR}"/devops/scripts/prepare_test_yezzey.sh
+          if ! time su - gpadmin -c "cd ${SRC_DIR} && devops/scripts/prepare_test_yezzey.sh"; then
+            echo "::error::Config yezzey failed"
+            exit 1
+          fi
+
+      - name: Install yfuzzer
+        shell: bash
+        env:
+          SRC_DIR: ${{ github.workspace }}/yproxy
+        run: |
+          set -eo pipefail
+
+          # Install latest Go compiler
+          sudo apt update
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository ppa:longsleep/golang-backports
+          sudo apt update
+          sudo apt install -y golang-go
+
+          # Install lib dependencies
+
+          sudo apt install -y libbrotli-dev liblzo2-dev libsodium-dev curl cmake
+
+          # Fetch project and build
+          git config --global --add safe.directory ${SRC_DIR}
+          cd ${SRC_DIR}
+          make build
+
+          mv devbin/yfuzzer /usr/bin/yfuzzer
+
+          #Check the installation
+          yfuzzer --version
+
+      - name: Create demo cluster with yezzey
+        shell: bash
+        env:
+          SRC_DIR: ${{ github.workspace }}/gpdb
+        run: |
+          set -eo pipefail
+
+          if ! time su - gpadmin -c "cd ${SRC_DIR} && ../yezzey/devops/scripts/create_demo_yezzey_gpdb.sh"; then
+            echo "::error::Create cluster with yezzey failed"
+            exit 1
+          fi
+
+      - name: Run tests
+        shell: bash
+        env:
+          SRC_DIR: ${{ github.workspace }}/gpdb
+        run: |
+          set -eo pipefail
+          set -x
+
+          # Launch yfuzzer instead of yproxy
+          rm -rf /tmp/yproxy.sock
+          /usr/bin/yfuzzer -c /tmp/yproxy.yaml -ldebug > yproxy.log 2>&1 &
+
+          i=0
+          while (! [ -S /tmp/yproxy.sock ]) && [ $i -lt 20 ]; do sleep 1; i=$((i+1)); done
+
+          if (! [ -S /tmp/yproxy.sock ]); then
+             echo "::error::yfuzzer failed to start"
+             cat yproxy.log
+             exit 1
+          fi
+
+          chmod 777 /tmp/yproxy.sock
+
+          # Run only simple_fuzzer regress test (listing API calls are
+          # wrapped in DO blocks so the randomized yfuzzer output does
+          # not produce a non-deterministic regression diff)
+          if ! time su - gpadmin -c "cd ${SRC_DIR}/gpcontrib/yezzey && source /opt/greenplum-db-6/greenplum_path.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && make installcheck REGRESS=simple_fuzzer"; then
+            echo "::error::Test yezzey failed"
+            cat ${SRC_DIR}/gpcontrib/yezzey/regression.diffs
+            exit 1
+          fi
+
+      - name: Upload test logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-gpdb-fuzzer
+          path: |
+            build-logs/
+          retention-days: 7
+
+      - name: Upload test results files
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-gpdb-fuzzer
+          path: |
+            **/regression.out
+            **/regression.diffs
+            **/results/
+          retention-days: 7
+
+      - name: Upload test regression logs
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-logs-gpdb-fuzzer
+          path: |
+            **/regression.out
+            **/regression.diffs
+            **/results/
+            **/yproxy.log
+            gpdb/gpAux/gpdemo/datadirs/standby/log/
+            gpdb/gpAux/gpdemo/datadirs/qddir/demoDataDir-1/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast1/demoDataDir0/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast2/demoDataDir1/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast3/demoDataDir2/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast_mirror1/demoDataDir0/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast_mirror2/demoDataDir1/log/
+            gpdb/gpAux/gpdemo/datadirs/dbfast_mirror3/demoDataDir2/log/
+          retention-days: 7
