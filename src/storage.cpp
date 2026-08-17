@@ -177,10 +177,10 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   return rc;
 }
 
-int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
-                                   const std::string &relname, int segno,
-                                   const relnodeCoord &coords,
-                                   const std::string &dest_path) {
+void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
+                                    const std::string &relname, int segno,
+                                    const relnodeCoord &coords,
+                                    const std::string &dest_path) {
   /* TODO: pass this as argument? */
   const size_t chunkSize = 1 << 20;
   std::vector<char> buffer(chunkSize);
@@ -211,7 +211,6 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
     size_t amount = chunkSize;
     if (!iohandler.io_read(buffer.data(), &amount)) {
       elog(ERROR, "failed to read file from external storage");
-      return -1;
     }
 
     /* code */
@@ -230,11 +229,10 @@ int loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   } else {
     elog(DEBUG1, "yezzey: complete %s offloading", dest_path.c_str());
   }
-  return 0;
 }
 
-int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
-                        int segno, const char *dest_path) {
+void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
+                         int segno, const char *dest_path) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
 
   const auto coords = relnodeCoord(
@@ -268,13 +266,10 @@ int loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
 
   elog(yezzey_ao_log_level, "contructed path %s", path.c_str());
   if (ensureFilepathLocal(path)) {
-    // nothing to do
-
-    return 0;
+    return;
   }
 
-  return loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords,
-                                        path);
+  loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords, path);
 }
 
 int removeLocalFile(const char *localPath) {
@@ -299,11 +294,10 @@ std::string getlocalpath(const relnodeCoord &coords) {
   return getlocalpath(local_path, coords.blkno);
 }
 
-int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
-                           int64 logicalEof,
-                           const char *external_storage_path) {
+void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
+                            int64 logicalEof,
+                            const char *external_storage_path) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
-  int rc;
 
   const auto coords =
       relnodeCoord(YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode),
@@ -332,13 +326,10 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
   try {
-    if ((rc = offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
-                                         storage_path)) < 0) {
-      return rc;
-    }
+    offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
+                               storage_path);
   } catch (...) {
     elog(ERROR, "Caught an unexpected exception.");
-    return -1;
   }
 
   /* we dont need to interact with s3 while in recovery*/
@@ -360,8 +351,6 @@ int offloadRelationSegment(Relation aorel, int segno, int64 modcount,
        "yezzey: relation segment reached external storage (blkno=%ld), up to "
        "logical eof %ld",
        coords.blkno, logicalEof);
-
-  return 0;
 }
 
 Oid resolveTablespaceOidByName(const std::string &tablespacename) {
