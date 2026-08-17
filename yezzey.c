@@ -149,15 +149,15 @@ Datum yezzey_init_metadata_seg(PG_FUNCTION_ARGS) {
 void yezzey_TrackObjDrop(Relation rel);
 #endif
 
-int yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
-                                     const char *external_storage_path);
+void yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
+                                      const char *external_storage_path);
 
-int yezzey_delete_chunk_internal(const char *external_chunk_path);
-int yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop);
-int yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
-                                                bool confirm, bool crazyDrop);
-int yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
-                                            bool confirm, bool crazyDrop);
+void yezzey_delete_chunk_internal(const char *external_chunk_path);
+void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop);
+void yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
+                                                 bool confirm, bool crazyDrop);
+void yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
+                                             bool confirm, bool crazyDrop);
 
 void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
                                Oid objectId, int subId, void *arg);
@@ -189,7 +189,7 @@ Datum yezzey_define_relation_offload_policy_internal_seg(PG_FUNCTION_ARGS) {
  * TBD: doc the logic
  */
 
-int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
+void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   Relation aorel;
   int i;
   int segno;
@@ -201,7 +201,6 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   AOCSFileSegInfo **segfile_array_cs;
   Snapshot appendOnlyMetaDataSnapshot;
   Oid origrelfilenode;
-  int rc;
   /* yezzey aux index oid */
   Oid yandexoid;
 
@@ -259,11 +258,7 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
       segno = segfile_array[i]->segno;
       elog(yezzey_log_level, "loading segment no %d", segno);
 
-      rc = loadRelationSegment(aorel, loadSpcOid, origrelfilenode, segno,
-                               dest_path);
-      if (rc < 0) {
-        elog(ERROR, "failed to offload segment number %d", segno);
-      }
+      loadRelationSegment(aorel, loadSpcOid, origrelfilenode, segno, dest_path);
       /* segment if loaded */
     }
 
@@ -288,12 +283,8 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
         elog(yezzey_log_level, "loading cs segment no %d pseudosegno %d", segno,
              pseudosegno);
 
-        rc = loadRelationSegment(aorel, loadSpcOid, origrelfilenode,
-                                 pseudosegno, dest_path);
-        if (rc < 0) {
-          elog(ERROR, "failed to load cs segment number %d pseudosegno %d",
-               segno, pseudosegno);
-        }
+        loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno,
+                            dest_path);
         /* segment if loaded */
       }
     }
@@ -352,8 +343,6 @@ int yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   /* cleanup */
 
   relation_close(aorel, NoLock);
-
-  return 0;
 }
 
 Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
@@ -365,17 +354,12 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
    * 3) go and load each segment (XXX: enhancement: do loading in parallel)
    */
   Oid reloid;
-  int rc;
   char *dest_path = NULL;
 
   reloid = PG_GETARG_OID(0);
   dest_path = GET_STR(PG_GETARG_TEXT_P(1));
 
-  rc = yezzey_load_relation_internal(reloid, NULL);
-  if (rc) {
-    elog(ERROR, "failed to load relation (oid=%d) files to path %s", reloid,
-         dest_path);
-  }
+  yezzey_load_relation_internal(reloid, NULL);
 
   PG_RETURN_VOID();
 }
@@ -395,12 +379,11 @@ Datum yezzey_offload_relation(PG_FUNCTION_ARGS) {
    */
   Oid reloid;
   bool remove_locally;
-  int rc;
 
   reloid = PG_GETARG_OID(0);
   remove_locally = PG_GETARG_BOOL(1);
 
-  rc = yezzey_offload_relation_internal(reloid, remove_locally, NULL);
+  yezzey_offload_relation_internal(reloid, remove_locally, NULL);
 
   PG_RETURN_VOID();
 }
@@ -419,13 +402,12 @@ Datum yezzey_offload_relation_to_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   bool remove_locally;
   const char *external_path;
-  int rc;
 
   reloid = PG_GETARG_OID(0);
   remove_locally = PG_GETARG_BOOL(1);
   external_path = GET_STR(PG_GETARG_TEXT_P(2));
 
-  rc = yezzey_offload_relation_internal(reloid, remove_locally, external_path);
+  yezzey_offload_relation_internal(reloid, remove_locally, external_path);
 
   PG_RETURN_VOID();
 }
@@ -433,7 +415,6 @@ Datum yezzey_offload_relation_to_external_path(PG_FUNCTION_ARGS) {
 /* Given external yezzey chunk path, remove it from external storage */
 Datum yezzey_delete_chunk(PG_FUNCTION_ARGS) {
   const char *chunk_path;
-  int rc;
 
   chunk_path = GET_STR(PG_GETARG_TEXT_P(0));
 
@@ -441,7 +422,7 @@ Datum yezzey_delete_chunk(PG_FUNCTION_ARGS) {
     elog(ERROR, "yezzey_delete_chunk should be executed on MASTER");
   }
 
-  rc = yezzey_delete_chunk_internal(chunk_path);
+  yezzey_delete_chunk_internal(chunk_path);
 
   PG_RETURN_VOID();
 }
@@ -450,7 +431,6 @@ Datum yezzey_delete_chunk(PG_FUNCTION_ARGS) {
 Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
   bool confirm;
   bool crazyDrop;
-  int rc;
 
   confirm = PG_GETARG_BOOL(0);
 
@@ -464,7 +444,7 @@ Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
     elog(ERROR, "crazyDrop forbidden for non-superuser");
   }
 
-  rc = yezzey_vacuum_garbage_internal(GpIdentity.segindex, confirm, crazyDrop);
+  yezzey_vacuum_garbage_internal(GpIdentity.segindex, confirm, crazyDrop);
 
 #if IsModernYezzey
   /* Return dummy bool because CBDB does not allow
@@ -479,7 +459,6 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
   Oid reloid = PG_GETARG_OID(0);
   bool confirm;
   bool crazyDrop;
-  int rc;
   confirm = PG_GETARG_BOOL(1);
   crazyDrop = PG_GETARG_BOOL(2);
   if (GpIdentity.segindex == -1) {
@@ -490,8 +469,8 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
     elog(ERROR, "crazyDrop forbidden for non-superuser");
   }
 
-  rc = yezzey_vacuum_garbage_relation_internal_oid(reloid, GpIdentity.segindex,
-                                                   confirm, crazyDrop);
+  yezzey_vacuum_garbage_relation_internal_oid(reloid, GpIdentity.segindex,
+                                              confirm, crazyDrop);
 
 #if IsModernYezzey
   /* Return dummy bool because CBDB does not allow
@@ -1595,9 +1574,10 @@ Datum yezzey_delete_obsolete(PG_FUNCTION_ARGS) {
   db = (Name)palloc(NAMEDATALEN);
   namestrcpy(db, get_database_name(MyDatabaseId));
 
-  int rc;
-  rc = yezzey_delele_obsolete_internal(GpIdentity.segindex, crazyDrop, db->data,
-                                       MyDatabaseTableSpace, MyDatabaseId);
+  yezzey_delele_obsolete_internal(GpIdentity.segindex, crazyDrop, db->data,
+                                  MyDatabaseTableSpace, MyDatabaseId);
+  pfree(db);
+
   PG_RETURN_VOID();
 }
 
@@ -1610,9 +1590,8 @@ Datum yezzey_collect_obsolete(PG_FUNCTION_ARGS) {
   db = (Name)palloc(NAMEDATALEN);
   namestrcpy(db, get_database_name(MyDatabaseId));
 
-  int rc;
-  rc = yezzey_collect_obsolete_internal(GpIdentity.segindex, db->data,
-                                        MyDatabaseTableSpace, MyDatabaseId);
+  yezzey_collect_obsolete_internal(GpIdentity.segindex, db->data,
+                                   MyDatabaseTableSpace, MyDatabaseId);
   pfree(db);
 
   PG_RETURN_VOID();
