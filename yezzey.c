@@ -1485,7 +1485,7 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
 }
 
 /* GUC variables. */
-static bool yezzey_autooffload = true; /* start yezzey worker? */
+static bool yezzey_autooffload = false; /* start yezzey worker? */
 
 static void yezzey_define_gucs() {
 
