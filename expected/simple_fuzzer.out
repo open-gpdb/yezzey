@@ -18,7 +18,7 @@ SELECT reltablespace FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
 SELECT count(1) FROM yezzey_dump_virtual_index('simple_regaoty');
  count 
 -------
-      3
+     3
 (1 row)
 
 INSERT INTO simple_regaoty SELECT * FROM generate_series(1, 100000);
@@ -62,7 +62,6 @@ BEGIN
     PERFORM * FROM yezzey_relation_describe_external_storage_structure('simple_regaoty');
   END LOOP;
 END $$;
-DO
 DO $$
 DECLARE
   i INTEGER;
@@ -73,7 +72,6 @@ BEGIN
     PERFORM count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('simple_regaoty');
   END LOOP;
 END $$;
-DO
 DROP TABLE simple_regaoty;
 DROP EXTENSION yezzey;
 CHECKPOINT;
