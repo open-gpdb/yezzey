@@ -5,7 +5,7 @@
 # Initialization" steps from the original workflow. Runs the container's
 # /tmp/init_system.sh as gpadmin, prepares build-logs and environment dump.
 set -eo pipefail
-source "$(dirname "$0")/env.sh"
+source "$(dirname "$0")/../env.sh"
 
 if [[ -x /tmp/init_system.sh ]]; then
   if ! su - "${GPADMIN_USER}" -c "/tmp/init_system.sh"; then
