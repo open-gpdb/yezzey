@@ -1,0 +1,68 @@
+# Makefile.ci — standalone entrypoint for the Yezzey CI pipeline.
+#
+# This Makefile deliberately has NO dependency on the PGXS build system
+# (unlike the root Makefile, which `include`s ../../src/Makefile.global and
+# therefore cannot be parsed outside a Cloudberry/GPDB source tree). It is
+# the entrypoint used by `make ci-*` both locally and from the GitHub Actions
+# `format.yml` workflow.
+#
+# Usage:
+#   make -f Makefile.ci ci          # format + fast checks
+#   make -f Makefile.ci ci-fast
+#   make -f Makefile.ci ci-integration
+#   ENGINE=gpdb make -f Makefile.ci ci-integration
+#   make -f Makefile.ci ci-shell
+#   make -f Makefile.ci ci-clean
+#
+# All heavy lifting is delegated to devops/ci/run-ci.sh, which in turn drives
+# devops/build/docker/docker-compose.ci.yaml. The same scripts are used by
+# the CI workflow, so local docker runs and GitHub Actions stay in sync.
+
+CI_RUN := devops/ci/run-ci.sh
+
+.DEFAULT_GOAL := help
+
+.PHONY: help ci ci-format ci-fast ci-integration ci-clean ci-shell \
+        ci-cloudberry2 ci-cloudberry3 ci-gpdb
+
+help:
+	@echo "Yezzey CI targets (all run inside docker containers):"
+	@echo "  make -f Makefile.ci ci                 format + fast checks (default)"
+	@echo "  make -f Makefile.ci ci-fast             clang-tidy + unit tests"
+	@echo "  make -f Makefile.ci ci-format           clang-format check"
+	@echo "  make -f Makefile.ci ci-integration      full cluster (Cloudberry 2)"
+	@echo "  ENGINE=cloudberry3 make -f Makefile.ci ci-integration"
+	@echo "  ENGINE=gpdb make -f Makefile.ci ci-integration"
+	@echo "  make -f Makefile.ci ci-cloudberry2"
+	@echo "  make -f Makefile.ci ci-cloudberry3"
+	@echo "  make -f Makefile.ci ci-gpdb"
+	@echo "  make -f Makefile.ci ci-shell            drop into builder bash"
+	@echo "  make -f Makefile.ci ci-clean            tear down compose stack"
+
+ci: ci-format ci-fast
+
+ci-format:
+	$(MAKE) -f Makefile.fmt check-format
+
+ci-fast:
+	$(CI_RUN) fast
+
+# Integration pipelines. Override engine with ENGINE=<...> on the make line.
+ci-integration: ci-cloudberry2
+
+ci-cloudberry2:
+	ENGINE=cloudberry2 $(CI_RUN) integration
+
+ci-cloudberry3:
+	ENGINE=cloudberry3 $(CI_RUN) integration
+
+ci-gpdb:
+	ENGINE=gpdb $(CI_RUN) integration
+
+# Drop into an interactive bash inside the builder container (MinIO is
+# started first). Useful for debugging the pipeline.
+ci-shell:
+	$(CI_RUN) shell
+
+ci-clean:
+	$(CI_RUN) clean

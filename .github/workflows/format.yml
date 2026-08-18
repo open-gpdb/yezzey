@@ -19,8 +19,5 @@ jobs:
     name: check-format
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Yezzey source
-        uses: actions/checkout@v4
-
-      - name: Check format
-        run: make -f Makefile.fmt check-format
+      - uses: actions/checkout@v4
+      - run: make -f Makefile.fmt check-format
