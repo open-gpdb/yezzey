@@ -452,8 +452,10 @@ Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
   yezzey_vacuum_garbage_internal(GpIdentity.segindex, confirm, crazyDrop);
 
 #if IsModernYezzey
-  /* Return dummy bool because CBDB does not allow
-   * non-SRF on segments. */
+  /*
+   * Non-SRF on-segment execution is hazardous for CBDB/other MPP so make
+   * sure we return something; see also validate_sql_exec_location for details
+   */
   PG_RETURN_BOOL(true);
 #else
   PG_RETURN_VOID();
@@ -478,8 +480,10 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
                                               confirm, crazyDrop);
 
 #if IsModernYezzey
-  /* Return dummy bool because CBDB does not allow
-   * non-SRF on segments. */
+  /*
+   * Non-SRF on-segment execution is hazardous for CBDB/other MPP so make
+   * sure we return something; see also validate_sql_exec_location for details
+   */
   PG_RETURN_BOOL(true);
 #else
   PG_RETURN_VOID();
