@@ -3,14 +3,14 @@
 # Falls back to current user (local dev / CI runner) if gpadmin is absent.
 #
 # Usage: run_as_gpadmin <workdir> -- <command...>
+#
+# The function is also defined inline in env.sh so that step scripts which
+# source env.sh get it automatically. This file is kept for direct CLI use.
 set -eo pipefail
+source "$(dirname "$0")/env.sh"
 
 workdir="$1"
 shift
 [[ "$1" == "--" ]] && shift
 
-if id gpadmin >/dev/null 2>&1; then
-  su - "${GPADMIN_USER:-gpadmin}" -c "cd '${workdir}' && $*"
-else
-  ( cd "${workdir}" && "$@" )
-fi
+run_as_gpadmin "${workdir}" -- "$@"
