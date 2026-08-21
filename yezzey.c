@@ -123,6 +123,7 @@ PG_FUNCTION_INFO_V1(yezzey_check_part_exr);
 
 PG_FUNCTION_INFO_V1(yezzey_delete_chunk);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage);
+PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage_tablespace);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
@@ -156,6 +157,8 @@ void yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
 
 void yezzey_delete_chunk_internal(const char *external_chunk_path);
 void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop);
+void yezzey_vacuum_garbage_tablespace_internal(Oid tablespace, int segindx,
+                                               bool confirm, bool crazyDrop);
 void yezzey_vacuum_garbage_relation_internal_oid(Oid reloid, int segindx,
                                                  bool confirm, bool crazyDrop);
 void yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
@@ -450,6 +453,41 @@ Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
   }
 
   yezzey_vacuum_garbage_internal(GpIdentity.segindex, confirm, crazyDrop);
+
+#if IsModernYezzey
+  /*
+   * Non-SRF on-segment execution is hazardous for CBDB/other MPP so make
+   * sure we return something; see also validate_sql_exec_location for details
+   */
+  PG_RETURN_BOOL(true);
+#else
+  PG_RETURN_VOID();
+#endif
+}
+
+Datum yezzey_vacuum_garbage_tablespace(PG_FUNCTION_ARGS) {
+  Oid tablespace;
+  bool confirm;
+  bool crazyDrop;
+
+  tablespace = PG_GETARG_OID(0);
+
+  confirm = PG_GETARG_BOOL(1);
+
+  crazyDrop = PG_GETARG_BOOL(2);
+
+  if (GpIdentity.segindex == -1) {
+    elog(ERROR,
+         "yezzey_vacuum_garbage_tablespace_internal should be executed on "
+         "SEGMENT");
+  }
+
+  if (crazyDrop && !superuser()) {
+    elog(ERROR, "crazyDrop forbidden for non-superuser");
+  }
+
+  yezzey_vacuum_garbage_tablespace_internal(tablespace, GpIdentity.segindex,
+                                            confirm, crazyDrop);
 
 #if IsModernYezzey
   /*

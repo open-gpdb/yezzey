@@ -1,4 +1,4 @@
-/*
+r/*
  * xvacuum - external storage (Garbage, stale files) VACUUM
  */
 
@@ -8,6 +8,7 @@
 #include "pg.h"
 #include "relfilelocator.h"
 #include "storage.h"
+#include "yezzey_heap_api.h"
 #include "yproxy.h"
 #include <string>
 #include <url.h>
@@ -39,18 +40,12 @@ void yezzey_delete_chunk_internal(const char *external_chunk_path) {
   }
 }
 
-/*
- * yezzey_vacuum_garbage_internal:
- * Given external storage path prefix AND segment ID, remove all garbage from
- * external storage.
- * TBD: check, that chunk status is obsolete and other sanity checks
- * to avoid deleting chunk, which can we needed to read relation data
- */
-void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
+void yezzey_vacuum_garbage_tablespace_internal(Oid tablespace, int segindx,
+                                               bool confirm, bool crazyDrop) {
   try {
     auto ioadv = std::make_shared<IOadv>(
         "", "", std::string(storage_class /*storage_class*/),
-        multipart_chunksize, DEFAULTTABLESPACE_OID, "" /* coords */,
+        multipart_chunksize, tablespace, "" /* coords */,
         InvalidOid /* reloid */, use_gpg_crypto, yproxy_socket);
 
     std::string storage_path(yezzey_block_namespace_path(segindx));
@@ -65,6 +60,48 @@ void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
 
   } catch (...) {
     elog(ERROR, "failed to prepare x-storage reader for chunk");
+  }
+}
+
+/*
+ * yezzey_vacuum_garbage_internal:
+ * Given segment ID, remove all garbage from every tablespace in pg_tablespace.
+ * TBD: check, that chunk status is obsolete and other sanity checks
+ * to avoid deleting chunk, which can we needed to read relation data
+ */
+void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
+  Relation rel = NULL;
+  SysScanDesc scan = NULL;
+  HeapTuple tablespace_tuple;
+
+  try {
+    rel = yezzey_relation_open(TableSpaceRelationId, AccessShareLock);
+    scan = yezzey_systable_beginscan(rel, InvalidOid, false, NULL, 0, NULL);
+
+    while ((tablespace_tuple = yezzey_systable_getnext(scan)) != NULL) {
+#if PG_VERSION_NUM >= 120000
+      const Oid tablespace =
+          ((Form_pg_tablespace)GETSTRUCT(tablespace_tuple))->oid;
+#else
+      const Oid tablespace = HeapTupleGetOid(tablespace_tuple);
+#endif
+
+      yezzey_vacuum_garbage_tablespace_internal(tablespace, segindx, confirm,
+                                                crazyDrop);
+    }
+
+    yezzey_systable_endscan(scan);
+    scan = NULL;
+    yezzey_relation_close(rel, AccessShareLock);
+    rel = NULL;
+  } catch (...) {
+    if (scan != NULL) {
+      yezzey_systable_endscan(scan);
+    }
+    if (rel != NULL) {
+      yezzey_relation_close(rel, AccessShareLock);
+    }
+    elog(ERROR, "failed to vacuum garbage in all tablespaces");
   }
 }
 
