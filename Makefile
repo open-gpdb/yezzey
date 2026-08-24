@@ -75,7 +75,8 @@ REGRESS = \
           yezzey-stat_cbdb \
           yezzey-alter-ts_cbdb \
           yezzey-create-offloaded_cbdb \
-          yezzey-offload-errors_cbdb
+          yezzey-offload-errors_cbdb \
+          yezzey-delete-chunk_cbdb
           
 else
 REGRESS = \
@@ -99,7 +100,8 @@ REGRESS = \
 	  yezzey-stat \
 	  yezzey-alter-ts \
 	  yezzey-create-offloaded \
-	  yezzey-offload-errors
+	  yezzey-offload-errors \
+	  yezzey-delete-chunk
 endif
 
 ifdef USE_PGXS
