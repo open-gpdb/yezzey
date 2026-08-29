@@ -11,7 +11,7 @@ TEST_OBJS = $(patsubst %.o,%_test.o,$(COMMON_OBJS))
 
 # Standalone tests that only exercise header-only, PG-independent helpers and
 # therefore need no matching src/ object file.
-STANDALONE_TEST_OBJS = relpath_parse_test.o
+STANDALONE_TEST_OBJS = relpath_parse_test.o scope_guard_test.o meta_test.o util_test.o url_test.o
 TEST_OBJS += $(STANDALONE_TEST_OBJS)
 
 # Options

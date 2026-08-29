@@ -37,11 +37,7 @@ int64_t yezzey_calc_virtual_relation_size(std::shared_ptr<IOadv> adv,
                                           ssize_t segindx, ssize_t modcount,
                                           const std::string &storage_path);
 
-std::string storage_url_add_options(const std::string &s3path,
-                                    const char *config_path);
-
-std::string make_yezzey_url(const std::string &prefix, int64_t modcounts,
-                            XLogRecPtr current_recptr);
+#include "yezzey_standalone.h"
 
 std::vector<int64_t> parseModcounts(const std::string &prefix,
                                     std::string name);

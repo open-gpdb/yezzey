@@ -43,16 +43,25 @@ inline bool parseRelnodePath(const std::string &fileName, uint32_t *dbOidOut,
     }
     if (dbOid == 0) {
       while (it < len && isdigit((unsigned char)fileName[it])) {
+        if (dbOid > UINT32_MAX / 10) {
+          return false;
+        }
         dbOid *= 10;
         dbOid += fileName[it++] - '0';
       }
     } else if (relfilenodeOid == 0) {
       while (it < len && isdigit((unsigned char)fileName[it])) {
+        if (relfilenodeOid > UINT32_MAX / 10) {
+          return false;
+        }
         relfilenodeOid *= 10;
         relfilenodeOid += fileName[it++] - '0';
       }
     } else if (blkno == 0) {
       while (it < len && isdigit((unsigned char)fileName[it])) {
+        if (blkno > INT64_MAX / 10) {
+          return false;
+        }
         blkno *= 10;
         blkno += fileName[it++] - '0';
       }
