@@ -243,6 +243,52 @@ postgres=# select * from gp_dist_random('yezzey.yezzey_expire_index');
 
 In `yezzey_expire_index`, for each file in S3, `expire_lsn` is specified. `expire_lsn` is the minimum lsn of the backup that needs this file. 0/0 means that the file has never been backed up, and it is needed by all backups. Now, if we have a list of cluster backups, and `expire_lsn` is less than the lsn of the oldest backup, then the file is not needed. We can delete it. We go through all the files and delete those that are no longer needed.
 
+### Garbage cleanup interfaces
+
+Yezzey provides several SQL helpers to remove obsolete objects from external storage. All of them run on every segment and send delete requests through YProxy.
+
+```sql
+SELECT * FROM yezzey_vacuum_garbage(confirm := false, crazyDrop := false);
+```
+
+`yezzey_vacuum_garbage` scans all tablespaces from `pg_tablespace` and removes garbage under the corresponding Yezzey storage paths.
+
+```sql
+SELECT * FROM yezzey_vacuum_garbage_tablespace(
+  tablespace := '<tablespace_oid>'::oid,
+  confirm := false,
+  crazyDrop := false
+);
+```
+
+`yezzey_vacuum_garbage_tablespace` limits cleanup to a single tablespace. This is useful when only one tablespace has to be compacted or when relations are offloaded to custom tablespaces and the default tablespace must be left untouched.
+
+```sql
+SELECT * FROM yezzey_vacuum_garbage_relation(
+  i_offload_nspname := 'public',
+  i_offload_relname := '<table_name>',
+  confirm := false,
+  crazyDrop := false
+);
+
+SELECT * FROM yezzey_vacuum_garbage_relation(
+  i_offload_relname := '<table_name>',
+  confirm := false,
+  crazyDrop := false
+);
+```
+
+`yezzey_vacuum_garbage_relation` cleans garbage only for the requested offloaded relation. The single-argument relation-name wrapper uses the `public` schema.
+
+`confirm` controls whether YProxy should actually delete objects. Keep the default `false` for a dry-run-style request, and set it to `true` to confirm deletion. `crazyDrop` enables a more aggressive cleanup mode and is restricted to superusers.
+
+A typical cleanup flow is:
+
+1. Run regular `VACUUM` on the AO/AOCO relation so obsolete Yezzey files become garbage.
+2. Inspect the relation storage with `yezzey_relation_describe_external_storage_structure('<table_name>')`.
+3. Use `yezzey_vacuum_garbage_relation`, `yezzey_vacuum_garbage_tablespace`, or `yezzey_vacuum_garbage` depending on the desired cleanup scope.
+4. Re-check `yezzey_relation_describe_external_storage_structure('<table_name>')` to verify that obsolete files were removed.
+
 ## Performance tests
 
 Performance tests is based on the open dataset of NY Yellow Taxi trips from 2013 to 2022 (about a billion rows of data). [Description of the test](https://github.com/open-gpdb/yezzey/blob/v1.8_opengpdb/notes/announce.md).

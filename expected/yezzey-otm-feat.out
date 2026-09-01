@@ -67,43 +67,49 @@ SELECT i FROM yezzey_otm_regaoty_1 ORDER BY i LIMIT 5 OFFSET 7823;
 SELECT segindex,external_bytes FROM yezzey_offload_relation_status('yezzey_otm_regaoty_1') order by segindex;
  segindex | external_bytes 
 ----------+----------------
-        0 |         603000
-        1 |         600624
-        2 |         598480
+        0 |        2412000
+        1 |        2402256
+        2 |        2393920
 (3 rows)
 
 SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('yezzey_otm_regaoty_1') order by segindex;
  segindex | segfileindex | external_bytes 
 ----------+--------------+----------------
-        0 |            1 |         603000
-        1 |            1 |         600624
-        2 |            1 |         598480
+        0 |            1 |        2412000
+        1 |            1 |        2402256
+        2 |            1 |        2393920
 (3 rows)
 
 SELECT segindex,segfileindex,external_bytes FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1') order by segindex;
  segindex | segfileindex | external_bytes 
 ----------+--------------+----------------
         0 |            1 |         603000
+        0 |            1 |        1206000
+        0 |            1 |         603000
+        1 |            1 |         600568
+        1 |            1 |        1201064
         1 |            1 |         600624
         2 |            1 |         598480
-(3 rows)
+        2 |            1 |        1196960
+        2 |            1 |         598480
+(9 rows)
 
 SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('yezzey_otm_regaoty_1');
  count |   sum   
 -------+---------
-     3 | 1802104
+     3 | 7208176
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('yezzey_otm_regaoty_1');
  count |   sum   
 -------+---------
-     3 | 1802104
+     3 | 7208176
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
  count |   sum   
 -------+---------
-     3 | 1802104
+     9 | 7208176
 (1 row)
 
 SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
@@ -158,43 +164,49 @@ SELECT i FROM yezzey_otm_regaoty_2 ORDER BY i LIMIT 5 OFFSET 7823;
 SELECT segindex,external_bytes FROM yezzey_offload_relation_status('yezzey_otm_regaoty_2') order by segindex;
  segindex | external_bytes 
 ----------+----------------
-        0 |         603000
-        1 |         600624
-        2 |         598480
+        0 |        2412000
+        1 |        2402256
+        2 |        2393920
 (3 rows)
 
 SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('yezzey_otm_regaoty_2') order by segindex;
  segindex | segfileindex | external_bytes 
 ----------+--------------+----------------
-        0 |            1 |         603000
-        1 |            1 |         600624
-        2 |            1 |         598480
+        0 |            1 |        2412000
+        1 |            1 |        2402256
+        2 |            1 |        2393920
 (3 rows)
 
 SELECT segindex,segfileindex,external_bytes FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2') order by segindex;
  segindex | segfileindex | external_bytes 
 ----------+--------------+----------------
         0 |            1 |         603000
+        0 |            1 |        1206000
+        0 |            1 |         603000
+        1 |            1 |         600568
+        1 |            1 |        1201064
         1 |            1 |         600624
         2 |            1 |         598480
-(3 rows)
+        2 |            1 |        1196960
+        2 |            1 |         598480
+(9 rows)
 
 SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('yezzey_otm_regaoty_2');
  count |   sum   
 -------+---------
-     3 | 1802104
+     3 | 7208176
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('yezzey_otm_regaoty_2');
  count |   sum   
 -------+---------
-     3 | 1802104
+     3 | 7208176
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
  count |   sum   
 -------+---------
-     3 | 1802104
+     9 | 7208176
 (1 row)
 
 select reloid::regclass, origin_tablespace_name from yezzey.offload_tablespace_map order by reloid::regclass::text;

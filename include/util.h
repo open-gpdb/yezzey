@@ -56,5 +56,3 @@ getYezzeyExternalStoragePathByCoords(const char *nspname, const char *relname,
                                      int32_t segid, char **dest);
 
 EXTERNC XLogRecPtr yezzeyGetXStorageInsertLsn(void);
-
-#undef EXTERNC

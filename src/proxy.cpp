@@ -5,6 +5,7 @@
 #include "ygpver.h"
 
 #include "meta.h"
+#include "offload_tablespace_map.h"
 #include "unordered_map"
 #include "virtual_index.h"
 
@@ -225,12 +226,14 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
       if (offloaded) {
         yfd.y_vfd = YEZZEY_OFFLOADED_FD;
         if (!RecoveryInProgress()) {
+          auto spcNode = YezzeyGetRelationOriginTablespaceOid(
+              yfd.nspname.c_str(), yfd.relname.c_str(), reloid);
+
           auto ioadv = std::make_shared<IOadv>(
               yfd.nspname, yfd.relname,
               std::string(storage_class /* storage_class */),
-              multipart_chunksize, DEFAULTTABLESPACE_OID,
-              yfd.filepath /* coords */, reloid /* reloid */, use_gpg_crypto,
-              yproxy_socket);
+              multipart_chunksize, spcNode, yfd.filepath /* coords */,
+              reloid /* reloid */, use_gpg_crypto, yproxy_socket);
 
           yfd.coord = ioadv->coords_;
 

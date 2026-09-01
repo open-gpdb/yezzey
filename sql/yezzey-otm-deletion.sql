@@ -1,4 +1,3 @@
-
 CREATE EXTENSION yezzey VERSION '1.0';
 
 -- check that load result of is correct
@@ -40,7 +39,9 @@ SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
 
 SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_1', true, true);
 
-SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
+SELECT segindex, count(*) as chunks
+FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1')
+GROUP BY segindex ORDER BY segindex;
 
 
 
@@ -52,13 +53,15 @@ INSERT INTO yezzey_otm_regaoty_2 SELECT * FROM generate_series(1, 100000);
 UPDATE yezzey_otm_regaoty_2 SET i = i + 1;
 DELETE FROM yezzey_otm_regaoty_2 WHERE i < 50501;
 
-SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
+SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
 VACUUM FULL yezzey_otm_regaoty_2;
-SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
+SELECT count(x_path) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
 
 SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_2', true, true);
 
-SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
+SELECT segindex, count(*) as chunks
+FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2')
+GROUP BY segindex ORDER BY segindex;
 
 
 

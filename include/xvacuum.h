@@ -15,6 +15,11 @@ EXTERNC void yezzey_delete_chunk_internal(const char *external_chunk_path);
 EXTERNC void yezzey_vacuum_garbage_internal(int segindx, bool confirm,
                                             bool crazyDrop);
 
+EXTERNC void yezzey_vacuum_garbage_tablespace_internal(Oid tablespace,
+                                                       int segindx,
+                                                       bool confirm,
+                                                       bool crazyDrop);
+
 EXTERNC void yezzey_vacuum_garbage_relation_internal(Relation rel, int segindx,
                                                      bool confirm,
                                                      bool crazyDrop);

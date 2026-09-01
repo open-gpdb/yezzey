@@ -50,7 +50,8 @@ DATA = yezzey--1.0.sql yezzey--1.8.8.sql \
 		 yezzey--1.8.4--1.8.5.sql \
 		 yezzey--1.8.5--1.8.6.sql \
 		 yezzey--1.8.6--1.8.7.sql \
-		 yezzey--1.8.7--1.8.8.sql
+		 yezzey--1.8.7--1.8.8.sql \
+		 yezzey--1.8.8--1.8.11.sql
 
 PGFILEDESC = "yezzey - external storage tables offloading extension"
 
