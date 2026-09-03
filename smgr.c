@@ -304,15 +304,10 @@ void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 
 #if PG_VERSION_NUM >= 160000
 /*
- * Bulk relation extension, added in PostgreSQL 16 (smgrzeroextend()).
+ * Bulk relation extension, added in CBDB/PostgreSQL 16 (smgrzeroextend()).
  *
  * Requires an Apache Cloudberry that dispatches smgrzeroextend() through
- * reln->smgr (apache/cloudberry#1953).  Older PG16-kernel builds went through
- * the static smgrsw[reln->smgr_which] array instead, so this callback was
- * never reached: mdzeroextend() then ran against the raw yezzey tablespace and
- * registered a checkpointer fsync request tagged with it, which PANICs the
- * checkpointer on the next CHECKPOINT with "could not fsync file
- * pg_tblspc/8555/...: No such file or directory".
+ * reln->smgr (apache/cloudberry#1953).
  */
 void yezzey_zeroextend(SMgrRelation reln, ForkNumber forkNum,
                        BlockNumber blockNum, int nBlocks, bool skipFsync) {
