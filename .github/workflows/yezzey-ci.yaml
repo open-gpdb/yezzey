@@ -380,6 +380,12 @@ jobs:
   test-cloudberry-3:
     name: Build and Test Yezzey Cloudberry 3.0
     runs-on: ubuntu-latest
+    # Yezzey is not fully ported to the PG16 kernel yet: a failing run leaves the
+    # demo cluster in a crash/restart loop, every remaining test then takes
+    # minutes, and the job used to starve the hosted runner ("lost communication")
+    # after an hour -- which discards all logs and artifacts.  Bound the job so it
+    # fails cleanly and the regression logs still get uploaded.
+    timeout-minutes: 60
     container:
       image: apache/incubator-cloudberry:cbdb-build-ubuntu22.04-latest
       options: >-
@@ -586,6 +592,7 @@ jobs:
 
       - name: Run tests
         shell: bash
+        timeout-minutes: 25
         env:
           SRC_DIR: ${{ github.workspace }}/cloudberry
         run: |
@@ -593,6 +600,9 @@ jobs:
           set -x
 
           chmod +x "${SRC_DIR}"/../yezzey/devops/scripts/launch_yproxy.sh
+          # NOTE: REGRESS= is passed in the environment, so it does *not* override
+          # the REGRESS assignment in the Makefile -- the full _cbdb suite runs.
+          # Use `make installcheck REGRESS=...` if a single test is wanted.
           if ! time su - gpadmin -c "cd ${SRC_DIR} && ../yezzey/devops/scripts/launch_yproxy.sh && cd ${SRC_DIR}/gpcontrib/yezzey && source /usr/local/cloudberry-db/cloudberry-env.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && IS_CLOUDBERRY=true REGRESS=simple_cbdb make installcheck"; then
             echo "::error::Test yezzey failed"
             cat ${SRC_DIR}/gpcontrib/yezzey/regression.diffs
