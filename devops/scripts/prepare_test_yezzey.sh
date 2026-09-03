@@ -1,10 +1,10 @@
 #!/bin/bash
 set -ex
 
-export accessKeyId=some_key
-export secretAccessKey=some_key
-export bucketName=gpyezzey
-export s3endpoint="http:\\/\\/minio:9000"
+export accessKeyId="${ACCESS_KEY_ID:-some_key}"
+export secretAccessKey="${SECRET_ACCESS_KEY:-some_key}"
+export bucketName="${BUCKET_NAME:-gpyezzey}"
+export s3endpoint="${S3_ENDPOINT:-http:\\/\\/minio:9000}"
 
 mkdir -p /home/gpadmin/yezzey_test
 

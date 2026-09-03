@@ -1,0 +1,123 @@
+# docker-compose.ci.yaml
+#
+# Single source of truth for running the Yezzey CI pipeline locally in docker.
+# Mirrors the GitHub Actions container setup, but driven by the same
+# devops/ci/steps/*.sh scripts so CI and local runs stay in sync.
+#
+# Profiles:
+#   - cloudberry2  (default)  Apache Cloudberry 2.x
+#   - cloudberry3              Apache Cloudberry 3.x (main)
+#   - gpdb                     OpenGPDB
+#
+# Usage:
+#   make ci-integration                                  # interactive default
+#   docker compose -f devops/build/docker/docker-compose.ci.yaml --profile cloudberry2 up --exit-code-from builder
+#   ENGINE=gpdb make ci-integration
+#
+# The `builder` service runs devops/ci/entrypoint.sh which sources env.sh and
+# dispatches to the requested pipeline mode (fast / integration).
+
+x-minio-env: &minio-env
+  MINIO_ROOT_USER: some_key
+  MINIO_ROOT_PASSWORD: some_key
+
+x-builder-common: &builder-common
+  user: root
+  hostname: cdw
+  volumes:
+    - /usr/share:/host_usr_share
+    - /usr/local:/host_usr_local
+    - /opt:/host_opt
+    - ${PWD}:/workspace/yezzey
+  depends_on:
+    minio:
+      condition: service_healthy
+  environment:
+    WORKSPACE: /workspace
+    ENGINE: ${ENGINE:-cloudberry2}
+    PIPELINE: ${PIPELINE:-integration}
+    MINIO_ENDPOINT: http://minio:9000
+    MINIO_ROOT_USER: some_key
+    MINIO_ROOT_PASSWORD: some_key
+
+services:
+  minio:
+    image: quay.io/minio/minio
+    command: server --console-address ":9001" /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment: *minio-env
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || curl -fsS http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    hostname: minio
+    volumes:
+      - minio-data:/data
+
+  setup-minio:
+    image: quay.io/minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: |
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 some_key some_key &&
+      /usr/bin/mc mb myminio/gpyezzey || true &&
+      /usr/bin/mc mb myminio/gpyezzey2 || true &&
+      /usr/bin/mc mb myminio/gpyezzey3 || true
+      "
+
+  # ---------- Cloudberry 2.x builder ----------
+  builder-cloudberry2:
+    <<: *builder-common
+    image: apache/incubator-cloudberry:cbdb-build-ubuntu22.04-latest
+    profiles: ["cloudberry2"]
+    working_dir: /workspace
+    entrypoint: ["/workspace/yezzey/devops/ci/entrypoint.sh"]
+
+  # ---------- Cloudberry 3.x builder ----------
+  builder-cloudberry3:
+    <<: *builder-common
+    image: apache/incubator-cloudberry:cbdb-build-ubuntu22.04-latest
+    profiles: ["cloudberry3"]
+    environment:
+      <<: *minio-env
+      WORKSPACE: /workspace
+      ENGINE: cloudberry3
+      PIPELINE: ${PIPELINE:-integration}
+      MINIO_ENDPOINT: http://minio:9000
+    working_dir: /workspace
+    entrypoint: ["/workspace/yezzey/devops/ci/entrypoint.sh"]
+
+  # ---------- GPDB builder ----------
+  builder-gpdb:
+    <<: *builder-common
+    image: ghcr.io/open-gpdb/gpdb-env:jammy-latest
+    profiles: ["gpdb"]
+    environment:
+      <<: *minio-env
+      WORKSPACE: /workspace
+      ENGINE: gpdb
+      PIPELINE: ${PIPELINE:-integration}
+      MINIO_ENDPOINT: http://minio:9000
+    working_dir: /workspace
+    entrypoint: ["/workspace/yezzey/devops/ci/entrypoint.sh"]
+
+  # ---------- Lightweight runner for ci-fast (format / tidy / unit) ----------
+  builder-fast:
+    image: ubuntu:noble
+    profiles: ["fast"]
+    volumes:
+      - ${PWD}:/workspace/yezzey
+    working_dir: /workspace/yezzey
+    environment:
+      WORKSPACE: /workspace
+      YEZZEY_SRC_DIR: /workspace/yezzey
+      PIPELINE: fast
+    entrypoint: ["/workspace/yezzey/devops/ci/entrypoint.sh"]
+
+volumes:
+  minio-data: {}
