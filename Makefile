@@ -55,6 +55,10 @@ DATA = yezzey--1.0.sql yezzey--1.8.8.sql \
 
 PGFILEDESC = "yezzey - external storage tables offloading extension"
 
+ifdef IS_CLOUDBERRY_3
+REGRESS = \
+          simple_cbdb_3
+else
 ifdef IS_CLOUDBERRY
 REGRESS = \
           simple_cbdb \
@@ -101,6 +105,7 @@ REGRESS = \
 	  yezzey-alter-ts \
 	  yezzey-create-offloaded \
 	  yezzey-offload-errors
+endif
 endif
 
 ifdef USE_PGXS
