@@ -600,10 +600,7 @@ jobs:
           set -x
 
           chmod +x "${SRC_DIR}"/../yezzey/devops/scripts/launch_yproxy.sh
-          # NOTE: REGRESS= is passed in the environment, so it does *not* override
-          # the REGRESS assignment in the Makefile -- the full _cbdb suite runs.
-          # Use `make installcheck REGRESS=...` if a single test is wanted.
-          if ! time su - gpadmin -c "cd ${SRC_DIR} && ../yezzey/devops/scripts/launch_yproxy.sh && cd ${SRC_DIR}/gpcontrib/yezzey && source /usr/local/cloudberry-db/cloudberry-env.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && IS_CLOUDBERRY=true REGRESS=simple_cbdb make installcheck"; then
+          if ! time su - gpadmin -c "cd ${SRC_DIR} && ../yezzey/devops/scripts/launch_yproxy.sh && cd ${SRC_DIR}/gpcontrib/yezzey && source /usr/local/cloudberry-db/cloudberry-env.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && IS_CLOUDBERRY_3=true make installcheck"; then
             echo "::error::Test yezzey failed"
             cat ${SRC_DIR}/gpcontrib/yezzey/regression.diffs
             exit 1
