@@ -302,6 +302,36 @@ void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
   }
 }
 
+#if PG_VERSION_NUM >= 160000
+/*
+ * Bulk relation extension, added in CBDB/PostgreSQL 16 (smgrzeroextend()).
+ *
+ * Requires an Apache Cloudberry that dispatches smgrzeroextend() through
+ * reln->smgr (apache/cloudberry#1953).
+ */
+void yezzey_zeroextend(SMgrRelation reln, ForkNumber forkNum,
+                       BlockNumber blockNum, int nBlocks, bool skipFsync) {
+  if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+
+    yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
+    PG_TRY();
+    {
+      mdzeroextend(reln, forkNum, blockNum, nBlocks, skipFsync);
+      yezzeyRevertCheatRelfilenode(&(YezzeySMGRLocator(reln)));
+    }
+    PG_CATCH();
+    {
+      yezzeyRevertCheatRelfilenode(&(YezzeySMGRLocator(reln)));
+      PG_RE_THROW();
+    }
+    PG_END_TRY();
+  } else {
+    mdzeroextend(reln, forkNum, blockNum, nBlocks, skipFsync);
+  }
+}
+#endif
+
 #if PG_VERSION_NUM >= 130000
 bool
 #else
@@ -581,6 +611,9 @@ static const f_smgr yezzey_smgrsw[] = {
         .smgr_exists = yezzey_exists,
         .smgr_unlink = yezzey_unlink,
         .smgr_extend = yezzey_extend,
+#if PG_VERSION_NUM >= 160000
+        .smgr_zeroextend = yezzey_zeroextend,
+#endif
         .smgr_prefetch = yezzey_prefetch,
         .smgr_read = yezzey_read,
         .smgr_write = yezzey_write,
@@ -605,6 +638,9 @@ static const f_smgr yezzey_smgrsw[] = {
         .smgr_exists = yezzey_exists,
         .smgr_unlink = yezzey_unlink_ao,
         .smgr_extend = yezzey_extend,
+#if PG_VERSION_NUM >= 160000
+        .smgr_zeroextend = yezzey_zeroextend,
+#endif
         .smgr_prefetch = yezzey_prefetch,
         .smgr_read = yezzey_read,
         .smgr_write = yezzey_write,
