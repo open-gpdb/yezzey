@@ -238,29 +238,12 @@ jobs:
         shell: bash
         env:
           SRC_DIR: ${{ github.workspace }}/yproxy
+          YEZZEY_DIR: ${{ github.workspace }}/yezzey
         run: |
           set -eo pipefail
 
-          # Install latest Go compiler
-          sudo apt update
-          sudo apt install -y software-properties-common
-          sudo add-apt-repository ppa:longsleep/golang-backports
-          sudo apt update
-          sudo apt install -y golang-go
-
-          # Install lib dependencies
-
-          sudo apt install -y libbrotli-dev liblzo2-dev libsodium-dev curl cmake
-
-          # Fetch project and build
-          git config --global --add safe.directory ${SRC_DIR}
-          cd ${SRC_DIR}
-          make build
-
-          mv devbin/yfuzzer /usr/bin/yfuzzer
-
-          #Check the installation
-          yfuzzer --version
+          chmod +x "${YEZZEY_DIR}"/devops/scripts/install_yproxy.sh
+          "${YEZZEY_DIR}"/devops/scripts/install_yproxy.sh yfuzzer
 
       - name: Create demo cluster with yezzey
         shell: bash
