@@ -60,6 +60,20 @@ jobs:
         run: |
           make -f Makefile.tidy tidy-check
 
+  cppcheck:
+    name: cppcheck (static analysis)
+    runs-on: ubuntu-latest
+    container:
+      image: neszl/cppcheck:latest
+    steps:
+      - name: Checkout Yezzey source
+        uses: actions/checkout@v4
+
+      - name: Run cppcheck
+        shell: bash
+        run: |
+          make -f Makefile.cppcheck cppcheck-check
+
   unit-tests:
     name: Unit Tests (googletest)
     runs-on: ubuntu-latest
