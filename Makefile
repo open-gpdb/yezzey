@@ -4,9 +4,9 @@ override CFLAGS = -Wall -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmi
 
 COMMON_LINK_OPTIONS = -lstdc++
 
-COMMON_CPP_FLAGS = -std=c++11 -fPIC -I/usr/include/libxml2 -I/usr/local/opt/openssl/include -DENABLE_NLS 
+COMMON_CPP_FLAGS = -fPIC -I/usr/include/libxml2 -I/usr/local/opt/openssl/include -DENABLE_NLS 
 
-override CPPFLAGS = -fPIC -lstdc++ -g3 -ggdb -Wall -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -fno-strict-aliasing -fwrapv -fno-aggressive-loop-optimizations -Wno-unused-but-set-variable -Wno-address -Werror=format-security -Wno-format-truncation -g -std=c++11 -fPIC -Iinclude -Ilib -g -I. -I../../src/include -D_GNU_SOURCE
+override CPPFLAGS = -fPIC -lstdc++ -g3 -ggdb -Wall -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -fno-strict-aliasing -fwrapv -fno-aggressive-loop-optimizations -Wno-unused-but-set-variable -Wno-address -Werror=format-security -Wno-format-truncation -g -fPIC -Iinclude -Ilib -g -I. -I../../src/include -D_GNU_SOURCE
 
 SHLIB_LINK += $(COMMON_LINK_OPTIONS)
 PG_CPPFLAGS += $(COMMON_CPP_FLAGS) -I./include -Iinclude -Ilib -I$(libpq_srcdir) -I$(libpq_srcdir)/postgresql/server/utils
@@ -118,6 +118,11 @@ top_builddir = ../..
 include $(top_builddir)/src/Makefile.global
 include $(top_srcdir)/contrib/contrib-global.mk
 endif
+
+# -std=c++11 applies to the C++ compiles only. It used to sit in CPPFLAGS,
+# which the build shares with the C compiles of smgr.c and yezzey.c. CXXFLAGS
+# is not defined until the includes above have run, hence the placement here.
+override CXXFLAGS += -std=c++11
 
 cleanall:
 	@-$(MAKE) clean # incase PGXS not included
