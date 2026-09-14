@@ -107,7 +107,7 @@ static void YezzeyCreateVirtualSpc() {
   bool nulls[Natts_pg_tablespace];
   HeapTuple tuple;
   Oid tablespaceoid;
-  char *location = "";
+  const char *location = "";
   Oid ownerId;
   HeapTuple tp;
 

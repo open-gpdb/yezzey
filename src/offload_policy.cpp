@@ -437,7 +437,8 @@ void FixupOffloadMetadata(Oid i_reloid) {
   auto oldtuple = heap_getnext(scan, ForwardScanDirection);
 
   if (HeapTupleIsValid(oldtuple)) {
-    auto meta = (Form_yezzey_offload_metadata)GETSTRUCT(oldtuple);
+    auto meta PG_USED_FOR_ASSERTS_ONLY =
+        (Form_yezzey_offload_metadata)GETSTRUCT(oldtuple);
 
     Assert(meta->reloid == i_reloid);
 

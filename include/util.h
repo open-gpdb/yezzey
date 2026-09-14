@@ -1,7 +1,5 @@
 #pragma once
 
-#include <openssl/md5.h>
-
 #ifdef __cplusplus
 extern "C" {
 #include "postgres.h"
