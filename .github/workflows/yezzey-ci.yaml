@@ -40,6 +40,10 @@ env:
   CLOUDBERRY_VERSION: "REL_2_STABLE"
   GPDB_HOME: "/opt/greenplum-db-6"
   GPDB_VERSION: "OPENGPDB_STABLE"
+  # MinIO client. dl.min.io is archived (HTTP 410), so pin the final
+  # open-source release from https://github.com/minio/mc/releases
+  MC_RELEASE: "RELEASE.2025-08-13T08-35-41Z"
+  MC_SHA256: "01f866e9c5f9b87c2b09116fa5d7c06695b106242d829a8bb32990c00312e891"
 
 jobs:
 
@@ -166,10 +170,17 @@ jobs:
       - name: Install MinIO Client (mc)
         run: |
           set -ex pipefail
-          # Download mc for Linux (amd64)
-          curl -fsSL -o mc https://dl.min.io/client/mc/release/linux-amd64/mc
+          # Download mc for Linux (amd64).  dl.min.io now returns HTTP 410:
+          # MinIO archived the open-source client and no longer serves it from
+          # that host.  The final open-source release is still published as a
+          # GitHub release asset, so pin it there and verify the checksum
+          # MinIO publishes next to the binary.
+          curl -fsSL -o mc \
+            "https://github.com/minio/mc/releases/download/${MC_RELEASE}/mc.linux-amd64.${MC_RELEASE}"
+          echo "${MC_SHA256}  mc" | sha256sum -c -
           chmod +x mc
           sudo mv mc /usr/local/bin/mc  # Make mc available system-wide
+          mc --version
 
       - name: Configure MinIO service
         run: |
@@ -434,10 +445,17 @@ jobs:
       - name: Install MinIO Client (mc)
         run: |
           set -ex pipefail
-          # Download mc for Linux (amd64)
-          curl -fsSL -o mc https://dl.min.io/client/mc/release/linux-amd64/mc
+          # Download mc for Linux (amd64).  dl.min.io now returns HTTP 410:
+          # MinIO archived the open-source client and no longer serves it from
+          # that host.  The final open-source release is still published as a
+          # GitHub release asset, so pin it there and verify the checksum
+          # MinIO publishes next to the binary.
+          curl -fsSL -o mc \
+            "https://github.com/minio/mc/releases/download/${MC_RELEASE}/mc.linux-amd64.${MC_RELEASE}"
+          echo "${MC_SHA256}  mc" | sha256sum -c -
           chmod +x mc
           sudo mv mc /usr/local/bin/mc  # Make mc available system-wide
+          mc --version
 
       - name: Configure MinIO service
         run: |
