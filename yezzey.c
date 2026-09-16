@@ -1568,6 +1568,9 @@ void yezzey_TrackObjDrop(Relation rel) {
 void _PG_init(void) {
   /* Allocate shared memory for yezzey workers */
 
+  if (!process_shared_preload_libraries_in_progress)
+    ereport(ERROR, (errmsg("yezzey is not in shared_preload_libraries")));
+
 #if IsModernYezzey
   allow_in_place_tablespaces = true;
 #endif
