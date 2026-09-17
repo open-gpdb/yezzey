@@ -41,15 +41,16 @@ bool ensureFilepathLocal(const std::string &filepath) {
       return false;
     }
     elog(ERROR,
-      "attempt to offload non-local relation: could not stat \"%s\" (%m)",
-      localPath.c_str());
+         "attempt to offload non-local relation: could not stat \"%s\" (%m)",
+         localPath.c_str());
   }
   return true;
 }
 
-static int offloadRelationSegmentPathImpl(
-    Relation aorel, std::shared_ptr<IOadv> ioadv, int64 modcount,
-    int64 logicalEof, const std::string &external_storage_path) {
+static int
+offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
+                               int64 modcount, int64 logicalEof,
+                               const std::string &external_storage_path) {
   const std::string localPath = getlocalpath(ioadv->coords_);
 
   if (!ensureFilepathLocal(localPath)) {
@@ -263,8 +264,7 @@ void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
     loadSegmentFromExternalStorageImpl(rel, nspname, relname, segno, coords,
                                        dest_path);
   } catch (const std::exception &e) {
-    elog(ERROR, "yezzey: unexpected C++ exception while loading: %s",
-         e.what());
+    elog(ERROR, "yezzey: unexpected C++ exception while loading: %s", e.what());
   } catch (...) {
     elog(ERROR, "yezzey: unknown C++ exception while loading");
   }
@@ -364,8 +364,8 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       nspname, relname, storage_class /* storage_class */, multipart_chunksize,
       coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
-  const int off_rc = offloadRelationSegmentPath(
-      aorel, ioadv, modcount, logicalEof, storage_path);
+  const int off_rc = offloadRelationSegmentPath(aorel, ioadv, modcount,
+                                                logicalEof, storage_path);
 
   if (off_rc < 0)
     elog(ERROR, "yezzey: failed to offload relation %s",
