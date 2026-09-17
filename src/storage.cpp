@@ -329,7 +329,7 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
 
   try {
     off_rc = offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
-                               storage_path);
+                                        storage_path);
   } catch (...) {
     /* Keep compiler quiet */
     off_rc = -1;
