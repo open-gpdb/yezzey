@@ -36,13 +36,13 @@ int yezzey_ao_log_level = DEBUG1;
  */
 bool ensureFilepathLocal(const std::string &filepath) {
   struct stat buffer;
-  if (stat(localPath.c_str(), &buffer) != 0) {
+  if (stat(filepath.c_str(), &buffer) != 0) {
     if (errno == ENOENT) {
       return false;
     }
     elog(ERROR,
          "attempt to offload non-local relation: could not stat \"%s\" (%m)",
-         localPath.c_str());
+         filepath.c_str());
   }
   return true;
 }
