@@ -63,9 +63,8 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
   const auto vfd = PathNameOpenFile(localPath, O_RDONLY);
 #endif
   if (vfd <= 0) {
-    throw std::runtime_error(
-        "failed to open " + localPath +
-        " file to transfer to external storage");
+    throw std::runtime_error("failed to open " + localPath +
+                             " file to transfer to external storage");
   }
 
   auto iohandler =
@@ -95,9 +94,8 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   if (fLen < logicalEof) {
     throw std::runtime_error(
-        "failed to offload corrupt relation, partial data file " +
-        localPath + ": " + std::to_string(fLen) + " < " +
-        std::to_string(logicalEof));
+        "failed to offload corrupt relation, partial data file " + localPath +
+        ": " + std::to_string(fLen) + " < " + std::to_string(logicalEof));
   }
 
   FileSeek(vfd, progress, SEEK_SET);
@@ -107,11 +105,9 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   if (fLen < logicalEof) {
     throw std::runtime_error(
-        "failed to offload corrupt relation, partial data file " +
-        localPath + ": " + std::to_string(fLen) + " < " +
-        std::to_string(logicalEof));
+        "failed to offload corrupt relation, partial data file " + localPath +
+        ": " + std::to_string(fLen) + " < " + std::to_string(logicalEof));
   }
-
 #endif
 
   ioadv->multipart_upload = fLen > multipart_threshold;
@@ -171,7 +167,7 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   if (!iohandler.io_close()) {
     throw std::runtime_error("yezzey: failed to complete " + localPath +
-                           " offloading");
+                             " offloading");
   } else {
     elog(DEBUG1, "yezzey: complete %s offloading", localPath);
   }
@@ -192,7 +188,7 @@ void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
 
   if (!ostrm.is_open()) {
     throw std::runtime_error("could not open \"" + dest_path +
-                           "\" for writing");
+                             "\" for writing");
   }
 
   auto ioadv = std::make_shared<IOadv>(
@@ -219,14 +215,13 @@ void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
     size_t amount = chunkSize;
     if (!iohandler.io_read(buffer.data(), &amount)) {
       throw std::runtime_error("failed to read \"" + dest_path +
-                           "\" from external storage");
+                               "\" from external storage");
     }
 
     ostrm.write(buffer.data(), amount);
     if (ostrm.fail()) {
-      throw std::runtime_error(
-          "failed to write \"" + dest_path +
-          "\" while loading from external storage");
+      throw std::runtime_error("failed to write \"" + dest_path +
+                               "\" while loading from external storage");
     }
 
     xlog_ao_insert(rnode, segno, position, buffer.data(), amount);
@@ -234,8 +229,7 @@ void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
   }
 
   if (!iohandler.io_close()) {
-    throw std::runtime_error("failed to complete " + dest_path +
-                           " offloading");
+    throw std::runtime_error("failed to complete " + dest_path + " offloading");
   } else {
     elog(DEBUG1, "yezzey: complete %s offloading", dest_path);
   }
