@@ -5,11 +5,14 @@ YProxyConnector::YProxyConnector(std::shared_ptr<IOadv> adv, ssize_t segindx)
 
 YProxyConnector::~YProxyConnector() { close(); }
 bool YProxyConnector::close() {
-  if (client_fd_ != -1) {
-    ::close(client_fd_);
-    client_fd_ = -1;
+  if (client_fd_ == -1) {
+    return true;
   }
-  return true;
+
+  const int fd = client_fd_;
+  client_fd_ = -1;
+
+  return ::close(fd) == 0;
 }
 
 int YProxyConnector::prepareYproxyConnection() {
