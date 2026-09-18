@@ -69,7 +69,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   auto iohandler =
       YIO(ioadv, GpIdentity.segindex, modcount, external_storage_path);
 
-  /* 
+  /*
    * Create external storage reader handle to calculate total external files
    * size. this is needed to skip offloading of data already present in external
    * storage.
@@ -312,8 +312,8 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   ReleaseSysCache(tp);
 
   const auto ioadv = std::make_shared<IOadv>(
-      nspname, relname, storage_class, multipart_chunksize,
-      coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
+      nspname, relname, storage_class, multipart_chunksize, coords,
+      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
   int off_rc;
 
@@ -414,9 +414,8 @@ int statExternalTotal(Relation aorel, int segindx) {
 
   const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
-      std::string(storage_class), multipart_chunksize,
-      coords, aorel->rd_id /* reloid */, use_gpg_crypto,
-      yproxy_socket);
+      std::string(storage_class), multipart_chunksize, coords,
+      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
   return yezzey_virtual_relation_size(ioadv, segindx);
 }
 
@@ -451,9 +450,8 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
-      std::string(storage_class), multipart_chunksize,
-      coords, aorel->rd_id /* reloid */, use_gpg_crypto,
-      yproxy_socket);
+      std::string(storage_class), multipart_chunksize, coords,
+      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
   const auto virtual_sz = yezzey_relation_metadata_size(ioadv);
   if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
@@ -521,9 +519,8 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
   const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
-      std::string(storage_class), multipart_chunksize,
-      coords, aorel->rd_id /* reloid */, use_gpg_crypto,
-      yproxy_socket);
+      std::string(storage_class), multipart_chunksize, coords,
+      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
 #ifdef USE_YPX_LISTER
   auto lister = YProxyLister(ioadv, GpIdentity.segindex);
