@@ -80,6 +80,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   if (virtual_size == -1) {
     elog(NOTICE, "yezzey: failed to calculate virtual size");
+    FileClose(vfd);
     return -1;
   }
 
