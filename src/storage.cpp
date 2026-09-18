@@ -3,6 +3,7 @@
 #include "storage.h"
 #include "util.h"
 
+#include <exception>
 #include <fstream>
 #include <string>
 #include <sys/stat.h>
@@ -35,17 +36,24 @@ int yezzey_ao_log_level = DEBUG1;
  */
 bool ensureFilepathLocal(const std::string &filepath) {
   struct stat buffer;
-  return (stat(filepath.c_str(), &buffer) == 0);
+  if (stat(filepath.c_str(), &buffer) != 0) {
+    if (errno == ENOENT) {
+      return false;
+    }
+    elog(ERROR,
+         "attempt to offload non-local relation: could not stat \"%s\" (%m)",
+         filepath.c_str());
+  }
+  return true;
 }
 
-int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
+static int
+offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                int64 modcount, int64 logicalEof,
                                const std::string &external_storage_path) {
   const std::string localPath = getlocalpath(ioadv->coords_);
 
   if (!ensureFilepathLocal(localPath)) {
-    // nothing to do
-    // elog(ERROR, "attempt to offload non-local relation");
     return 0;
   }
 
@@ -122,7 +130,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       /* should not read beyond logical eof */
       curr_read_chunk = logicalEof - progress;
     }
-    /* code */
 #if IsGreenplum6
     rc = FileRead(vfd, buffer.data(), curr_read_chunk);
 #else
@@ -170,7 +177,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   if (!iohandler.io_close()) {
     elog(ERROR, "yezzey: failed to complete %s offloading", localPath.c_str());
   } else {
-    // debug output
     elog(DEBUG1, "yezzey: complete %s offloading", localPath.c_str());
   }
 
@@ -178,15 +184,33 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   return rc;
 }
 
-void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
-                                    const std::string &relname, int segno,
-                                    const relnodeCoord &coords,
-                                    const std::string &dest_path) {
+int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
+                               int64 modcount, int64 logicalEof,
+                               const std::string &external_storage_path) {
+  try {
+    return offloadRelationSegmentPathImpl(aorel, ioadv, modcount, logicalEof,
+                                          external_storage_path);
+  } catch (const std::exception &e) {
+    elog(ERROR, "yezzey: unexpected C++ exception while offloading: %s",
+         e.what());
+  } catch (...) {
+    elog(ERROR, "yezzey: unknown C++ exception while offloading");
+  }
+
+  return -1;
+}
+
+static void loadSegmentFromExternalStorageImpl(
+    Relation rel, const std::string &nspname, const std::string &relname,
+    int segno, const relnodeCoord &coords, const std::string &dest_path) {
   /* TODO: pass this as argument? */
   const size_t chunkSize = 1 << 20;
   std::vector<char> buffer(chunkSize);
 
   std::ofstream ostrm(dest_path, std::ios::binary);
+  if (!ostrm.is_open()) {
+    elog(ERROR, "could not open \"%s\" for writing", dest_path.c_str());
+  }
 
   auto ioadv = std::make_shared<IOadv>(
       nspname, relname, storage_class /* storage_class */, multipart_chunksize,
@@ -211,14 +235,14 @@ void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   while (!iohandler.reader_empty()) {
     size_t amount = chunkSize;
     if (!iohandler.io_read(buffer.data(), &amount)) {
-      elog(ERROR, "failed to read file from external storage");
+      elog(ERROR, "failed to read \"%s\" from external storage",
+           dest_path.c_str());
     }
-
-    /* code */
 
     ostrm.write(buffer.data(), amount);
     if (ostrm.fail()) {
-      elog(ERROR, "failed to read file from external storage");
+      elog(ERROR, "failed to write \"%s\" while loading from external storage",
+           dest_path.c_str());
     }
 
     xlog_ao_insert(rnode, segno, position, buffer.data(), amount);
@@ -226,9 +250,23 @@ void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   }
 
   if (!iohandler.io_close()) {
-    elog(ERROR, "yezzey: failed to complete %s offloading", dest_path.c_str());
+    elog(ERROR, "yezzey: failed to complete loading %s", dest_path.c_str());
   } else {
-    elog(DEBUG1, "yezzey: complete %s offloading", dest_path.c_str());
+    elog(DEBUG1, "yezzey: complete loading %s", dest_path.c_str());
+  }
+}
+
+void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
+                                    const std::string &relname, int segno,
+                                    const relnodeCoord &coords,
+                                    const std::string &dest_path) {
+  try {
+    loadSegmentFromExternalStorageImpl(rel, nspname, relname, segno, coords,
+                                       dest_path);
+  } catch (const std::exception &e) {
+    elog(ERROR, "yezzey: unexpected C++ exception while loading: %s", e.what());
+  } catch (...) {
+    elog(ERROR, "yezzey: unknown C++ exception while loading");
   }
 }
 
@@ -326,16 +364,8 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       nspname, relname, storage_class /* storage_class */, multipart_chunksize,
       coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
-  int off_rc;
-
-  try {
-    off_rc = offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
-                                        storage_path);
-  } catch (...) {
-    /* Keep compiler quiet */
-    off_rc = -1;
-    elog(ERROR, "Caught an unexpected exception.");
-  }
+  const int off_rc = offloadRelationSegmentPath(aorel, ioadv, modcount,
+                                                logicalEof, storage_path);
 
   if (off_rc < 0)
     elog(ERROR, "yezzey: failed to offload relation %s",
