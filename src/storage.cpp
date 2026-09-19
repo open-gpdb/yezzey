@@ -358,16 +358,8 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       nspname, relname, storage_class /* storage_class */, multipart_chunksize,
       coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
-  int off_rc;
-
-  try {
-    off_rc = offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
+  int off_rc = offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
                                         storage_path);
-  } catch (...) {
-    /* Keep compiler quiet */
-    off_rc = -1;
-    elog(ERROR, "Caught an unexpected exception.");
-  }
 
   if (off_rc < 0)
     elog(ERROR, "yezzey: failed to offload relation %s",
