@@ -188,8 +188,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   } catch (...) {
     elog(ERROR, "yezzey: unknown exception while offloading relation segment");
   }
-
-  return -1;
 }
 
 static void loadSegmentFromExternalStorageImpl(
