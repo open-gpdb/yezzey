@@ -177,12 +177,16 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
   return rc;
 }
 
-int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
+void offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                int64 modcount, int64 logicalEof,
                                const std::string &external_storage_path) {
   try {
-    return offloadRelationSegmentPathImpl(aorel, ioadv, modcount, logicalEof,
-                                          external_storage_path);
+    if (offloadRelationSegmentPathImpl(aorel, ioadv, modcount, logicalEof,
+                                          external_storage_path) < 0) {
+      elog(ERROR, "yezzey: failed to offload relation %s",
+           RelationGetRelationName(aorel));
+    }
+    
   } catch (const std::exception &e) {
     elog(ERROR, "yezzey: failed to offload relation segment: %s", e.what());
   } catch (...) {
@@ -358,12 +362,8 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       nspname, relname, storage_class /* storage_class */, multipart_chunksize,
       coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
-  int off_rc = offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
+  ioffloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
                                         storage_path);
-
-  if (off_rc < 0)
-    elog(ERROR, "yezzey: failed to offload relation %s",
-         RelationGetRelationName(aorel));
 
   /* we dont need to interact with s3 while in recovery*/
 
