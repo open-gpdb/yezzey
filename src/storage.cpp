@@ -313,12 +313,29 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       nspname, relname, storage_class, multipart_chunksize, coords,
       aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
-  int off_rc = offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
+  ioffloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
                                         storage_path);
 
+<<<<<<< HEAD
   if (off_rc < 0)
     elog(ERROR, "yezzey: failed to offload relation %s",
          RelationGetRelationName(aorel));
+=======
+  /* we dont need to interact with s3 while in recovery*/
+
+  const int64_t virtual_sz = 0;
+
+#if 0
+  if (/* support this feature */)
+    auto fb = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
+    virtual_sz = fb.first;
+#endif
+
+  if (virtual_sz == -1) {
+    elog(ERROR, "yezzey: failed to stat size of relation %s",
+         RelationGetRelationName(aorel));
+  }
+>>>>>>> 95a73fc (Correct2 call offloadRelationSegmentPath)
 
   elog(NOTICE,
        "yezzey: relation segment reached external storage (blkno=%ld), up to "
