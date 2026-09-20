@@ -31,7 +31,7 @@ std::string getlocalpath(const std::string &local_path, int segno);
 bool ensureFilepathLocal(const std::string &filepath);
 std::string getlocalpath(const relnodeCoord &coords);
 
-int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
+void offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                int64 modcount, int64 logicalEof,
                                const std::string &external_storage_path);
 Oid resolveTablespaceOidByName(const std::string &tablespacename);
