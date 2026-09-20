@@ -39,9 +39,7 @@ bool ensureFilepathLocal(const std::string &filepath) {
     if (errno == ENOENT) {
       return false;
     }
-    elog(ERROR,
-         "could not stat \"%s\" (%m)",
-         filepath.c_str());
+    elog(ERROR, "could not stat \"%s\" (%m)", filepath.c_str());
   }
   return true;
 }
