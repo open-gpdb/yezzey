@@ -40,7 +40,7 @@ bool ensureFilepathLocal(const std::string &filepath) {
       return false;
     }
     elog(ERROR,
-         "attempt to offload non-local relation: could not stat \"%s\" (%m)",
+         "could not stat \"%s\" (%m)",
          filepath.c_str());
   }
   return true;
