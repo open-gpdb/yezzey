@@ -1,0 +1,14 @@
+.golden-work/
+.git/
+*.o
+*.so
+*.a
+*.d
+*.gcno
+*.gcda
+*.gcov
+results/
+regression.diffs
+regression.out
+test/googletest/
+yezzey_test

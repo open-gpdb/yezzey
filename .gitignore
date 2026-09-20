@@ -12,3 +12,4 @@ regression.out
 *.gcov
 yezzey_test
 test/googletest/
+.golden-work/
