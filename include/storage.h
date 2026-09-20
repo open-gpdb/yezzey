@@ -29,7 +29,7 @@ typedef struct yezzeyChunkMeta {
 
 bool ensureFilepathLocal(const char *filepath);
 
-int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
+void offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                int64 modcount, int64 logicalEof,
                                const std::string &external_storage_path);
 Oid resolveTablespaceOidByName(const std::string &tablespacename);
