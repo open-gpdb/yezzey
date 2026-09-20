@@ -313,7 +313,7 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       nspname, relname, storage_class, multipart_chunksize, coords,
       aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
-  ioffloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
+  offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
                                         storage_path);
 
 <<<<<<< HEAD
