@@ -32,7 +32,7 @@ int yezzey_log_level = DEBUG1;
 int yezzey_ao_log_level = DEBUG1;
 
 /*
- * This function used by AO-related realtion functions
+ * This function used by AO-related relation functions
  */
 bool ensureFilepathLocal(const std::string &filepath) {
   struct stat buffer;
@@ -46,8 +46,6 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
   const std::string localPath = getlocalpath(ioadv->coords_);
 
   if (!ensureFilepathLocal(localPath)) {
-    // nothing to do
-    // elog(ERROR, "attempt to offload non-local relation");
     return 0;
   }
 
@@ -72,7 +70,8 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
   auto iohandler =
       YIO(ioadv, GpIdentity.segindex, modcount, external_storage_path);
 
-  /* Create external storage reader handle to calculate total external files
+  /*
+   * Create external storage reader handle to calculate total external files
    * size. this is needed to skip offloading of data already present in external
    * storage.
    */
@@ -98,7 +97,6 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
         ": " + std::to_string(fLen) + " < " + std::to_string(logicalEof));
   }
 
-  /* reset seek to beginning */
   FileSeek(vfd, progress, SEEK_SET);
 
 #else
@@ -120,7 +118,6 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
       /* should not read beyond logical eof */
       curr_read_chunk = logicalEof - progress;
     }
-    /* code */
 #if IsGreenplum6
     rc = FileRead(vfd, buffer.data(), curr_read_chunk);
 #else
@@ -169,7 +166,6 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
     throw std::runtime_error("yezzey: failed to complete " + localPath +
                              " offloading");
   } else {
-    // debug output
     elog(DEBUG1, "yezzey: complete %s offloading", localPath.c_str());
   }
 
@@ -186,7 +182,6 @@ void offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       elog(ERROR, "yezzey: failed to offload relation %s",
            RelationGetRelationName(aorel));
     }
-
   } catch (const std::exception &e) {
     elog(ERROR, "yezzey: failed to offload relation segment: %s", e.what());
   } catch (...) {
@@ -209,7 +204,7 @@ static void loadSegmentFromExternalStorageImpl(
   }
 
   auto ioadv = std::make_shared<IOadv>(
-      nspname, relname, storage_class /* storage_class */, multipart_chunksize,
+      nspname, relname, storage_class, multipart_chunksize,
       coords /* filename */, rel->rd_id /* reloid */, use_gpg_crypto,
       yproxy_socket);
 
@@ -234,8 +229,6 @@ static void loadSegmentFromExternalStorageImpl(
       throw std::runtime_error("failed to read \"" + dest_path +
                                "\" from external storage");
     }
-
-    /* code */
 
     ostrm.write(buffer.data(), amount);
     if (ostrm.fail()) {
@@ -278,7 +271,6 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   std::string nspname;
   std::string relname;
   {
-    /* c-function calls, need to release memory by-hand */
     const auto tp = SearchSysCache1(
         NAMESPACEOID, ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
@@ -340,9 +332,6 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       relnodeCoord(YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode),
                    YezzeyGetRelNode(rnode), segno);
 
-  /* xlog goes first */
-  // xlog_smgr_local_truncate(rnode, MAIN_FORKNUM, 'a');
-
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
@@ -359,12 +348,10 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   ReleaseSysCache(tp);
 
   const auto ioadv = std::make_shared<IOadv>(
-      nspname, relname, storage_class /* storage_class */, multipart_chunksize,
-      coords, aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
+      nspname, relname, storage_class, multipart_chunksize, coords,
+      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
   offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof, storage_path);
-
-  /* we dont need to interact with s3 while in recovery*/
 
   const int64_t virtual_sz = 0;
 
@@ -408,8 +395,6 @@ Oid resolveTablespaceOidByName(const std::string &tablespacename) {
     ereport(ERROR, (errcode(ERRCODE_UNDEFINED_OBJECT),
                     errmsg("tablespace \"%s\" does not exist",
                            tablespacename.c_str())));
-    /* never reached */
-    return InvalidOid;
   }
 
 #if PG_VERSION_NUM >= 120000
@@ -452,9 +437,8 @@ int statExternalTotal(Relation aorel, int segindx) {
 
   const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
-      std::string(storage_class /*storage_class*/), multipart_chunksize,
-      coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
-      yproxy_socket);
+      std::string(storage_class), multipart_chunksize, coords,
+      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
   return yezzey_virtual_relation_size(ioadv, segindx);
 }
 
@@ -489,11 +473,8 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
-      std::string(storage_class /*storage_class*/), multipart_chunksize,
-      coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
-      yproxy_socket);
-  /* we dont need to interact with s3 while in recovery*/
-  /* stat external storage usage */
+      std::string(storage_class), multipart_chunksize, coords,
+      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
   const auto virtual_sz = yezzey_relation_metadata_size(ioadv);
   if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
@@ -527,11 +508,8 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
     FileClose(f);
   }
 
-  //
   *local_committed_bytes = 0;
-  // the following will not work since files in externakl storage may be
-  // encrypted & compressed.
-  // *local_commited_bytes = logicalEof - virtual_sz;
+
   return 0;
 }
 
@@ -564,10 +542,8 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
   const auto ioadv = std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(aorel)),
-      std::string(storage_class /*storage_class*/), multipart_chunksize,
-      coords /* coords */, aorel->rd_id /* reloid */, use_gpg_crypto,
-      yproxy_socket);
-  /* we dont need to interact with s3 while in recovery*/
+      std::string(storage_class), multipart_chunksize, coords,
+      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
 #ifdef USE_YPX_LISTER
   auto lister = YProxyLister(ioadv, GpIdentity.segindex);
@@ -575,14 +551,11 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 #error "listing feature not supported"
 #endif
 
-  /* stat external storage usage */
-
   const auto meta = lister.list_relation_chunks();
   *cnt_chunks = meta.size();
 
   Assert((*cnt_chunks) >= 0);
 
-  // do copy;
   *list = (struct yezzeyChunkMeta *)palloc(sizeof(struct yezzeyChunkMeta) *
                                            (*cnt_chunks));
 
@@ -615,9 +588,6 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
     FileClose(f);
   }
-
-  // *local_bytes =
-  // std::filesystem::file_size(std::filesystem::path(local_path));
 
   *local_commited_bytes = 0;
   return 0;
