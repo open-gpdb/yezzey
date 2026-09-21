@@ -23,8 +23,6 @@
 #include "ygpver.h"
 #include "yproxy.h"
 
-#define USE_YPX_LISTER = 1
-
 int yezzey_log_level = DEBUG1;
 int yezzey_ao_log_level = DEBUG1;
 
@@ -513,11 +511,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
       std::string(storage_class), multipart_chunksize, coords,
       aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
-#ifdef USE_YPX_LISTER
   auto lister = YProxyLister(ioadv, GpIdentity.segindex);
-#else
-#error "listing feature not supported"
-#endif
 
   const auto meta = lister.list_relation_chunks();
   *cnt_chunks = meta.size();
