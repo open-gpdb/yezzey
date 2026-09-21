@@ -47,8 +47,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   }
 
   const auto local_rnode = YezzeyGetRelFileLocator(aorel);
-  char *localPath =
-      getlocalpath(local_rnode, ioadv->coords_.blkno);
+  char *localPath = getlocalpath(local_rnode, ioadv->coords_.blkno);
 
   if (!ensureFilepathLocal(localPath)) {
     pfree(localPath);
@@ -62,8 +61,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   std::vector<char> buffer(chunkSize);
 #if IsGreenplum6
-  const auto vfd =
-      PathNameOpenFile((FileName)localPath, O_RDONLY, 0600);
+  const auto vfd = PathNameOpenFile((FileName)localPath, O_RDONLY, 0600);
 #else
   const auto vfd = PathNameOpenFile(localPath, O_RDONLY);
 #endif
@@ -457,8 +455,8 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
 #if IsGreenplum6
-    const auto f = PathNameOpenFile((FileName)local_path,
-                                    O_RDONLY | PG_BINARY, S_IRUSR);
+    const auto f =
+        PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);
 #else
     const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
 #endif
@@ -523,8 +521,8 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
 #if IsGreenplum6
-    const auto f = PathNameOpenFile((FileName)local_path,
-                                    O_RDONLY | PG_BINARY, S_IRUSR);
+    const auto f =
+        PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);
 #else
     const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
 #endif
