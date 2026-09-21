@@ -1,5 +1,3 @@
-
-
 #include "storage.h"
 #include "util.h"
 
@@ -352,19 +350,6 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
   offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof, storage_path);
-
-  const int64_t virtual_sz = 0;
-
-#if 0
-  if (/* support this feature */)
-    auto fb = yezzey_virtual_relation_size(ioadv, GpIdentity.segindex);
-    virtual_sz = fb.first;
-#endif
-
-  if (virtual_sz == -1) {
-    elog(ERROR, "yezzey: failed to stat size of relation %s",
-         RelationGetRelationName(aorel));
-  }
 
   elog(NOTICE,
        "yezzey: relation segment reached external storage (blkno=%ld), up to "
