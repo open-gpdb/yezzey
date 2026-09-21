@@ -265,7 +265,6 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   } else {
     auto local_rnode = rnode;
     YezzeyGetRelSpcOid(local_rnode) = loadSpcOid;
-    YezzeyGetRelNode(local_rnode) = orig_relnode;
     local_path = getlocalpath(local_rnode, segno);
     path = local_path;
   }
