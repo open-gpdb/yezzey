@@ -170,9 +170,10 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   return rc;
 }
 
-void loadSegmentFromExternalStorage(
-    Relation rel, const std::string &nspname, const std::string &relname,
-    int segno, const relnodeCoord &coords, const std::string &dest_path) {
+void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
+                                    const std::string &relname, int segno,
+                                    const relnodeCoord &coords,
+                                    const std::string &dest_path) {
   /* TODO: pass this as argument? */
   const size_t chunkSize = 1 << 20;
   std::vector<char> buffer(chunkSize);
