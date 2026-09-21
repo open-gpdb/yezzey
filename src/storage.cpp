@@ -37,8 +37,7 @@ bool ensureFilepathLocal(const std::string &filepath) {
   return (stat(filepath.c_str(), &buffer) == 0);
 }
 
-static int
-offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
+int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                int64 modcount, int64 logicalEof,
                                const std::string &external_storage_path) {
   const std::string localPath = getlocalpath(ioadv->coords_);
@@ -171,23 +170,7 @@ offloadRelationSegmentPathImpl(Relation aorel, std::shared_ptr<IOadv> ioadv,
   return rc;
 }
 
-void offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
-                                int64 modcount, int64 logicalEof,
-                                const std::string &external_storage_path) {
-  try {
-    if (offloadRelationSegmentPathImpl(aorel, ioadv, modcount, logicalEof,
-                                       external_storage_path) < 0) {
-      elog(ERROR, "yezzey: failed to offload relation %s",
-           RelationGetRelationName(aorel));
-    }
-  } catch (const std::exception &e) {
-    elog(ERROR, "yezzey: failed to offload relation segment: %s", e.what());
-  } catch (...) {
-    elog(ERROR, "yezzey: unknown exception while offloading relation segment");
-  }
-}
-
-static void loadSegmentFromExternalStorageImpl(
+void loadSegmentFromExternalStorage(
     Relation rel, const std::string &nspname, const std::string &relname,
     int segno, const relnodeCoord &coords, const std::string &dest_path) {
   /* TODO: pass this as argument? */
@@ -245,20 +228,6 @@ static void loadSegmentFromExternalStorageImpl(
   }
 }
 
-void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
-                                    const std::string &relname, int segno,
-                                    const relnodeCoord &coords,
-                                    const std::string &dest_path) {
-  try {
-    loadSegmentFromExternalStorageImpl(rel, nspname, relname, segno, coords,
-                                       dest_path);
-  } catch (const std::exception &e) {
-    elog(ERROR, "yezzey: failed to load relation segment: %s", e.what());
-  } catch (...) {
-    elog(ERROR, "yezzey: unknown exception while loading relation segment");
-  }
-}
-
 void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
                          int segno, const char *dest_path) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
@@ -296,7 +265,14 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
     return;
   }
 
-  loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords, path);
+  try {
+    loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords,
+                                   path);
+  } catch (const std::exception &e) {
+    elog(ERROR, "yezzey: failed to load relation segment: %s", e.what());
+  } catch (...) {
+    elog(ERROR, "yezzey: unknown exception while loading relation segment");
+  }
 }
 
 int removeLocalFile(const char *localPath) {
@@ -349,7 +325,17 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
       nspname, relname, storage_class, multipart_chunksize, coords,
       aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
 
-  offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof, storage_path);
+  try {
+    if (offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
+                                   storage_path) < 0) {
+      elog(ERROR, "yezzey: failed to offload relation %s",
+           RelationGetRelationName(aorel));
+    }
+  } catch (const std::exception &e) {
+    elog(ERROR, "yezzey: failed to offload relation segment: %s", e.what());
+  } catch (...) {
+    elog(ERROR, "yezzey: unknown exception while offloading relation segment");
+  }
 
   elog(NOTICE,
        "yezzey: relation segment reached external storage (blkno=%ld), up to "
