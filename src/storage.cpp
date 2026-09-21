@@ -473,6 +473,8 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
                                  size_t *local_commited_bytes,
                                  yezzeyChunkMeta **list, size_t *cnt_chunks) {
+  const auto rnode = YezzeyGetRelFileLocator(aorel);
+
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
@@ -504,7 +506,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   }
 
   /* No local storage cache logic for now */
-  const auto local_path = getlocalpath(coords);
+  const auto local_path = getlocalpath(ioadv->coords_);
   *local_bytes = 0;
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
