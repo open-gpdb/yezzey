@@ -383,9 +383,9 @@ static std::shared_ptr<IOadv>
 makeIOadvForOriginRelation(Relation rel, const std::string &nspname,
                            int segno) {
   const auto rnode = YezzeyGetRelFileLocator(rel);
-  const auto coords = relnodeCoord(
-      getRelationOriginTablespaceOid(rel), YezzeyGetRelDbOid(rnode),
-      YezzeyGetRelNode(rnode), segno);
+  const auto coords =
+      relnodeCoord(getRelationOriginTablespaceOid(rel),
+                   YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno);
 
   return std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(rel)),
