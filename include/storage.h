@@ -28,7 +28,7 @@ typedef struct yezzeyChunkMeta {
 #include <memory>
 
 std::string getlocalpath(const std::string &local_path, int segno);
-bool ensureFilepathLocal(const std::string &filepath);
+bool ensureFilepathLocal(const char *filepath);
 std::string getlocalpath(const relnodeCoord &coords);
 
 int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
