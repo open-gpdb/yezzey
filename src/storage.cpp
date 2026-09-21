@@ -23,7 +23,7 @@
 #include "ygpver.h"
 #include "yproxy.h"
 
-#define USE_YPX_LISTER = 1
+#define USE_YPX_LISTER
 
 int yezzey_log_level = DEBUG1;
 int yezzey_ao_log_level = DEBUG1;
