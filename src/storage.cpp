@@ -29,7 +29,7 @@ int yezzey_ao_log_level = DEBUG1;
 /*
  * This function used by AO-related relation functions
  */
-bool ensureFilepathLocal(const std::string &filepath) {
+bool ensureFilepathLocal(const char *filepath) {
   struct stat buffer;
   if (stat(filepath.c_str(), &buffer) != 0) {
     if (errno == ENOENT) {
@@ -45,7 +45,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                const std::string &external_storage_path) {
   const std::string localPath = getlocalpath(ioadv->coords_);
 
-  if (!ensureFilepathLocal(localPath)) {
+  if (!ensureFilepathLocal(localPath.c_str())) {
     return 0;
   }
 
@@ -260,7 +260,7 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   }
 
   elog(yezzey_ao_log_level, "contructed path %s", path.c_str());
-  if (ensureFilepathLocal(path)) {
+  if (ensureFilepathLocal(path.c_str())) {
     return;
   }
 
