@@ -29,7 +29,7 @@ int yezzey_ao_log_level = DEBUG1;
 /*
  * This function used by AO-related relation functions
  */
-bool ensureFilepathLocal(const string &filepath) {
+bool ensureFilepathLocal(const std::string &filepath) {
   struct stat buffer;
   if (stat(filepath.c_str(), &buffer) != 0) {
     if (errno == ENOENT) {
