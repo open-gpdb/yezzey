@@ -43,8 +43,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
     return 0;
   }
 
-  int rc;
-  int tot;
+  auto rc = 0;
   /* XXX: chunk size should normally be configurable. */
   const size_t chunkSize = 1 << 20;
   int64 curr_read_chunk;
@@ -131,11 +130,11 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       continue;
     }
 
-    tot = 0;
+    auto tot = 0;
     char *bptr = buffer.data();
 
     while (tot < rc) {
-      size_t currptrtot = rc - tot;
+      auto currptrtot = static_cast<size_t>(rc - tot);
       if (!iohandler.io_write(bptr, &currptrtot)) {
         FileClose(vfd);
         return -1;
