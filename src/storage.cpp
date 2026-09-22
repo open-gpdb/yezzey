@@ -439,6 +439,12 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   ReleaseSysCache(tp);
 
   const auto ioadv = makeIOadvForOriginRelation(aorel, nspname, segno);
+  auto local_rnode = rnode;
+  /*
+   * Replace YEZZEYTABLESPACE_OID, if present, with the origin tablespace
+   * that contains the local AO file.
+   */
+  YezzeyGetRelSpcOid(local_rnode) = ioadv->coords_.spcNode;
   const auto virtual_sz = yezzey_relation_metadata_size(ioadv);
   if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
@@ -497,6 +503,12 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   ReleaseSysCache(tp);
 
   const auto ioadv = makeIOadvForOriginRelation(aorel, nspname, 0);
+  auto local_rnode = rnode;
+  /*
+   * Replace YEZZEYTABLESPACE_OID, if present, with the origin tablespace
+   * that contains the local AO file.
+   */
+  YezzeyGetRelSpcOid(local_rnode) = ioadv->coords_.spcNode;
 
   auto lister = YProxyLister(ioadv, GpIdentity.segindex);
 
