@@ -109,7 +109,11 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
    * Record the tablespace transition as a new relfilenode before making the
    * pg_class change visible, as required by the Cloudberry relcache.
    */
+#if PG_VERSION_NUM >= 160000
+  RelationAssumeNewRelfilelocator(aorel);
+#else
   RelationAssumeNewRelfilenode(aorel);
+#endif
 #endif
 
   /* Make sure the reltablespace change is visible */
