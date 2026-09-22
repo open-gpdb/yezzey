@@ -44,8 +44,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
     return 0;
   }
 
-  int rc;
-  int tot;
+  auto rc = 0;
   /* XXX: chunk size should normally be configurable. */
   const size_t chunkSize = 1 << 20;
   int64 curr_read_chunk;
@@ -128,11 +127,11 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       continue;
     }
 
-    tot = 0;
+    auto tot = 0;
     char *bptr = buffer.data();
 
     while (tot < rc) {
-      size_t currptrtot = rc - tot;
+      auto currptrtot = static_cast<size_t>(rc - tot);
       if (!iohandler.io_write(bptr, &currptrtot)) {
         FileClose(vfd);
         return -1;
@@ -380,9 +379,30 @@ Oid resolveTablespaceOidByName(const std::string &tablespacename) {
   return resOid;
 }
 
-int statExternalTotal(Relation aorel, int segindx) {
-  const auto rnode = YezzeyGetRelFileLocator(aorel);
+/*
+ * Relations in Yezzey tablespace have YEZZEYTABLESPACE_OID in their relnode.
+ * Resolve their original tablespace from the metadata table instead.
+ */
+static Oid getRelationOriginTablespaceOid(Relation rel) {
+  return resolveTablespaceOidByName(
+      YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(rel)));
+}
 
+static std::shared_ptr<IOadv>
+makeIOadvForOriginRelation(Relation rel, const std::string &nspname,
+                           int segno) {
+  const auto rnode = YezzeyGetRelFileLocator(rel);
+  const auto coords =
+      relnodeCoord(getRelationOriginTablespaceOid(rel),
+                   YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno);
+
+  return std::make_shared<IOadv>(
+      nspname, std::string(RelationGetRelationName(rel)),
+      std::string(storage_class), multipart_chunksize, coords,
+      rel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
+}
+
+int statExternalTotal(Relation aorel, int segindx) {
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
@@ -396,19 +416,7 @@ int statExternalTotal(Relation aorel, int segindx) {
 
   ReleaseSysCache(tp);
 
-  /* YezzeyGetRelSpcOid(rnode) == YEZZEYTABLESPACEOID here. we need
-  to lookup in metadata table to resolve origin tablespace */
-
-  const auto spcNode = resolveTablespaceOidByName(
-      YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
-
-  const auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
-                                   YezzeyGetRelNode(rnode), -1 /* not used */);
-
-  const auto ioadv = std::make_shared<IOadv>(
-      nspname, std::string(RelationGetRelationName(aorel)),
-      std::string(storage_class), multipart_chunksize, coords,
-      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
+  const auto ioadv = makeIOadvForOriginRelation(aorel, nspname, -1);
   return yezzey_virtual_relation_size(ioadv, segindx);
 }
 
@@ -432,19 +440,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   ReleaseSysCache(tp);
 
-  /* YezzeyGetRelSpcOid(rnode) == YEZZEYTABLESPACEOID here. we need
-  to lookup in metadata table to resolve origin tablespace */
-
-  const auto spcNode = resolveTablespaceOidByName(
-      YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
-
-  const auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
-                                   YezzeyGetRelNode(rnode), segno);
-
-  const auto ioadv = std::make_shared<IOadv>(
-      nspname, std::string(RelationGetRelationName(aorel)),
-      std::string(storage_class), multipart_chunksize, coords,
-      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
+  const auto ioadv = makeIOadvForOriginRelation(aorel, nspname, segno);
   const auto virtual_sz = yezzey_relation_metadata_size(ioadv);
   if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
@@ -453,7 +449,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   *external_bytes = virtual_sz;
 
   /* No local storage cache logic for now */
-  const auto local_path = getlocalpath(coords);
+  const auto local_path = getlocalpath(ioadv->coords_);
 
   *local_bytes = 0;
 
@@ -488,15 +484,6 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
                                  yezzeyChunkMeta **list, size_t *cnt_chunks) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
 
-  /* YezzeyGetRelSpcOid(rnode) == YEZZEYTABLESPACEOID here. we need
-  to lookup in metadata table to resolve origin tablespace */
-
-  const auto spcNode = resolveTablespaceOidByName(
-      YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
-
-  const auto coords = relnodeCoord(spcNode, YezzeyGetRelDbOid(rnode),
-                                   YezzeyGetRelNode(rnode), 0);
-
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
@@ -510,10 +497,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
   ReleaseSysCache(tp);
 
-  const auto ioadv = std::make_shared<IOadv>(
-      nspname, std::string(RelationGetRelationName(aorel)),
-      std::string(storage_class), multipart_chunksize, coords,
-      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
+  const auto ioadv = makeIOadvForOriginRelation(aorel, nspname, 0);
 
   auto lister = YProxyLister(ioadv, GpIdentity.segindex);
 
@@ -531,7 +515,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   }
 
   /* No local storage cache logic for now */
-  const auto local_path = getlocalpath(coords);
+  const auto local_path = getlocalpath(ioadv->coords_);
   *local_bytes = 0;
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
