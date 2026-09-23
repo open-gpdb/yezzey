@@ -16,7 +16,6 @@ set -ex
             createdb $USER
 
             gpconfig -c yezzey.yproxy_socket -v "/tmp/yproxy.sock"
-            psql -c "ALTER SYSTEM SET yezzey.use_gpg_crypto TO false"
             gpconfig -c yezzey.use_otm_feature -v true
             gpconfig -c yezzey.use_gpg_crypto -v false
 
