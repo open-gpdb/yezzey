@@ -115,7 +115,6 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
   RelationAssumeNewRelfilenode(aorel);
 #endif
 #endif
-  
   /* Make sure the reltablespace change is visible */
   CommandCounterIncrement();
   /* Clean up */
