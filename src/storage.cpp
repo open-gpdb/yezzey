@@ -43,6 +43,11 @@ bool ensureFilepathLocal(const std::string &filepath) {
 int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                int64 modcount, int64 logicalEof,
                                const std::string &external_storage_path) {
+  /* An empty AO segment has no local or external data to transfer. */
+  if (logicalEof == 0) {
+    return 0;
+  }
+
   const std::string localPath = getlocalpath(ioadv->coords_);
 
   if (!ensureFilepathLocal(localPath)) {
