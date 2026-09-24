@@ -31,7 +31,13 @@ int yezzey_ao_log_level = DEBUG1;
  */
 bool ensureFilepathLocal(const std::string &filepath) {
   struct stat buffer;
-  return (stat(filepath.c_str(), &buffer) == 0);
+  if (stat(filepath.c_str(), &buffer) != 0) {
+    if (errno == ENOENT) {
+      return false;
+    }
+    elog(ERROR, "could not stat \"%s\" (%m)", filepath.c_str());
+  }
+  return true;
 }
 
 int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
