@@ -6,6 +6,10 @@
 #include "virtual_tablespace.h"
 #include "yezzey_meta.h"
 
+#if IsCloudBerry
+#include "utils/relcache.h"
+#endif
+
 /*
  * Execute ALTER TABLE SET TABLESPACE for cases where there is no tuple
  * rewriting to be done, so we just want to copy the data as fast as possible.
@@ -100,6 +104,17 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
 
   heap_close(pg_class, RowExclusiveLock);
 
+#if IsCloudBerry
+  /*
+   * Record the tablespace transition as a new relfilenode before making the
+   * pg_class change visible, as required by the Cloudberry relcache.
+   */
+#if PG_VERSION_NUM >= 160000
+  RelationAssumeNewRelfilelocator(aorel);
+#else
+  RelationAssumeNewRelfilenode(aorel);
+#endif
+#endif
   /* Make sure the reltablespace change is visible */
   CommandCounterIncrement();
   /* Clean up */
