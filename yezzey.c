@@ -363,10 +363,10 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
    */
   Oid reloid = PG_GETARG_OID(0);
 
- /*
-  * The second argument is always NULL by design.
-  * TODO: Add a single-argument variant.
-  */
+  /*
+   * The second argument is always NULL by design.
+   * TODO: Add a single-argument variant.
+   */
   yezzey_load_relation_internal(reloid, NULL);
 
   PG_RETURN_VOID();
