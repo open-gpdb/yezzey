@@ -73,7 +73,7 @@ REGRESS = \
           yezzey_feat_cbdb_last \
           yezzey-reorg_cbdb \
           yezzey-vac-relation_cbdb \
-          yezzey-vac-relation-187_cbdb 
+          yezzey-vac-relation-187_cbdb
 #          yezzey-otm-feat_cbdb \
  #         yezzey-otm-deletion_cbdb \
   #        yezzey-vi-eh-unique_cbdb \
@@ -104,7 +104,8 @@ REGRESS = \
 	  yezzey-stat \
 	  yezzey-alter-ts \
 	  yezzey-create-offloaded \
-	  yezzey-offload-errors
+	  yezzey-offload-errors \
+	  yezzey-yproxy-down
 endif
 endif
 

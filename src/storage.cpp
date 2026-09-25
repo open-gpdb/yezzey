@@ -78,12 +78,12 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       ioadv, GpIdentity.segindex, modcount, external_storage_path);
 
   if (virtual_size == -1) {
-    elog(NOTICE, "yezzey: failed to calculate virtual size");
+    elog(DEBUG1, "yezzey: failed to calculate virtual size");
     FileClose(vfd);
     return -1;
   }
 
-  elog(NOTICE, "yezzey: relation virtual size calculated: %ld", virtual_size);
+  elog(DEBUG1, "yezzey: relation virtual size calculated: %ld", virtual_size);
   auto progress = virtual_size;
   const auto offset_start = progress;
 

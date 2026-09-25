@@ -1,12 +1,11 @@
 #include "yproxy_reader.h"
-
-const int kDefaultRetryLimit = 100;
+#include "gucs.h"
 
 YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
                            const std::vector<ChunkInfo> order)
     : YProxyConnector(adv, segindx), order_ptr_(0), order_(order),
       current_chunk_remaining_bytes_(0), current_retry(0),
-      retry_limit(kDefaultRetryLimit) {}
+      retry_limit(yezzey_yproxy_retry_attempts) {}
 
 YProxyReader::~YProxyReader() { close(); }
 
@@ -85,7 +84,13 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
       }
       auto rc = this->prepareYproxyConnection(order_[order_ptr_], 0);
       if (rc < 0) {
-        continue;
+        if (++this->current_retry < this->retry_limit) {
+          sleep(1);
+          continue;
+        }
+        ereport(ERROR,
+                (errmsg_internal("failed to acquire connection to yproxy on %s",
+                                 this->adv_->yproxy_socket.c_str())));
       }
       current_chunk_offset_ = 0;
       current_chunk_remaining_bytes_ = order_[order_ptr_].size;

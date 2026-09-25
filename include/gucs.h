@@ -14,5 +14,6 @@ extern int multipart_threshold;
 
 /* Y-PROXY */
 extern char *yproxy_socket;
+extern int yezzey_yproxy_retry_attempts;
 
 #endif /* YEZZEY_GUCS_H */
