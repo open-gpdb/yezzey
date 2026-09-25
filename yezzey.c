@@ -95,6 +95,8 @@ bool use_otm_feature = false;
 
 char *yproxy_socket = NULL;
 
+int yezzey_yproxy_retry_attempts = 100;
+
 #if IsGreenplum6
 Oid runningRewriteSpcOidHint = InvalidOid;
 #endif
@@ -1555,6 +1557,12 @@ static void yezzey_define_gucs() {
   DefineCustomStringVariable("yezzey.yproxy_socket", "wal-g config path", NULL,
                              &yproxy_socket, "/tmp/yproxy.sock", PGC_SUSET, 0,
                              NULL, NULL, NULL);
+
+  DefineCustomIntVariable("yezzey.yproxy_retry_attempts",
+                          "number of connection attempts to yproxy before "
+                          "failing an IO operation",
+                          NULL, &yezzey_yproxy_retry_attempts, 100, 1, INT_MAX,
+                          PGC_USERSET, 0, NULL, NULL, NULL);
 }
 
 #if IsGreenplum6
