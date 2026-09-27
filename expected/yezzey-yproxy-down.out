@@ -1,0 +1,71 @@
+-- Error-path checks for operations while yproxy is down.
+CREATE EXTENSION yezzey VERSION '1.0';
+SET client_min_messages TO WARNING;
+CREATE TABLE yproxy_down_ao(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
+INSERT INTO yproxy_down_ao SELECT * FROM generate_series(1, 10000);
+SELECT yezzey_define_offload_policy('yproxy_down_ao');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+-- Fail fast on error paths: a single reconnect attempt is enough
+-- to observe the failure. The default (100 attempts) is preserved
+-- for production workloads.
+SET yezzey.yproxy_retry_attempts TO 1;
+-- Kill yproxy so all external-storage operations must fail.
+\! killall yproxy 2>/dev/null || true
+\! rm -rf /tmp/yproxy.sock
+\! sleep 1
+SET client_min_messages TO NOTICE;
+-- Offloading a new table while yproxy is down must raise an error.
+CREATE TABLE yproxy_down_fail(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
+INSERT INTO yproxy_down_fail SELECT * FROM generate_series(1, 1000);
+DO $$
+BEGIN
+    PERFORM yezzey_define_offload_policy('yproxy_down_fail');
+    RAISE NOTICE 'unexpected: no error raised';
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'caught error on offload';
+END;
+$$;
+WARNING:  failed to acquire connection to unix socket on /tmp/yproxy.sock, errno: No such file or directory
+NOTICE:  caught error on offload
+-- Loading a relation back while yproxy is down must raise an error.
+DO $$
+BEGIN
+    PERFORM yezzey_load_relation('yproxy_down_ao');
+    RAISE NOTICE 'unexpected: no error raised';
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'caught error on load';
+END;
+$$;
+WARNING:  failed to acquire connection to unix socket on /tmp/yproxy.sock, errno: No such file or directory
+NOTICE:  caught error on load
+SET client_min_messages TO WARNING;
+DROP TABLE yproxy_down_fail;
+-- Restart yproxy and verify normal operation resumes.
+\! /usr/bin/yproxy -c /tmp/yproxy.yaml -ldebug >> yproxy.log 2>&1 &
+\! sh -c 'i=0; while [ ! -S /tmp/yproxy.sock ] && [ $i -lt 20 ]; do sleep 1; i=$((i+1)); done; [ -S /tmp/yproxy.sock ]'
+\! chmod 777 /tmp/yproxy.sock
+CREATE TABLE yproxy_down_recover(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
+INSERT INTO yproxy_down_recover SELECT * FROM generate_series(1, 1000);
+SELECT yezzey_define_offload_policy('yproxy_down_recover');
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
+
+SELECT count(1) AS recovered_rows
+FROM yezzey.offload_metadata
+WHERE reloid = 'yproxy_down_recover'::regclass AND relpolicy = 1;
+ recovered_rows 
+----------------
+              1
+(1 row)
+
+DROP TABLE yproxy_down_ao;
+DROP TABLE yproxy_down_recover;
+RESET yezzey.yproxy_retry_attempts;
+DROP EXTENSION yezzey;
+CHECKPOINT;

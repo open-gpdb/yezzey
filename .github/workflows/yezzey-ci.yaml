@@ -878,7 +878,7 @@ jobs:
 
           # Install lib dependencies
 
-          sudo apt install -y libbrotli-dev liblzo2-dev libsodium-dev curl cmake
+          sudo apt install -y libbrotli-dev liblzo2-dev libsodium-dev curl cmake psmisc
 
           # Fetch project and build
           git config --global --add safe.directory ${SRC_DIR}
