@@ -365,7 +365,7 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
 
   /*
    * The second argument is always NULL by design.
-   * TODO: Add a single-argument variant.
+   * TODO: Remake a single-argument variant.
    */
   yezzey_load_relation_internal(reloid, NULL);
 
