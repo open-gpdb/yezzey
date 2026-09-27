@@ -178,8 +178,8 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   return rc;
 }
 
-void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
-                                    const std::string &relname, int segno,
+void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
+                                    const char *relname, int segno,
                                     const relnodeCoord &coords,
                                     const char *dest_path) {
   const size_t chunkSize = 1 << 20;
@@ -230,52 +230,32 @@ void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
 }
 
 void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
-                         int segno, const char *dest_path) {
+                         int segno, const char * /* dest_path */) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
 
   const auto coords = relnodeCoord(
       YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode), orig_relnode, segno);
 
-  std::string nspname;
-  std::string relname;
-  {
-    const auto tp = SearchSysCache1(
-        NAMESPACEOID, ObjectIdGetDatum(aorel->rd_rel->relnamespace));
+  auto local_rnode = rnode;
+  YezzeyGetRelSpcOid(local_rnode) = loadSpcOid;
+  char *path = getlocalpath(local_rnode, segno);
 
-    if (!HeapTupleIsValid(tp)) {
-      elog(ERROR, "yezzey: failed to get namescape name of relation %s",
-           RelationGetRelationName(aorel));
-    }
-
-    Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
-    nspname = std::string(NameStr(nsptup->nspname));
-    relname = std::string(RelationGetRelationName(aorel));
-    ReleaseSysCache(tp);
-  }
-
-  char *local_path = NULL;
-  const char *path;
-  if (dest_path) {
-    path = dest_path;
-  } else {
-    auto local_rnode = rnode;
-    YezzeyGetRelSpcOid(local_rnode) = loadSpcOid;
-    local_path = getlocalpath(local_rnode, segno);
-    path = local_path;
-  }
-
-  elog(yezzey_ao_log_level, "contructed path %s", path);
+  elog(yezzey_ao_log_level, "constructed path %s", path);
   if (ensureFilepathLocal(path)) {
-    if (local_path) {
-      pfree(local_path);
-    }
+    pfree(path);
     return;
   }
 
-  loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords, path);
-  if (local_path) {
-    pfree(local_path);
+  const char *relname = RelationGetRelationName(aorel);
+  char *nspname = get_namespace_name(RelationGetNamespace(aorel));
+  if (nspname == nullptr) {
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s", relname);
   }
+
+  loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords, path);
+
+  pfree(path);
+  pfree(nspname);
 }
 
 int removeLocalFile(const char *localPath) {
