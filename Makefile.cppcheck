@@ -1,0 +1,23 @@
+CPPCHECK ?= cppcheck
+CPPCHECK_IMAGE ?= neszl/cppcheck:latest
+
+CPPCHECK_FILES := $(wildcard src/*.cpp) $(wildcard *.c) $(wildcard include/*.h)
+
+CPPCHECK_FLAGS := -std=c++11 -I include -I lib -DGPBUILD -D_GNU_SOURCE --enable=warning,style,performance \
+  --suppress=missingIncludeSystem --inline-suppr --error-exitcode=1
+
+.PHONY: cppcheck cppcheck-check cppcheck-docker cppcheck-check-docker
+
+cppcheck:
+	@$(CPPCHECK) $(CPPCHECK_FLAGS) $(CPPCHECK_FILES) 2>&1 || true
+
+cppcheck-check:
+	@$(CPPCHECK) $(CPPCHECK_FLAGS) $(CPPCHECK_FILES)
+
+cppcheck-docker:
+	docker run --rm -v "$(CURDIR)":/src -w /src $(CPPCHECK_IMAGE) \
+		sh -c 'make -f Makefile.cppcheck cppcheck'
+
+cppcheck-check-docker:
+	docker run --rm -v "$(CURDIR)":/src -w /src $(CPPCHECK_IMAGE) \
+		sh -c 'make -f Makefile.cppcheck cppcheck-check'
