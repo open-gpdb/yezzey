@@ -515,6 +515,7 @@ BEGIN
 
     IF FOUND THEN
 	    RETURN QUERY SELECT 'relation ' || i_offload_relname || ' already offloaded';
+		RETURN;
     END IF;
 
     PERFORM yezzey_define_relation_offload_policy_internal_prepare(

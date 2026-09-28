@@ -42,12 +42,9 @@ SELECT count(1) AS offloaded_rows
 FROM yezzey.offload_metadata
 WHERE reloid = 'offload_err_regaoty'::regclass AND relpolicy = 1;
 
--- 4) Re-offloading the same relation is a no-op and must emit a NOTICE
---    instead of erroring or duplicating metadata. Use terse verbosity so the
---    volatile PL/pgSQL CONTEXT stack is not printed alongside the NOTICE.
-\set VERBOSITY terse
+-- 4) Re-offloading the same relation is a no-op. It returns the status below
+--    and must not proceed to the offload path.
 SELECT yezzey_define_offload_policy('offload_err_regaoty');
-\set VERBOSITY default
 
 -- Still exactly one metadata row after the repeated call.
 SELECT count(1) AS offloaded_rows
