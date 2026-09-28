@@ -3,8 +3,8 @@
 
 #include <exception>
 #include <fstream>
-#include <string>
 #include <stdexcept>
+#include <string>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -26,7 +26,7 @@
 #include "yproxy.h"
 
 class LocalFileGuard {
- public:
+public:
   LocalFileGuard(File file, char *path) : file_(file), path_(path) {}
 
   LocalFileGuard(const LocalFileGuard &) = delete;
@@ -37,7 +37,7 @@ class LocalFileGuard {
     pfree(path_);
   }
 
- private:
+private:
   File file_;
   char *path_;
 };
@@ -57,9 +57,9 @@ static char *getlocalpath(const YezzeyLocator &rnode, int segno) {
   return aorelpathbackend(rnode, InvalidBackendId, segno);
 }
 
-int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
-                               int64 modcount, int64 logicalEof,
-                               const std::string & /* external_storage_path */) {
+int offloadRelationSegmentPath(
+    Relation aorel, std::shared_ptr<IOadv> ioadv, int64 modcount,
+    int64 logicalEof, const std::string & /* external_storage_path */) {
   const auto local_rnode = YezzeyGetRelFileLocator(aorel);
   char *localPath = getlocalpath(local_rnode, ioadv->coords_.blkno);
 
@@ -80,15 +80,13 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   const auto vfd = PathNameOpenFile(localPath, O_RDONLY);
 #endif
   if (vfd <= 0) {
-    pfree(localPath);
     throw std::runtime_error(std::string("failed to open ") + localPath +
-        " file to transfer to external storage");
+                             " file to transfer to external storage");
   }
 
   LocalFileGuard local_file(vfd, localPath);
 
-  auto iohandler =
-      YIO(ioadv, GpIdentity.segindex, modcount, std::string());
+  auto iohandler = YIO(ioadv, GpIdentity.segindex, modcount, std::string());
 
   /*
    * Create external storage reader handle to calculate total external files
@@ -113,8 +111,8 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   if (fLen < logicalEof) {
     throw std::runtime_error(
         std::string("failed to offload corrupt relation, partial data file ") +
-        localPath +
-        ": " + std::to_string(fLen) + " < " + std::to_string(logicalEof));
+        localPath + ": " + std::to_string(fLen) + " < " +
+        std::to_string(logicalEof));
   }
 
   FileSeek(vfd, progress, SEEK_SET);
@@ -125,8 +123,8 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   if (fLen < logicalEof) {
     throw std::runtime_error(
         std::string("failed to offload corrupt relation, partial data file ") +
-        localPath +
-        ": " + std::to_string(fLen) + " < " + std::to_string(logicalEof));
+        localPath + ": " + std::to_string(fLen) + " < " +
+        std::to_string(logicalEof));
   }
 #endif
 
@@ -183,8 +181,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   if (!iohandler.io_close()) {
     throw std::runtime_error(std::string("yezzey: failed to complete ") +
-                             localPath +
-                             " offloading");
+                             localPath + " offloading");
   } else {
     elog(DEBUG1, "yezzey: complete %s offloading", localPath);
   }
