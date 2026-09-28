@@ -230,7 +230,7 @@ void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
 }
 
 void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
-                         int segno, const char * /* dest_path */) {
+                         int segno) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
 
   const auto coords = relnodeCoord(

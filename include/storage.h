@@ -40,8 +40,7 @@ EXTERNC void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                                     const char *external_storage_path);
 
 EXTERNC void loadRelationSegment(Relation aorel, Oid loadSpcOid,
-                                 Oid orig_relnode, int segno,
-                                 const char *dest_path);
+                                 Oid orig_relnode, int segno);
 
 EXTERNC int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                                    int64 logicalEof, size_t *local_bytes,
