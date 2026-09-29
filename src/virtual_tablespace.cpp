@@ -87,7 +87,7 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
 
   rd_rel->reltablespace = desttablespace_oid;
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   simple_heap_update(pg_class, &tuple->t_self, tuple);
   CatalogUpdateIndexes(pg_class, tuple);
 #else

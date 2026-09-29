@@ -24,10 +24,10 @@ void YezzeyCreateVirtualSchema(void) {
             (errcode(ERRCODE_DUPLICATE_SCHEMA),
              errmsg("yezzey_creta: schema \"%s\" already exists", nspName)));
 
-#if IsModernYezzey
-  nspacl = get_user_default_acl(OBJECT_SCHEMA, ownerId, InvalidOid);
-#else
+#ifdef OPENGPDB
   nspacl = get_user_default_acl(ACL_OBJECT_RELATION, ownerId, InvalidOid);
+#else
+  nspacl = get_user_default_acl(OBJECT_SCHEMA, ownerId, InvalidOid);
 #endif
 
   nspdesc = yezzey_relation_open(NamespaceRelationId, RowExclusiveLock);
@@ -41,7 +41,7 @@ void YezzeyCreateVirtualSchema(void) {
 
   nspoid = YEZZEY_AUX_NAMESPACE;
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   values[Anum_pg_namespace_oid - 1] = ObjectIdGetDatum(nspoid);
 #endif
   namestrcpy(&nname, nspName);
@@ -54,16 +54,16 @@ void YezzeyCreateVirtualSchema(void) {
 
   tup = heap_form_tuple(tupDesc, values, nulls);
 
-#if !IsModernYezzey
+#ifdef OPENGPDB
   HeapTupleSetOid(tup, nspoid);
 #endif
 
-#if IsModernYezzey
-  CatalogTupleInsert(nspdesc, tup);
-#else
+#ifdef OPENGPDB
   /* if gp6 insert tuples locally */
   simple_heap_insert(nspdesc, tup);
   CatalogUpdateIndexes(nspdesc, tup);
+#else
+  CatalogTupleInsert(nspdesc, tup);
 #endif
   Assert(OidIsValid(nspoid));
 

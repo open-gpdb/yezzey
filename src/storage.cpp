@@ -20,7 +20,6 @@
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
-#include "ygpver.h"
 #include "yproxy.h"
 
 int yezzey_log_level = DEBUG1;
@@ -55,7 +54,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   int64 curr_read_chunk;
 
   std::vector<char> buffer(chunkSize);
-#if IsGreenplum6
+#ifdef OPENGPDB
   const auto vfd = PathNameOpenFile((FileName)localPath, O_RDONLY, 0600);
 #else
   const auto vfd = PathNameOpenFile(localPath, O_RDONLY);
@@ -121,7 +120,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       /* should not read beyond logical eof */
       curr_read_chunk = logicalEof - progress;
     }
-#if IsGreenplum6
+#ifdef OPENGPDB
     rc = FileRead(vfd, buffer.data(), curr_read_chunk);
 #else
     rc = FileRead(vfd, buffer.data(), curr_read_chunk, progress,
@@ -434,7 +433,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
-#if IsGreenplum6
+#ifdef OPENGPDB
     const auto f =
         PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);
 #else
@@ -506,7 +505,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
-#if IsGreenplum6
+#ifdef OPENGPDB
     const auto f =
         PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);
 #else

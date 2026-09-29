@@ -111,7 +111,7 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
               BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
   auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
-#if IsModernYezzey
+#ifndef OPENGPDB
   auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
   /* No map tuple created. Assume 'pg_default' by default */
   if (!table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
@@ -172,7 +172,7 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
   yezzey_endscan(scanoff);
   UnregisterSnapshot(snap);
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   ExecDropSingleTupleTableSlot(slot);
 #endif
 
@@ -206,25 +206,24 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
 
   auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
 
-#if IsModernYezzey
-  auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
+#ifdef OPENGPDB
+  auto offtuple = heap_getnext(scanoff, ForwardScanDirection);
 
   /* Already registered, from previous offloads */
-  if (table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
-    ExecDropSingleTupleTableSlot(slot);
-
+  if (HeapTupleIsValid(offtuple)) {
     heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
     yezzey_endscan(scanoff);
     UnregisterSnapshot(snap);
     return;
   }
-
 #else
-  auto offtuple = heap_getnext(scanoff, ForwardScanDirection);
+  auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
 
   /* Already registered, from previous offloads */
-  if (HeapTupleIsValid(offtuple)) {
+  if (table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
+    ExecDropSingleTupleTableSlot(slot);
+
     heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
     yezzey_endscan(scanoff);
@@ -241,7 +240,7 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
   auto nofftuple = heap_form_tuple(RelationGetDescr(offload_tablespace_map_rel),
                                    values, nulls);
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   simple_heap_insert(offload_tablespace_map_rel, nofftuple);
   CatalogUpdateIndexes(offload_tablespace_map_rel, nofftuple);
 #else
@@ -252,7 +251,7 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
 
   heap_freetuple(nofftuple);
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   ExecDropSingleTupleTableSlot(slot);
 #endif
 
@@ -300,17 +299,7 @@ void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
 }
 
 void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {
-
-#if IsModernYezzey
-  return;
-  if (IsCatalogRelationOid(targRelationOid) ||
-      IsCatalogRelationOid(sourceRelationOid)) {
-    return;
-  }
-#else
-  /* TODO */
-#endif
-
+#ifdef OPENGPDB
   auto r = try_relation_open(sourceRelationOid, NoLock, false);
 
   if (r == NULL)
@@ -336,6 +325,7 @@ void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {
     relation_close(r2, NoLock);
   }
   relation_close(r, NoLock);
+#endif
 }
 
 void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/ }
