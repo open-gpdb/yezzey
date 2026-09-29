@@ -59,7 +59,7 @@ static char *getlocalpath(const YezzeyLocator &rnode, int segno) {
 
 int offloadRelationSegmentPath(
     Relation aorel, std::shared_ptr<IOadv> ioadv, int64 modcount,
-    int64 logicalEof, const std::string & /* external_storage_path */) {
+    int64 logicalEof, const std::string &external_storage_path) {
   const auto local_rnode = YezzeyGetRelFileLocator(aorel);
   char *localPath = getlocalpath(local_rnode, ioadv->coords_.blkno);
 
@@ -86,7 +86,8 @@ int offloadRelationSegmentPath(
 
   LocalFileGuard local_file(vfd, localPath);
 
-  auto iohandler = YIO(ioadv, GpIdentity.segindex, modcount, std::string());
+  auto iohandler =
+      YIO(ioadv, GpIdentity.segindex, modcount, external_storage_path);
 
   /*
    * Create external storage reader handle to calculate total external files
@@ -94,7 +95,7 @@ int offloadRelationSegmentPath(
    * storage.
    */
   const auto virtual_size = yezzey_calc_virtual_relation_size(
-      ioadv, GpIdentity.segindex, modcount, std::string());
+      ioadv, GpIdentity.segindex, modcount, external_storage_path);
 
   if (virtual_size == -1) {
     elog(NOTICE, "yezzey: failed to calculate virtual size");
@@ -293,7 +294,7 @@ int removeLocalFile(const char *localPath) {
 
 void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                             int64 logicalEof,
-                            const char * /* external_storage_path */) {
+                            const char *external_storage_path) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
 
   const auto coords =
@@ -318,8 +319,9 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
         storage_class, multipart_chunksize, coords, aorel->rd_id /* reloid */,
         use_gpg_crypto, yproxy_socket);
 
-    if (offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
-                                   std::string()) < 0) {
+    if (offloadRelationSegmentPath(
+            aorel, ioadv, modcount, logicalEof,
+            external_storage_path ? external_storage_path : "") < 0) {
       throw std::runtime_error("failed to offload relation");
     }
   } catch (const std::exception &e) {
