@@ -12,7 +12,7 @@ Oid YezzeyFindAuxIndex_internal(Oid reloid);
 static inline Oid yezzey_create_expire_hint_relation_internal(
     Oid relid, const std::string &relname, Oid relowner, char relpersistence,
     bool shared_relation, bool mapped_relation) {
-#if IsGreenplum6
+#ifdef OPENGPDB
   auto tupdesc = CreateTemplateTupleDesc(Natts_yezzey_expire_hint, false);
 #else
   auto tupdesc = CreateTemplateTupleDesc(Natts_yezzey_expire_hint);
@@ -22,7 +22,7 @@ static inline Oid yezzey_create_expire_hint_relation_internal(
                      LSNOID, -1, 0);
   TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_expire_hint_x_path,
                      "x_path", TEXTOID, -1, 0);
-#if IsGreenplum6
+#ifdef OPENGPDB
   auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
       relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
       0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
@@ -71,7 +71,7 @@ yezzey_create_expire_hint_idx_internal(Oid relid, const std::string &relname,
   int16 coloptions[1];
 
   indexInfo->ii_NumIndexAttrs = 1;
-#if IsGreenplum6
+#ifdef OPENGPDB
   indexInfo->ii_KeyAttrNumbers[0] = Anum_yezzey_expire_hint_x_path;
 #else
   indexInfo->ii_IndexAttrNumbers[0] = Anum_yezzey_expire_hint_x_path;
@@ -80,7 +80,7 @@ yezzey_create_expire_hint_idx_internal(Oid relid, const std::string &relname,
   indexInfo->ii_Expressions = NIL;
   indexInfo->ii_ExpressionsState = NIL;
   indexInfo->ii_Predicate = NIL;
-#if IsGreenplum6
+#ifdef OPENGPDB
   indexInfo->ii_PredicateState = NIL;
 #else
   indexInfo->ii_PredicateState = NULL;
@@ -93,7 +93,7 @@ yezzey_create_expire_hint_idx_internal(Oid relid, const std::string &relname,
   classObjectId[0] = TEXT_BTREE_OPS_OID;
   coloptions[0] = 0;
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   (void)index_create(yezzey_rel, relname.c_str(), relid, InvalidOid, InvalidOid,
                      InvalidOid, indexInfo, indexColNames, BTREE_AM_OID,
                      0 /* tablespace */, collationObjectId, classObjectId,

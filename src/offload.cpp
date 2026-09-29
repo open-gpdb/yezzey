@@ -22,20 +22,16 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
 
   auto nvp = aorel->rd_att->natts;
 
-#if IsModernYezzey
-  Oid segrelid;
-#endif
-
   /*
    * Relation segments named base/DBOID/YezzeyGetRelFileLocator(aorel).*
    */
 
-#if IsModernYezzey
-  elog(yezzey_log_level, "offloading relation %s, relnode %u",
+#ifdef OPENGPDB
+  elog(yezzey_log_level, "offloading relation %s, relnode %d",
        RelationGetRelationName(aorel),
        YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
 #else
-  elog(yezzey_log_level, "offloading relation %s, relnode %d",
+  elog(yezzey_log_level, "offloading relation %s, relnode %u",
        RelationGetRelationName(aorel),
        YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
 #endif
@@ -49,12 +45,13 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
 
   if (RelationIsAoRows(aorel)) {
     /* Get information about all the file segments we need to scan */
-#if IsModernYezzey
-    segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
-                                      &total_segfiles, &segrelid);
-#else
+#ifdef OPENGPDB
     segfile_array =
         GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles);
+#else
+    Oid segrelid;
+    segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
+                                      &total_segfiles, &segrelid);
 #endif
 
     for (int i = 0; i < total_segfiles; i++) {
@@ -77,10 +74,11 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
     }
   } else if (RelationIsAoCols(aorel)) {
     /* ao columns, relstorage == 'c' */
-#if IsGreenplum6
+#ifdef OPENGPDB
     segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
                                              &total_segfiles);
 #else
+    Oid segrelid;
     segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
                                              &total_segfiles, &segrelid);
 #endif

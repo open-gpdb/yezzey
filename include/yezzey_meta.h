@@ -2,7 +2,6 @@
 
 #include "pg.h"
 #include "virtual_index.h"
-#include "ygpver.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -10,7 +9,7 @@
 #define EXTERNC
 #endif
 
-#if IsModernYezzey
+#ifndef OPENGPDB
 #define YEZZEY_AUX_NAMESPACE 8001
 #define YEZZEYTABLESPACE_OID 8555
 #endif

@@ -95,7 +95,7 @@ bool use_otm_feature = false;
 
 char *yproxy_socket = NULL;
 
-#if IsGreenplum6
+#ifdef OPENGPDB
 Oid runningRewriteSpcOidHint = InvalidOid;
 #endif
 
@@ -148,7 +148,7 @@ Datum yezzey_init_metadata_seg(PG_FUNCTION_ARGS) {
   return yezzey_init_metadata(fcinfo);
 }
 
-#if IsGreenplum6
+#ifdef OPENGPDB
 void yezzey_TrackObjDrop(Relation rel);
 #endif
 
@@ -194,7 +194,7 @@ Datum yezzey_define_relation_offload_policy_internal_seg(PG_FUNCTION_ARGS) {
  * TBD: doc the logic
  */
 
-void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
+void yezzey_load_relation_internal(Oid reloid) {
   Relation aorel;
   int i;
   int segno;
@@ -209,10 +209,6 @@ void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   /* yezzey aux index oid */
   Oid yandexoid;
 
-#if IsModernYezzey
-  Oid segrelid;
-#endif
-
   /*  XXX: maybe fix lock here to take more granular lock
    */
   aorel = relation_open(reloid, AccessExclusiveLock);
@@ -224,11 +220,11 @@ void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
    * Relation segments named base/DBOID/aorel->rd_node.*
    */
 
-#if IsModernYezzey
-  elog(yezzey_log_level, "loading relnode %u",
+#if OPENGPDB
+  elog(yezzey_log_level, "loading relnode %d",
        YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
 #else
-  elog(yezzey_log_level, "loading relnode %d",
+  elog(yezzey_log_level, "loading relnode %u",
        YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
 #endif
   /* for now, we locked relation */
@@ -254,19 +250,20 @@ void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
   /* Get information about all the file segments we need to scan */
   if (RelationIsAoRows(aorel)) {
     /* ao rows relation */
-#if IsModernYezzey
-    segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
-                                      &total_segfiles, &segrelid);
-#else
+#if OPENGPDB
     segfile_array =
         GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles);
+#else
+    Oid segrelid;
+    segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
+                                      &total_segfiles, &segrelid);
 #endif
 
     for (i = 0; i < total_segfiles; i++) {
       segno = segfile_array[i]->segno;
       elog(yezzey_log_level, "loading segment no %d", segno);
 
-      loadRelationSegment(aorel, loadSpcOid, origrelfilenode, segno, dest_path);
+      loadRelationSegment(aorel, loadSpcOid, origrelfilenode, segno);
       /* segment if loaded */
     }
 
@@ -276,10 +273,11 @@ void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
     }
   } else if (RelationIsAoCols(aorel)) {
     /* ao columns, relstorage == 'c' */
-#if IsGreenplum6
+#ifdef OPENGPDB
     segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
                                              &total_segfiles);
 #else
+    Oid segrelid;
     segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
                                              &total_segfiles, &segrelid);
 #endif
@@ -291,8 +289,7 @@ void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
         elog(yezzey_log_level, "loading cs segment no %d pseudosegno %d", segno,
              pseudosegno);
 
-        loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno,
-                            dest_path);
+        loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno);
         /* segment if loaded */
       }
     }
@@ -361,13 +358,7 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
    * 2) check pg_aoseg.pg_aoseg_XXX table for all segments
    * 3) go and load each segment (XXX: enhancement: do loading in parallel)
    */
-  Oid reloid;
-  char *dest_path = NULL;
-
-  reloid = PG_GETARG_OID(0);
-  dest_path = GET_STR(PG_GETARG_TEXT_P(1));
-
-  yezzey_load_relation_internal(reloid, NULL);
+  yezzey_load_relation_internal(PG_GETARG_OID(0));
 
   PG_RETURN_VOID();
 }
@@ -454,14 +445,14 @@ Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
 
   yezzey_vacuum_garbage_internal(GpIdentity.segindex, confirm, crazyDrop);
 
-#if IsModernYezzey
+#ifdef OPENGPDB
+  PG_RETURN_VOID();
+#else
   /*
    * Non-SRF on-segment execution is hazardous for CBDB/other MPP so make
    * sure we return something; see also validate_sql_exec_location for details
    */
   PG_RETURN_BOOL(true);
-#else
-  PG_RETURN_VOID();
 #endif
 }
 
@@ -489,14 +480,14 @@ Datum yezzey_vacuum_garbage_tablespace(PG_FUNCTION_ARGS) {
   yezzey_vacuum_garbage_tablespace_internal(tablespace, GpIdentity.segindex,
                                             confirm, crazyDrop);
 
-#if IsModernYezzey
+#ifdef OPENGPDB
+  PG_RETURN_VOID();
+#else
   /*
    * Non-SRF on-segment execution is hazardous for CBDB/other MPP so make
    * sure we return something; see also validate_sql_exec_location for details
    */
   PG_RETURN_BOOL(true);
-#else
-  PG_RETURN_VOID();
 #endif
 }
 
@@ -517,14 +508,14 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
   yezzey_vacuum_garbage_relation_internal_oid(reloid, GpIdentity.segindex,
                                               confirm, crazyDrop);
 
-#if IsModernYezzey
+#ifdef OPENGPDB
+  PG_RETURN_VOID();
+#else
   /*
    * Non-SRF on-segment execution is hazardous for CBDB/other MPP so make
    * sure we return something; see also validate_sql_exec_location for details
    */
   PG_RETURN_BOOL(true);
-#else
-  PG_RETURN_VOID();
 #endif
 }
 
@@ -607,9 +598,6 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
   MemoryContext oldcontext;
   AttInMetadata *attinmeta;
   int32 call_cntr;
-#if IsModernYezzey
-  Oid segrelid;
-#endif
   Oid reloid;
   reloid = PG_GETARG_OID(0);
 
@@ -641,18 +629,20 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
 
     if (RelationIsAoRows(aorel)) {
       /* ao rows relation */
-#if IsModernYezzey
-      segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
-                                        &total_segfiles, &segrelid);
-#else
+#ifdef OPENGPDB
       segfile_array =
           GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles);
+#else
+      Oid segrelid;
+      segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
+                                        &total_segfiles, &segrelid);
 #endif
     } else if (RelationIsAoCols(aorel)) {
-#if IsGreenplum6
+#ifdef OPENGPDB
       segfile_array_cs = GetAllAOCSFileSegInfo(
           aorel, appendOnlyMetaDataSnapshot, &total_segfiles);
 #else
+      Oid segrelid;
       segfile_array_cs = GetAllAOCSFileSegInfo(
           aorel, appendOnlyMetaDataSnapshot, &total_segfiles, &segrelid);
 #endif
@@ -666,7 +656,7 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
      * view yezzey_offload_relation_status_internal
      */
 
-#if IsGreenplum6
+#ifdef OPENGPDB
     if (ext)
       funcctx->tuple_desc = CreateTemplateTupleDesc(
           NUM_USED_OFFLOAD_PER_SEGMENT_STATUS + 1, false);
@@ -958,7 +948,7 @@ Datum yezzey_relation_describe_external_storage_structure_internal(
      * view yezzey_offload_relation_status_internal
      */
 
-#if IsGreenplum6
+#ifdef OPENGPDB
     funcctx->tuple_desc = CreateTemplateTupleDesc(
         NUM_USED_OFFLOAD_PER_SEGMENT_STATUS_STRUCT, false);
 #else
@@ -1067,9 +1057,6 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
   int nvp;
   int pseudosegno;
   int total_segfiles;
-#if IsModernYezzey
-  Oid segrelid;
-#endif
   int64 modcount;
   int64 logicalEof;
   FileSegInfo **segfile_array;
@@ -1103,12 +1090,13 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
   if (RelationIsAoRows(aorel)) {
     /* ao rows relation */
 
-#if IsModernYezzey
-    segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
-                                      &total_segfiles, &segrelid);
-#else
+#ifdef OPENGPDB
     segfile_array =
         GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles);
+#else
+    Oid segrelid;
+    segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
+                                      &total_segfiles, &segrelid);
 #endif
 
     for (i = 0; i < total_segfiles; i++) {
@@ -1136,10 +1124,11 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
     }
   } else if (RelationIsAoCols(aorel)) {
     /* ao columns, relstorage == 'c' */
-#if IsGreenplum6
+#ifdef OPENGPDB
     segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
                                              &total_segfiles);
 #else
+    Oid segrelid;
     segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
                                              &total_segfiles, &segrelid);
 #endif
@@ -1187,7 +1176,7 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
    * The number and type of attributes have to match the definition of the
    * view yezzey_offload_relation_status_internal
    */
-#if IsGreenplum6
+#ifdef OPENGPDB
   if (ext)
     tupdesc = CreateTemplateTupleDesc(NUM_YEZZEY_OFFLOAD_STATE_COLS + 1, false);
   else
@@ -1296,7 +1285,7 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
     return;
   }
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   if (access == OAT_TRUNCATE && subId == 0) {
     /* open the relation, we already hold a lock on it */
     offRel = relation_open(objectId, AccessShareLock);
@@ -1342,25 +1331,25 @@ readOnlyTree, ProcessUtilityContext context, ParamListInfo params,
 
 #define YEZZEYTABLESPACE_NAME "yezzey(cloud-storage)"
 
-#if IsModernYezzey
+#ifdef OPENGPDB
+static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
+                                       ProcessUtilityContext context,
+                                       ParamListInfo params, DestReceiver *dest,
+                                       char *completionTag)
+#else
 static void
 yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
                            bool readOnlyTree, ProcessUtilityContext context,
                            ParamListInfo params, QueryEnvironment *queryEnv,
                            DestReceiver *dest, QueryCompletion *qc)
-#else
-static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
-                                       ProcessUtilityContext context,
-                                       ParamListInfo params, DestReceiver *dest,
-                                       char *completionTag)
 #endif
 {
   RangeVar *post_alter_offload_rel;
-#if IsGreenplum6
+#ifdef OPENGPDB
   ListCell *lcmd;
 #endif
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   Node *parsetree;
   if (pstmt->utilityStmt) {
     parsetree = pstmt->utilityStmt;
@@ -1371,7 +1360,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
   }
 #endif
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   newTOASTTableSpace = InvalidOid;
 #endif
 
@@ -1386,7 +1375,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
       post_alter_offload_rel = stmt->relation;
     }
   } break;
-#if IsGreenplum6
+#ifdef OPENGPDB
   case T_AlterTableStmt: {
     AlterTableStmt *stmt = (AlterTableStmt *)parsetree;
 
@@ -1410,7 +1399,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
   } break;
 #endif
   case T_VacuumStmt:
-#if IsGreenplum6
+#ifdef OPENGPDB
   {
     VacuumStmt *stmt = (VacuumStmt *)parsetree;
     if (!stmt->relation) {
@@ -1433,16 +1422,16 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
     break;
   }
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   runningRewriteSpcOidHint = newTOASTTableSpace;
 #endif
 
-#if IsModernYezzey
-  prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params,
-                           queryEnv, dest, qc);
-#else
+#ifdef OPENGPDB
   prev_ProcessUtility_hook(parsetree, queryString, context, params, dest,
                            completionTag);
+#else
+  prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params,
+                           queryEnv, dest, qc);
 #endif
 
   if (post_alter_offload_rel != NULL) {
@@ -1452,7 +1441,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
     relation_close(rel, NoLock);
   }
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   /* Reset it */
   newTOASTTableSpace = InvalidOid;
   runningRewriteSpcOidHint = InvalidOid;
@@ -1475,7 +1464,7 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
   if (IsA(queryDesc->plannedstmt->planTree, ModifyTable) &&
       list_length(queryDesc->plannedstmt->relationOids) == 2) {
 
-#if !IsModernYezzey
+#ifdef OPENGPDB
     targOid = lfirst_oid(queryDesc->plannedstmt->relationOids->head);
     sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids->tail);
 #else
@@ -1493,7 +1482,7 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
         elog(ERROR, "unexpected plan relation size for yezzey alter: %d",
              queryDesc->plannedstmt->relationOids->length);
       }
-#if !IsModernYezzey
+#ifdef OPENGPDB
       sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids->head);
 #else
       sourceOid = lfirst_oid(list_head(queryDesc->plannedstmt->relationOids));
@@ -1528,14 +1517,14 @@ static void yezzey_define_gucs() {
                            &use_gpg_crypto, true, PGC_SUSET, 0, NULL, NULL,
                            NULL);
 
-#if IsModernYezzey
-  DefineCustomBoolVariable("yezzey.use_otm_feature", "use OTM feature", NULL,
-                           &use_otm_feature, false, PGC_BACKEND, 0, NULL, NULL,
-                           NULL);
-#else
+#ifdef OPENGPDB
   DefineCustomBoolVariable("yezzey.use_otm_feature", "use OTM feature", NULL,
                            &use_otm_feature, false, PGC_POSTMASTER, 0, NULL,
                            NULL, NULL);
+#else
+  DefineCustomBoolVariable("yezzey.use_otm_feature", "use OTM feature", NULL,
+                           &use_otm_feature, false, PGC_BACKEND, 0, NULL, NULL,
+                           NULL);
 #endif
 
   DefineCustomBoolVariable(
@@ -1557,7 +1546,7 @@ static void yezzey_define_gucs() {
                              NULL, NULL, NULL);
 }
 
-#if IsGreenplum6
+#ifdef OPENGPDB
 void yezzey_TrackObjDrop(Relation rel) {
   if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID)
     (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(rel)),
@@ -1573,7 +1562,7 @@ void _PG_init(void) {
             (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
              errmsg("yezzey must be registered in shared_preload_libraries")));
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   allow_in_place_tablespaces = true;
 #endif
 
@@ -1583,7 +1572,7 @@ void _PG_init(void) {
   elog(yezzey_log_level, "[YEZZEY_SMGR] set hook");
 
   smgr_hook = smgr_yezzey;
-#if IsGreenplum6
+#ifdef OPENGPDB
   smgrao_hook = smgrao_yezzey;
 #endif
   smgr_init_hook = smgr_init_yezzey;
@@ -1604,9 +1593,7 @@ void _PG_init(void) {
   ExecutorStart_hook = yezzey_ExecuterStartHook;
   ExecutorEnd_hook = yezzey_ExecuterEndHook;
 
-#if IsModernYezzey
-  /* Support? */
-#else
+#ifdef OPENGPDB
   TrackDropObject_hook = yezzey_TrackObjDrop;
 #endif
 }

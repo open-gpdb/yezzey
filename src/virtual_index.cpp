@@ -11,7 +11,7 @@ Oid YezzeyFindAuxIndex_internal(Oid reloid);
 static inline Oid yezzey_create_virtual_index_relation_internal(
     Oid relid, const std::string &relname, Oid relowner, char relpersistence,
     bool shared_relation, bool mapped_relation) {
-#if IsGreenplum6
+#ifdef OPENGPDB
   auto tupdesc = CreateTemplateTupleDesc(Natts_yezzey_virtual_index, false);
 #else
   auto tupdesc = CreateTemplateTupleDesc(Natts_yezzey_virtual_index);
@@ -44,7 +44,7 @@ static inline Oid yezzey_create_virtual_index_relation_internal(
   TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_virtual_x_path, "x_path",
                      TEXTOID, -1, 0);
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
       relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
       0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
@@ -95,7 +95,7 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
   int16 coloptions[3];
 
   indexInfo->ii_NumIndexAttrs = 3;
-#if IsGreenplum6
+#ifdef OPENGPDB
   indexInfo->ii_KeyAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
   indexInfo->ii_KeyAttrNumbers[1] = Anum_yezzey_virtual_index_blkno;
   indexInfo->ii_KeyAttrNumbers[2] = Anum_yezzey_virtual_modcount;
@@ -108,7 +108,7 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
   indexInfo->ii_Expressions = NIL;
   indexInfo->ii_ExpressionsState = NIL;
   indexInfo->ii_Predicate = NIL;
-#if IsGreenplum6
+#ifdef OPENGPDB
   indexInfo->ii_PredicateState = NIL;
 #else
   indexInfo->ii_PredicateState = NULL;
@@ -128,7 +128,7 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
 
   classObjectId[2] = INT8_BTREE_OPS_OID;
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   (void)index_create(yezzey_rel, relname.c_str(), relid, InvalidOid, InvalidOid,
                      InvalidOid, indexInfo, indexColNames, BTREE_AM_OID,
                      0 /* tablespace */, collationObjectId, classObjectId,
@@ -231,7 +231,7 @@ Oid YezzeyFindAuxIndex_internal(Oid reloid) {
 
   if (HeapTupleIsValid(tup = systable_getnext(scan))) {
 
-#if IsGreenplum6
+#ifdef OPENGPDB
     yezzey_virtual_index_oid = HeapTupleGetOid(tup);
 #else
     auto ytup = ((Form_pg_class)GETSTRUCT(tup));
@@ -353,7 +353,7 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
     auto yandxtuple =
         heap_form_tuple(RelationGetDescr(relation), values, nulls);
 
-#if IsGreenplum6
+#ifdef OPENGPDB
     simple_heap_update(relation, &tuple->t_self, yandxtuple);
     CatalogUpdateIndexes(relation, yandxtuple);
 #else
@@ -413,8 +413,11 @@ void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,
 
   /* send tuple messages to master */
 
-#if IsModernYezzey
-
+#ifdef OPENGPDB
+  /* if gp6 insert tuples locally */
+  simple_heap_insert(yandxrel, yandxtuple);
+  CatalogUpdateIndexes(yandxrel, yandxtuple);
+#else
 #if 0 /* Yezzey 3 */
   auto mt_bind = create_memtuple_binding(
       RelationGetDescr(yandxrel), RelationGetNumberOfAttributes(yandxrel));
@@ -436,10 +439,6 @@ void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,
 #else
   CatalogTupleInsert(yandxrel, yandxtuple);
 #endif
-#else
-  /* if gp6 insert tuples locally */
-  simple_heap_insert(yandxrel, yandxtuple);
-  CatalogUpdateIndexes(yandxrel, yandxtuple);
 #endif
 
   heap_freetuple(yandxtuple);
