@@ -48,7 +48,6 @@ void YezzeyCreateVirtualSchema(void) {
 
   tup = heap_form_tuple(tupDesc, values, nulls);
 
-
   CatalogTupleInsert(nspdesc, tup);
   Assert(OidIsValid(nspoid));
 

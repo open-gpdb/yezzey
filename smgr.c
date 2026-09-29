@@ -201,8 +201,8 @@ bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum) {
   return ret;
 }
 
-void yezzey_unlink(YezzeyLocatorBackend rnode, ForkNumber forkNum, bool isRedo)
-{
+void yezzey_unlink(YezzeyLocatorBackend rnode, ForkNumber forkNum,
+                   bool isRedo) {
 
   if (IsYezzeyOperateSpc(
           YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltor(rnode)))) {
@@ -303,9 +303,8 @@ void yezzey_zeroextend(SMgrRelation reln, ForkNumber forkNum,
 }
 #endif
 
-bool
-yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
-{
+bool yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum,
+                     BlockNumber blockNum) {
   bool ret;
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
@@ -512,7 +511,6 @@ void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum) {
   }
 }
 
-
 #define MAX_YEZZEY_SMGR_ID 3
 
 static const f_smgr yezzey_smgrsw[] = {
@@ -593,7 +591,4 @@ void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which,
   reln->smgr = &yezzey_smgrsw[which];
 }
 
-
-void smgr_init_yezzey(void) {
-  yezzey_init();
-}
+void smgr_init_yezzey(void) { yezzey_init(); }

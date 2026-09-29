@@ -95,7 +95,6 @@ bool use_otm_feature = false;
 
 char *yproxy_socket = NULL;
 
-
 PG_MODULE_MAGIC;
 
 PG_FUNCTION_INFO_V1(yezzey_offload_relation);
@@ -144,7 +143,6 @@ Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
 Datum yezzey_init_metadata_seg(PG_FUNCTION_ARGS) {
   return yezzey_init_metadata(fcinfo);
 }
-
 
 void yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
                                       const char *external_storage_path);
@@ -1259,8 +1257,7 @@ static void
 yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
                            bool readOnlyTree, ProcessUtilityContext context,
                            ParamListInfo params, QueryEnvironment *queryEnv,
-                           DestReceiver *dest, QueryCompletion *qc)
-{
+                           DestReceiver *dest, QueryCompletion *qc) {
   RangeVar *post_alter_offload_rel;
 
   Node *parsetree;
@@ -1271,7 +1268,6 @@ yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
     return prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context,
                                     params, queryEnv, dest, qc);
   }
-
 
   post_alter_offload_rel = NULL;
 
@@ -1285,11 +1281,10 @@ yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
     }
   } break;
   case T_VacuumStmt:
-  break;
+    break;
   default:
     break;
   }
-
 
   prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context, params,
                            queryEnv, dest, qc);
@@ -1300,7 +1295,6 @@ yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
     YezzeyDefineOffloadPolicy(RelationGetRelid(rel));
     relation_close(rel, NoLock);
   }
-
 }
 
 static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
@@ -1386,7 +1380,6 @@ static void yezzey_define_gucs() {
                              NULL, NULL, NULL);
 }
 
-
 void _PG_init(void) {
   /* Allocate shared memory for yezzey workers */
 
@@ -1420,7 +1413,6 @@ void _PG_init(void) {
 
   ExecutorStart_hook = yezzey_ExecuterStartHook;
   ExecutorEnd_hook = yezzey_ExecuterEndHook;
-
 }
 
 Datum yezzey_delete_obsolete(PG_FUNCTION_ARGS) {

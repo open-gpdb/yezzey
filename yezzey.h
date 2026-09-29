@@ -94,7 +94,6 @@ void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum);
 
 BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum);
 
-
 void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which,
                  Relation rel);
 
@@ -103,6 +102,5 @@ void smgr_init_yezzey(void);
 extern Datum yezzey_stat_get_external_storage_usage(PG_FUNCTION_ARGS);
 
 void _PG_init(void);
-
 
 #endif /* YEZZEY_H */

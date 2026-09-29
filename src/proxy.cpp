@@ -111,10 +111,7 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
   return 0;
 }
 
-
-
-EXTERNC int yezzey_FileSync(SMGRFile file, uint32 wait_event_info)
-{
+EXTERNC int yezzey_FileSync(SMGRFile file, uint32 wait_event_info) {
   File actual_fd = YVirtFD_cache[file].y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
     /* s3 always sync ? */
@@ -419,8 +416,7 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount, off_t offset,
 }
 
 EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset,
-                                uint32 wait_event_info)
-{
+                                uint32 wait_event_info) {
   YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
   File actual_fd = yfd.y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {

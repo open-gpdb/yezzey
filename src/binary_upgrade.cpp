@@ -92,7 +92,6 @@ void YezzeyBinaryUpgrade(void) {
   allowSystemTableMods = prevAllowSystableMods;
 }
 
-
 static void YezzeyCreateVirtualSpc() {
 
   Relation rel;
@@ -193,8 +192,6 @@ void YezzeyInitMetadata(void) {
   (void)YezzeyCreateExpireHintIdx();
 }
 
-void YezzeyBinaryUpgrade183(void) {
-}
+void YezzeyBinaryUpgrade183(void) {}
 
-void YezzeyBinaryUpgrade184(void) {
-}
+void YezzeyBinaryUpgrade184(void) {}
