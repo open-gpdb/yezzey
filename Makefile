@@ -27,7 +27,6 @@ OBJS = \
 	src/offload.o \
 	src/virtual_tablespace.o \
 	src/virtual_schema.o \
-	src/partition.o \
 	src/xvacuum.o \
 	src/meta.o \
 	src/binary_upgrade.o \
