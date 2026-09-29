@@ -139,7 +139,6 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
   yezzey_endscan(scanoff);
   UnregisterSnapshot(snap);
 
-
   return tablespace_val;
 }
 
@@ -195,7 +194,6 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
   heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
   heap_freetuple(nofftuple);
-
 
   UnregisterSnapshot(snap);
 }

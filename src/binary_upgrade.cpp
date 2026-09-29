@@ -90,19 +90,14 @@ void YezzeyBinaryUpgrade(void) {
   allowSystemTableMods = prevAllowSystableMods;
 }
 
-
 void YezzeyInitMetadata(void) {
-
 
   (void)YezzeyCreateVirtualSchema();
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
-
 }
 
-void YezzeyBinaryUpgrade183(void) {
-  (void)YezzeyCreateVirtualIndexIdx();
-}
+void YezzeyBinaryUpgrade183(void) { (void)YezzeyCreateVirtualIndexIdx(); }
 
 void YezzeyBinaryUpgrade184(void) {
   (void)YezzeyCreateExpireHint();

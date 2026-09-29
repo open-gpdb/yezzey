@@ -18,7 +18,6 @@
 #include "gucs.h"
 #include "ystat.h"
 
-
 void yezzey_prepare(void);
 void yezzey_finish(void);
 
@@ -45,7 +44,6 @@ bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum);
 
 void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
                    char relstorage);
-
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
                    char *buffer, bool skipFsync);

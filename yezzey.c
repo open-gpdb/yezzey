@@ -46,7 +46,6 @@
 #include "utils/guc.h"
 #include "utils/syscache.h"
 
-
 #include "fmgr.h"
 #include "funcapi.h"
 #include "pgstat.h"
@@ -212,8 +211,7 @@ void yezzey_load_relation_internal(Oid reloid) {
    * Relation segments named base/DBOID/aorel->rd_node.*
    */
 
-  elog(yezzey_log_level, "loading relnode %d",
-       aorel->rd_node.relNode);
+  elog(yezzey_log_level, "loading relnode %d", aorel->rd_node.relNode);
   /* for now, we locked relation */
 
   /* GetAllFileSegInfo_pg_aoseg_rel */
@@ -221,8 +219,7 @@ void yezzey_load_relation_internal(Oid reloid) {
   /* acquire snapshot for aoseg table lookup */
   appendOnlyMetaDataSnapshot = SnapshotSelf;
   /*sanity check */
-  if (aorel->rd_node.spcNode !=
-      YEZZEYTABLESPACE_OID) {
+  if (aorel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
     /* shoulde never happen*/
     elog(ERROR, "attempted to load non-offloaded relation");
   }
@@ -517,9 +514,8 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   }
 
   (void)getYezzeyExternalStoragePathByCoords(
-      nspname, RelationGetRelationName(aorel), rnode.spcNode,
-      rnode.dbNode, rnode.relNode, segno,
-      GpIdentity.segindex, &ptr);
+      nspname, RelationGetRelationName(aorel), rnode.spcNode, rnode.dbNode,
+      rnode.relNode, segno, GpIdentity.segindex, &ptr);
 
   pfree(nspname);
 
@@ -1191,11 +1187,9 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
     return;
   }
 
-
   if (access == OAT_DROP && subId == 0) {
     offRel = relation_open(objectId, AccessShareLock);
-    if (offRel->rd_node.spcNode !=
-        YEZZEYTABLESPACE_OID) {
+    if (offRel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
       relation_close(offRel, AccessShareLock);
       return;
     }
@@ -1230,11 +1224,9 @@ readOnlyTree, ProcessUtilityContext context, ParamListInfo params,
 static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
                                        ProcessUtilityContext context,
                                        ParamListInfo params, DestReceiver *dest,
-                                       char *completionTag)
-{
+                                       char *completionTag) {
   RangeVar *post_alter_offload_rel;
   ListCell *lcmd;
-
 
   newTOASTTableSpace = InvalidOid;
 
@@ -1270,8 +1262,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
 
     relation_close(rel, NoLock);
   } break;
-  case T_VacuumStmt:
-  {
+  case T_VacuumStmt: {
     VacuumStmt *stmt = (VacuumStmt *)parsetree;
     if (!stmt->relation) {
       break;
@@ -1286,8 +1277,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
       }
     }
     relation_close(rel, NoLock);
-  }
-  break;
+  } break;
   default:
     break;
   }
@@ -1405,7 +1395,6 @@ void _PG_init(void) {
     ereport(ERROR,
             (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
              errmsg("yezzey must be registered in shared_preload_libraries")));
-
 
   /* Yezzey GUCS define */
   (void)yezzey_define_gucs();

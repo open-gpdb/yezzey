@@ -110,7 +110,6 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
   return 0;
 }
 
-
 int64 yezzey_NonVirtualCurSeek(SMGRFile file) {
   if (YVirtFD_cache[file].y_vfd == YEZZEY_OFFLOADED_FD) {
     elog(yezzey_ao_log_level,
@@ -141,8 +140,7 @@ int64 yezzey_FileSeek(SMGRFile file, int64 offset, int whence) {
   return FileSeek(actual_fd, offset, whence);
 }
 
-EXTERNC int yezzey_FileSync(SMGRFile file)
-{
+EXTERNC int yezzey_FileSync(SMGRFile file) {
   File actual_fd = YVirtFD_cache[file].y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
     /* s3 always sync ? */
@@ -310,10 +308,8 @@ void yezzey_FileClose(SMGRFile file) {
 
 #define ALLOW_MODIFY_EXTERNAL_TABLE
 
-int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
-{
+int yezzey_FileWrite(SMGRFile file, char *buffer, int amount) {
   YVirtFD &yfd = YVirtFD_cache[file];
-
 
   File actual_fd = yfd.y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
@@ -358,7 +354,6 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
   size_t curr = amount;
   YVirtFD &yfd = YVirtFD_cache[file];
 
-
   File actual_fd = yfd.y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
     if (yfd.handler->reader_empty()) {
@@ -392,8 +387,7 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
   return FileRead(actual_fd, buffer, amount);
 }
 
-EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset)
-{
+EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset) {
   YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
   File actual_fd = yfd.y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {

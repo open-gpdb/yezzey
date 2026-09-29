@@ -8,11 +8,9 @@ extern "C" {
 #include "c.h"
 #include "postgres.h"
 
-
 #include "libpq/md5.h"
 
 #include "utils/timestamp.h"
-
 
 #include "access/aocssegfiles.h"
 #include "access/aosegfiles.h"
@@ -75,7 +73,6 @@ extern "C" {
 #include "catalog/pg_opclass.h"
 
 #include "utils/pg_lsn.h"
-
 
 #include "libpq/pqformat.h"
 

@@ -26,8 +26,7 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
    */
 
   elog(yezzey_log_level, "offloading relation %s, relnode %d",
-       RelationGetRelationName(aorel),
-       aorel->rd_node.relNode);
+       RelationGetRelationName(aorel), aorel->rd_node.relNode);
 
   /* for now, we locked relation */
 

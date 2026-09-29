@@ -9,7 +9,6 @@
 #define EXTERNC
 #endif
 
-
 EXTERNC void YezzeyUpdateMetadataRelations(
     Oid yandexoid /*yezzey auxiliary index oid*/, Oid reloid,
     Oid relfilenodeOid, int64_t blkno, int64_t offset_start,

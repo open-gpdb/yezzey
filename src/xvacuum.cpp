@@ -119,10 +119,9 @@ void yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     auto spcNode = resolveTablespaceOidByName(
         YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-    relnodeCoord coords{spcNode, rnode.dbNode,
-                        rnode.relNode, segindx};
-    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, rnode.dbNode,
-                            rnode.relNode, segindx};
+    relnodeCoord coords{spcNode, rnode.dbNode, rnode.relNode, segindx};
+    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, rnode.dbNode, rnode.relNode,
+                            segindx};
     ReleaseSysCache(tp);
 
     std::string relname = RelationGetRelationName(aorel);

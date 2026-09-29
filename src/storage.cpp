@@ -99,7 +99,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   FileSeek(vfd, progress, SEEK_SET);
 
-
   ioadv->multipart_upload = fLen > multipart_threshold;
 
   while (progress < logicalEof) {
@@ -228,8 +227,8 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
                          int segno) {
   const auto rnode = aorel->rd_node;
 
-  const auto coords = relnodeCoord(
-      rnode.spcNode, rnode.dbNode, orig_relnode, segno);
+  const auto coords =
+      relnodeCoord(rnode.spcNode, rnode.dbNode, orig_relnode, segno);
 
   auto local_rnode = rnode;
   local_rnode.spcNode = loadSpcOid;
@@ -273,8 +272,7 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   const auto rnode = aorel->rd_node;
 
   const auto coords =
-      relnodeCoord(rnode.spcNode, rnode.dbNode,
-                   rnode.relNode, segno);
+      relnodeCoord(rnode.spcNode, rnode.dbNode, rnode.relNode, segno);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -360,9 +358,8 @@ static std::shared_ptr<IOadv>
 makeIOadvForOriginRelation(Relation rel, const std::string &nspname,
                            int segno) {
   const auto rnode = rel->rd_node;
-  const auto coords =
-      relnodeCoord(getRelationOriginTablespaceOid(rel),
-                   rnode.dbNode, rnode.relNode, segno);
+  const auto coords = relnodeCoord(getRelationOriginTablespaceOid(rel),
+                                   rnode.dbNode, rnode.relNode, segno);
 
   return std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(rel)),
