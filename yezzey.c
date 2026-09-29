@@ -61,7 +61,6 @@
 #include "offload.h"
 #include "offload_policy.h"
 #include "offload_tablespace_map.h"
-#include "partition.h"
 #include "relfilelocator.h"
 #include "storage.h"
 #include "util.h"
