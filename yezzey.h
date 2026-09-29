@@ -25,7 +25,7 @@ void yezzey_finish(void);
 
 void yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
                                       const char *external_path);
-void yezzey_load_relation_internal(Oid reloid, const char *dst_path);
+void yezzey_load_relation_internal(Oid reloid);
 
 int loadFileFromExternalStorage(YezzeyLocator rnode, BackendId backend,
                                 ForkNumber forkNum, BlockNumber blkno);

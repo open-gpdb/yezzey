@@ -194,7 +194,7 @@ Datum yezzey_define_relation_offload_policy_internal_seg(PG_FUNCTION_ARGS) {
  * TBD: doc the logic
  */
 
-void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
+void yezzey_load_relation_internal(Oid reloid) {
   Relation aorel;
   int i;
   int segno;
@@ -263,7 +263,7 @@ void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
       segno = segfile_array[i]->segno;
       elog(yezzey_log_level, "loading segment no %d", segno);
 
-      loadRelationSegment(aorel, loadSpcOid, origrelfilenode, segno, dest_path);
+      loadRelationSegment(aorel, loadSpcOid, origrelfilenode, segno);
       /* segment if loaded */
     }
 
@@ -289,8 +289,7 @@ void yezzey_load_relation_internal(Oid reloid, const char *dest_path) {
         elog(yezzey_log_level, "loading cs segment no %d pseudosegno %d", segno,
              pseudosegno);
 
-        loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno,
-                            dest_path);
+        loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno);
         /* segment if loaded */
       }
     }
@@ -359,13 +358,7 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
    * 2) check pg_aoseg.pg_aoseg_XXX table for all segments
    * 3) go and load each segment (XXX: enhancement: do loading in parallel)
    */
-  Oid reloid;
-  char *dest_path = NULL;
-
-  reloid = PG_GETARG_OID(0);
-  dest_path = GET_STR(PG_GETARG_TEXT_P(1));
-
-  yezzey_load_relation_internal(reloid, NULL);
+  yezzey_load_relation_internal(PG_GETARG_OID(0));
 
   PG_RETURN_VOID();
 }
