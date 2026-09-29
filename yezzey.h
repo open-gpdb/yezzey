@@ -35,9 +35,7 @@ void yezzey_init(void);
 /*
  * SMGR - related functions
  */
-#ifndef OPENGPDB
 void yezzey_open(SMgrRelation reln);
-#endif
 
 void yezzey_close(SMgrRelation reln, ForkNumber forkNum);
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo);
@@ -47,17 +45,10 @@ void yezzey_create_ao(YezzeyLocatorBackend rnode, int32 segmentFileNum,
 
 bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum);
 
-#ifdef OPENGPDB
-void yezzey_unlink(YezzeyLocatorBackend rnode, ForkNumber forkNum, bool isRedo,
-                   char relstorage);
-#else
 void yezzey_unlink(YezzeyLocatorBackend rnode, ForkNumber forkNum, bool isRedo);
-#endif
 
-#ifndef OPENGPDB
 void yezzey_unlink_ao(YezzeyLocatorBackend rnode, ForkNumber forkNum,
                       bool isRedo);
-#endif
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 #if PG_VERSION_NUM >= 160000
@@ -103,30 +94,15 @@ void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum);
 
 BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum);
 
-#ifdef OPENGPDB
-extern void yezzey_pre_ckpt(void);
-extern void yezzey_sync(void);
-extern void yezzey_post_ckpt(void);
-#endif
 
-#ifdef OPENGPDB
-const f_smgr *smgr_yezzey(BackendId backend, RelFileNode rnode);
-#else
 void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which,
                  Relation rel);
-#endif
 
-#ifdef OPENGPDB
-const f_smgr_ao *smgrao_yezzey(void);
-#endif
 void smgr_init_yezzey(void);
 
 extern Datum yezzey_stat_get_external_storage_usage(PG_FUNCTION_ARGS);
 
 void _PG_init(void);
 
-#ifdef OPENGPDB
-extern Oid runningRewriteSpcOidHint;
-#endif
 
 #endif /* YEZZEY_H */

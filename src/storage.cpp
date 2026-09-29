@@ -56,11 +56,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   int64 curr_read_chunk;
 
   std::vector<char> buffer(chunkSize);
-#ifdef OPENGPDB
-  const auto vfd = PathNameOpenFile((FileName)localPath, O_RDONLY, 0600);
-#else
   const auto vfd = PathNameOpenFile(localPath, O_RDONLY);
-#endif
   if (vfd <= 0) {
     const std::string error = std::string("failed to open ") + localPath +
                               " file to transfer to external storage";
@@ -128,12 +124,8 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       /* should not read beyond logical eof */
       curr_read_chunk = logicalEof - progress;
     }
-#ifdef OPENGPDB
-    rc = FileRead(vfd, buffer.data(), curr_read_chunk);
-#else
     rc = FileRead(vfd, buffer.data(), curr_read_chunk, progress,
                   WAIT_EVENT_DATA_FILE_READ);
-#endif
     if (rc < 0) {
       FileClose(vfd);
       pfree(localPath);
@@ -457,12 +449,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
-#ifdef OPENGPDB
-    const auto f =
-        PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);
-#else
     const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
-#endif
 
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path);
@@ -529,12 +516,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
-#ifdef OPENGPDB
-    const auto f =
-        PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);
-#else
     const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
-#endif
 
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path);
