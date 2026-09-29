@@ -107,7 +107,6 @@ static void YezzeyCreateVirtualSpc() {
   bool nulls[Natts_pg_tablespace];
   HeapTuple tuple;
   Oid tablespaceoid;
-  const char *location = "";
   Oid ownerId;
   HeapTuple tp;
 
@@ -164,13 +163,14 @@ static void YezzeyCreateVirtualSpc() {
   /* Record the filesystem change in XLOG */
   {
     xl_tblspc_create_rec xlrec;
+    char location[] = "";
 
     xlrec.ts_id = tablespaceoid;
 
     XLogBeginInsert();
     XLogRegisterData(reinterpret_cast<char *>(&xlrec),
                      offsetof(xl_tblspc_create_rec, ts_path));
-    XLogRegisterData((char *)location, strlen(location) + 1);
+    XLogRegisterData(location, strlen(location) + 1);
 
     (void)XLogInsert(RM_TBLSPC_ID, XLOG_TBLSPC_CREATE);
   }
