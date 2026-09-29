@@ -25,23 +25,6 @@
 #include "ygpver.h"
 #include "yproxy.h"
 
-class LocalFileGuard {
-public:
-  LocalFileGuard(File file, char *path) : file_(file), path_(path) {}
-
-  LocalFileGuard(const LocalFileGuard &) = delete;
-  LocalFileGuard &operator=(const LocalFileGuard &) = delete;
-
-  ~LocalFileGuard() {
-    FileClose(file_);
-    pfree(path_);
-  }
-
-private:
-  File file_;
-  char *path_;
-};
-
 int yezzey_log_level = DEBUG1;
 int yezzey_ao_log_level = DEBUG1;
 
@@ -80,11 +63,11 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   const auto vfd = PathNameOpenFile(localPath, O_RDONLY);
 #endif
   if (vfd <= 0) {
-    throw std::runtime_error(std::string("failed to open ") + localPath +
-                             " file to transfer to external storage");
+    const std::string error = std::string("failed to open ") + localPath +
+                              " file to transfer to external storage";
+    pfree(localPath);
+    throw std::runtime_error(error);
   }
-
-  LocalFileGuard local_file(vfd, localPath);
 
   auto iohandler =
       YIO(ioadv, GpIdentity.segindex, modcount, external_storage_path);
@@ -99,6 +82,8 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   if (virtual_size == -1) {
     elog(NOTICE, "yezzey: failed to calculate virtual size");
+    FileClose(vfd);
+    pfree(localPath);
     return -1;
   }
 
@@ -110,10 +95,13 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   const auto fLen = FileSeek(vfd, 0L, SEEK_END);
 
   if (fLen < logicalEof) {
-    throw std::runtime_error(
+    const std::string error =
         std::string("failed to offload corrupt relation, partial data file ") +
         localPath + ": " + std::to_string(fLen) + " < " +
-        std::to_string(logicalEof));
+        std::to_string(logicalEof);
+    FileClose(vfd);
+    pfree(localPath);
+    throw std::runtime_error(error);
   }
 
   FileSeek(vfd, progress, SEEK_SET);
@@ -122,10 +110,13 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   const auto fLen = FileSize(vfd);
 
   if (fLen < logicalEof) {
-    throw std::runtime_error(
+    const std::string error =
         std::string("failed to offload corrupt relation, partial data file ") +
         localPath + ": " + std::to_string(fLen) + " < " +
-        std::to_string(logicalEof));
+        std::to_string(logicalEof);
+    FileClose(vfd);
+    pfree(localPath);
+    throw std::runtime_error(error);
   }
 #endif
 
@@ -145,6 +136,8 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                   WAIT_EVENT_DATA_FILE_READ);
 #endif
     if (rc < 0) {
+      FileClose(vfd);
+      pfree(localPath);
       return rc;
     }
     if (rc == 0) {
@@ -158,6 +151,8 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
     while (tot < rc) {
       auto currptrtot = static_cast<size_t>(rc - tot);
       if (!iohandler.io_write(bptr, &currptrtot)) {
+        FileClose(vfd);
+        pfree(localPath);
         return -1;
       }
 
@@ -181,12 +176,17 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       yezzey_fqrelname_md5(ioadv->nspname, ioadv->relname).c_str());
 
   if (!iohandler.io_close()) {
-    throw std::runtime_error(std::string("yezzey: failed to complete ") +
-                             localPath + " offloading");
+    const std::string error =
+        std::string("yezzey: failed to complete ") + localPath + " offloading";
+    FileClose(vfd);
+    pfree(localPath);
+    throw std::runtime_error(error);
   } else {
     elog(DEBUG1, "yezzey: complete %s offloading", localPath);
   }
 
+  FileClose(vfd);
+  pfree(localPath);
   return rc;
 }
 
