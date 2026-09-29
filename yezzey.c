@@ -360,9 +360,7 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
    * 2) check pg_aoseg.pg_aoseg_XXX table for all segments
    * 3) go and load each segment (XXX: enhancement: do loading in parallel)
    */
-  Oid reloid = PG_GETARG_OID(0);
-
-  yezzey_load_relation_internal(reloid);
+  yezzey_load_relation_internal(PG_GETARG_OID(0));
 
   PG_RETURN_VOID();
 }
