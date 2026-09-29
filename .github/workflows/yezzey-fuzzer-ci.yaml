@@ -23,7 +23,7 @@ name: Yezzey Fuzzer Pipeline
 
 on:
   push:
-    branches: [ v1.8_opengpdb ]
+    branches: [ opengpdb ]
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
@@ -222,7 +222,7 @@ jobs:
         run: |
           set -eo pipefail
 
-          # move yezzey to cloudberry gpcontrib
+          # move yezzey to OpenGPDB gpcontrib
           rm -rf ${SRC_DIR}/../gpdb/gpcontrib/yezzey
           cp -r ${SRC_DIR} ${SRC_DIR}/../gpdb/gpcontrib/
           chown -R gpadmin:gpadmin ${SRC_DIR}/../gpdb/gpcontrib/yezzey

@@ -7,7 +7,6 @@
 #include "offload.h"
 #include "gucs.h"
 
-#include "relfilelocator.h"
 #include "storage.h"
 
 /*
@@ -23,18 +22,12 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
   auto nvp = aorel->rd_att->natts;
 
   /*
-   * Relation segments named base/DBOID/YezzeyGetRelFileLocator(aorel).*
+   * Relation segments named base/DBOID/aorel->rd_node.*
    */
 
-#ifdef OPENGPDB
   elog(yezzey_log_level, "offloading relation %s, relnode %d",
        RelationGetRelationName(aorel),
-       YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
-#else
-  elog(yezzey_log_level, "offloading relation %s, relnode %u",
-       RelationGetRelationName(aorel),
-       YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
-#endif
+       aorel->rd_node.relNode);
 
   /* for now, we locked relation */
 
@@ -45,14 +38,8 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
 
   if (RelationIsAoRows(aorel)) {
     /* Get information about all the file segments we need to scan */
-#ifdef OPENGPDB
     segfile_array =
         GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles);
-#else
-    Oid segrelid;
-    segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
-                                      &total_segfiles, &segrelid);
-#endif
 
     for (int i = 0; i < total_segfiles; i++) {
       auto segno = segfile_array[i]->segno;
@@ -74,14 +61,8 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
     }
   } else if (RelationIsAoCols(aorel)) {
     /* ao columns, relstorage == 'c' */
-#ifdef OPENGPDB
     segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
                                              &total_segfiles);
-#else
-    Oid segrelid;
-    segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
-                                             &total_segfiles, &segrelid);
-#endif
     for (int inat = 0; inat < nvp; ++inat) {
       for (int i = 0; i < total_segfiles; i++) {
         auto segno = segfile_array_cs[i]->segno;
@@ -136,11 +117,7 @@ void yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
    * from local storage
    */
   aorel = relation_open(reloid, AccessExclusiveLock);
-#if PG_VERSION_NUM >= 160000
-  RelationGetSmgr(aorel);
-#else
   RelationOpenSmgr(aorel);
-#endif
 
   yezzey_offload_relation_internal_rel(aorel, remove_locally,
                                        external_storage_path);

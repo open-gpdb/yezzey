@@ -17,7 +17,6 @@
 #include "gucs.h"
 #include "io.h"
 #include "offload_tablespace_map.h"
-#include "relfilelocator.h"
 #include "url.h"
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
@@ -35,14 +34,14 @@ bool ensureFilepathLocal(const char *filepath) {
   return (stat(filepath, &buffer) == 0);
 }
 
-static char *getlocalpath(const YezzeyLocator &rnode, int segno) {
+static char *getlocalpath(const RelFileNode &rnode, int segno) {
   return aorelpathbackend(rnode, InvalidBackendId, segno);
 }
 
 int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                int64 modcount, int64 logicalEof,
                                const std::string &external_storage_path) {
-  const auto local_rnode = YezzeyGetRelFileLocator(aorel);
+  const auto local_rnode = aorel->rd_node;
   char *localPath = getlocalpath(local_rnode, ioadv->coords_.blkno);
 
   if (!ensureFilepathLocal(localPath)) {
@@ -56,11 +55,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   int64 curr_read_chunk;
 
   std::vector<char> buffer(chunkSize);
-#ifdef OPENGPDB
   const auto vfd = PathNameOpenFile((FileName)localPath, O_RDONLY, 0600);
-#else
-  const auto vfd = PathNameOpenFile(localPath, O_RDONLY);
-#endif
   if (vfd <= 0) {
     const std::string error = std::string("failed to open ") + localPath +
                               " file to transfer to external storage";
@@ -90,7 +85,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   auto progress = virtual_size;
   const auto offset_start = progress;
 
-#if PG_VERSION_NUM < 120000
   const auto fLen = FileSeek(vfd, 0L, SEEK_END);
 
   if (fLen < logicalEof) {
@@ -105,19 +99,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   FileSeek(vfd, progress, SEEK_SET);
 
-#else
-  const auto fLen = FileSize(vfd);
-
-  if (fLen < logicalEof) {
-    const std::string error =
-        std::string("failed to offload corrupt relation, partial data file ") +
-        localPath + ": " + std::to_string(fLen) + " < " +
-        std::to_string(logicalEof);
-    FileClose(vfd);
-    pfree(localPath);
-    throw std::runtime_error(error);
-  }
-#endif
 
   ioadv->multipart_upload = fLen > multipart_threshold;
 
@@ -128,12 +109,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       /* should not read beyond logical eof */
       curr_read_chunk = logicalEof - progress;
     }
-#ifdef OPENGPDB
     rc = FileRead(vfd, buffer.data(), curr_read_chunk);
-#else
-    rc = FileRead(vfd, buffer.data(), curr_read_chunk, progress,
-                  WAIT_EVENT_DATA_FILE_READ);
-#endif
     if (rc < 0) {
       FileClose(vfd);
       pfree(localPath);
@@ -214,11 +190,11 @@ void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
   auto iohandler = YIO(ioadv, GpIdentity.segindex);
   size_t position = 0;
 
-  YezzeyLocator rnode;
+  RelFileNode rnode;
   /* coords does contain origin tablespace */
-  YezzeyGetRelSpcOid(rnode) = coords.spcNode;
-  YezzeyGetRelDbOid(rnode) = YezzeyGetRelDbOid(YezzeyGetRelFileLocator(rel));
-  YezzeyGetRelNode(rnode) = YezzeyGetRelNode(YezzeyGetRelFileLocator(rel));
+  rnode.spcNode = coords.spcNode;
+  rnode.dbNode = rel->rd_node.dbNode;
+  rnode.relNode = rel->rd_node.relNode;
 
   /*WAL-create new segfile */
   xlog_ao_insert(rnode, segno, 0, NULL, 0);
@@ -250,13 +226,13 @@ void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
 
 void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
                          int segno) {
-  const auto rnode = YezzeyGetRelFileLocator(aorel);
+  const auto rnode = aorel->rd_node;
 
   const auto coords = relnodeCoord(
-      YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode), orig_relnode, segno);
+      rnode.spcNode, rnode.dbNode, orig_relnode, segno);
 
   auto local_rnode = rnode;
-  YezzeyGetRelSpcOid(local_rnode) = loadSpcOid;
+  local_rnode.spcNode = loadSpcOid;
   char *path = getlocalpath(local_rnode, segno);
 
   elog(yezzey_ao_log_level, "constructed path %s", path);
@@ -294,11 +270,11 @@ int removeLocalFile(const char *localPath) {
 void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                             int64 logicalEof,
                             const char *external_storage_path) {
-  const auto rnode = YezzeyGetRelFileLocator(aorel);
+  const auto rnode = aorel->rd_node;
 
   const auto coords =
-      relnodeCoord(YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode),
-                   YezzeyGetRelNode(rnode), segno);
+      relnodeCoord(rnode.spcNode, rnode.dbNode,
+                   rnode.relNode, segno);
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -362,11 +338,7 @@ Oid resolveTablespaceOidByName(const std::string &tablespacename) {
                            tablespacename.c_str())));
   }
 
-#if PG_VERSION_NUM >= 120000
-  resOid = ((Form_pg_class)GETSTRUCT(tuple))->oid;
-#else
   resOid = HeapTupleGetOid(tuple);
-#endif
 
   yezzey_systable_endscan(scan);
   UnregisterSnapshot(snap);
@@ -387,10 +359,10 @@ static Oid getRelationOriginTablespaceOid(Relation rel) {
 static std::shared_ptr<IOadv>
 makeIOadvForOriginRelation(Relation rel, const std::string &nspname,
                            int segno) {
-  const auto rnode = YezzeyGetRelFileLocator(rel);
+  const auto rnode = rel->rd_node;
   const auto coords =
       relnodeCoord(getRelationOriginTablespaceOid(rel),
-                   YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno);
+                   rnode.dbNode, rnode.relNode, segno);
 
   return std::make_shared<IOadv>(
       nspname, std::string(RelationGetRelationName(rel)),
@@ -421,7 +393,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                            size_t *local_committed_bytes,
                            size_t *external_bytes) {
 
-  const auto rnode = YezzeyGetRelFileLocator(aorel);
+  const auto rnode = aorel->rd_node;
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -442,7 +414,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
    * Replace YEZZEYTABLESPACE_OID, if present, with the origin tablespace
    * that contains the local AO file.
    */
-  YezzeyGetRelSpcOid(local_rnode) = ioadv->coords_.spcNode;
+  local_rnode.spcNode = ioadv->coords_.spcNode;
   const auto virtual_sz = yezzey_relation_metadata_size(ioadv);
   if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
@@ -455,23 +427,15 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   *local_bytes = 0;
 
-  if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
+  if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
 
-#ifdef OPENGPDB
     const auto f =
         PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);
-#else
-    const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
-#endif
 
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path);
 
-#if PG_VERSION_NUM < 120000
     *local_bytes = FileSeek(f, 0L, SEEK_END);
-#else
-    *local_bytes = FileSize(f);
-#endif
 
     FileClose(f);
   }
@@ -485,7 +449,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
                                  size_t *local_commited_bytes,
                                  yezzeyChunkMeta **list, size_t *cnt_chunks) {
-  const auto rnode = YezzeyGetRelFileLocator(aorel);
+  const auto rnode = aorel->rd_node;
 
   auto tp = SearchSysCache1(NAMESPACEOID,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -506,7 +470,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
    * Replace YEZZEYTABLESPACE_OID, if present, with the origin tablespace
    * that contains the local AO file.
    */
-  YezzeyGetRelSpcOid(local_rnode) = ioadv->coords_.spcNode;
+  local_rnode.spcNode = ioadv->coords_.spcNode;
 
   auto lister = YProxyLister(ioadv, GpIdentity.segindex);
 
@@ -527,23 +491,15 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   char *local_path = getlocalpath(local_rnode, 0);
   *local_bytes = 0;
 
-  if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
+  if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
 
-#ifdef OPENGPDB
     const auto f =
         PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);
-#else
-    const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
-#endif
 
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path);
 
-#if PG_VERSION_NUM < 120000
     *local_bytes = FileSeek(f, 0L, SEEK_END);
-#else
-    *local_bytes = FileSize(f);
-#endif
 
     FileClose(f);
   }
