@@ -60,7 +60,7 @@ void YezzeyCreateOffloadPolicyRelation() {
   ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   tupdesc = CreateTemplateTupleDesc(Natts_offload_metadata, false);
 #else
   tupdesc = CreateTemplateTupleDesc(Natts_offload_metadata);
@@ -76,7 +76,7 @@ void YezzeyCreateOffloadPolicyRelation() {
                      (AttrNumber)Anum_offload_metadata_rellast_archived,
                      "rellast_archived", TIMESTAMPOID, -1, 0);
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   (void)heap_create_with_catalog(
       offload_metadata_relname.c_str() /* relname */,
       YEZZEY_AUX_NAMESPACE /* namespace */, 0 /* tablespace */,
@@ -116,7 +116,7 @@ void YezzeyCreateOffloadPolicyRelation() {
   int16 coloptions[1];
 
   indexInfo->ii_NumIndexAttrs = 1;
-#if IsGreenplum6
+#ifdef OPENGPDB
   indexInfo->ii_KeyAttrNumbers[0] = Anum_offload_metadata_reloid;
 #else
   indexInfo->ii_IndexAttrNumbers[0] = Anum_offload_metadata_reloid;
@@ -125,7 +125,7 @@ void YezzeyCreateOffloadPolicyRelation() {
   indexInfo->ii_Expressions = NIL;
   indexInfo->ii_ExpressionsState = NIL;
   indexInfo->ii_Predicate = NIL;
-#if IsGreenplum6
+#ifdef OPENGPDB
   indexInfo->ii_PredicateState = NIL;
 #else
   indexInfo->ii_PredicateState = NULL;
@@ -137,7 +137,7 @@ void YezzeyCreateOffloadPolicyRelation() {
   classObjectId[0] = OID_BTREE_OPS_OID;
   coloptions[0] = 0;
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   (void)index_create(yezzey_rel, offload_metadata_relname_indx.c_str(),
                      YEZZEY_OFFLOAD_POLICY_RELATION_INDX, InvalidOid,
                      InvalidOid, InvalidOid, indexInfo, indexColNames,
@@ -233,7 +233,7 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
 
     auto offtuple = heap_form_tuple(RelationGetDescr(offrel), values, nulls);
 
-#if IsGreenplum6
+#ifdef OPENGPDB
     simple_heap_update(offrel, &oldtuple->t_self, offtuple);
     CatalogUpdateIndexes(offrel, offtuple);
 #else
@@ -244,7 +244,7 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
   } else {
     auto offtuple = heap_form_tuple(RelationGetDescr(offrel), values, nulls);
 
-#if IsGreenplum6
+#ifdef OPENGPDB
     simple_heap_insert(offrel, offtuple);
     CatalogUpdateIndexes(offrel, offtuple);
 #else
@@ -396,7 +396,7 @@ void YezzeyLoadRelation(Oid i_reloid) {
 
     auto offtuple = heap_form_tuple(RelationGetDescr(rel), values, nulls);
 
-#if IsGreenplum6
+#ifdef OPENGPDB
     simple_heap_update(rel, &oldtuple->t_self, offtuple);
     CatalogUpdateIndexes(rel, offtuple);
 #else

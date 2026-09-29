@@ -80,7 +80,7 @@ void YezzeyBinaryUpgrade(void) {
   newTuple = heap_modify_tuple(systuple, RelationGetDescr(classrel), values,
                                nulls, replaces);
 
-#if IsGreenplum6
+#ifdef OPENGPDB
   simple_heap_update(classrel, &newTuple->t_self, newTuple);
   /* keep the catalog indexes up to date */
   CatalogUpdateIndexes(classrel, newTuple);
@@ -98,7 +98,7 @@ void YezzeyBinaryUpgrade(void) {
   allowSystemTableMods = prevAllowSystableMods;
 }
 
-#if IsModernYezzey
+#ifndef OPENGPDB
 
 static void YezzeyCreateVirtualSpc() {
 
@@ -190,7 +190,7 @@ static void YezzeyCreateVirtualSpc() {
 
 void YezzeyInitMetadata(void) {
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   YezzeyCreateVirtualSpc();
 #endif
 
@@ -198,7 +198,7 @@ void YezzeyInitMetadata(void) {
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   (void)YezzeyCreateVirtualIndexIdx();
   (void)YezzeyCreateExpireHint();
   (void)YezzeyCreateExpireHintIdx();
@@ -206,15 +206,13 @@ void YezzeyInitMetadata(void) {
 }
 
 void YezzeyBinaryUpgrade183(void) {
-#if IsModernYezzey
-#else
+#ifdef OPENGPDB
   (void)YezzeyCreateVirtualIndexIdx();
 #endif
 }
 
 void YezzeyBinaryUpgrade184(void) {
-#if IsModernYezzey
-#else
+#ifdef OPENGPDB
   (void)YezzeyCreateExpireHint();
   (void)YezzeyCreateExpireHintIdx();
 #endif

@@ -2,8 +2,6 @@
 
 #include "proxy.h"
 
-#include "ygpver.h"
-
 #include "meta.h"
 #include "offload_tablespace_map.h"
 #include "unordered_map"
@@ -113,7 +111,7 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
   return 0;
 }
 
-#if IsGreenplum6
+#ifdef OPENGPDB
 
 int64 yezzey_NonVirtualCurSeek(SMGRFile file) {
   if (YVirtFD_cache[file].y_vfd == YEZZEY_OFFLOADED_FD) {
@@ -131,7 +129,7 @@ int64 yezzey_NonVirtualCurSeek(SMGRFile file) {
 }
 #endif
 
-#if IsGreenplum6
+#ifdef OPENGPDB
 int64 yezzey_FileSeek(SMGRFile file, int64 offset, int whence) {
   File actual_fd = YVirtFD_cache[file].y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
@@ -148,10 +146,10 @@ int64 yezzey_FileSeek(SMGRFile file, int64 offset, int whence) {
 }
 #endif
 
-#if IsModernYezzey
-EXTERNC int yezzey_FileSync(SMGRFile file, uint32 wait_event_info)
-#else
+#ifdef OPENGPDB
 EXTERNC int yezzey_FileSync(SMGRFile file)
+#else
+EXTERNC int yezzey_FileSync(SMGRFile file, uint32 wait_event_info)
 #endif
 {
   File actual_fd = YVirtFD_cache[file].y_vfd;
@@ -162,10 +160,10 @@ EXTERNC int yezzey_FileSync(SMGRFile file)
   }
   elog(yezzey_ao_log_level, "file sync with fd %d actual %d", file, actual_fd);
 
-#if IsModernYezzey
-  return FileSync(actual_fd, wait_event_info);
-#else
+#ifdef OPENGPDB
   return FileSync(actual_fd);
+#else
+  return FileSync(actual_fd, wait_event_info);
 #endif
 }
 
@@ -212,7 +210,7 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
       }
 
       yfd.fileFlags = fileFlags;
-#if IsGreenplum6
+#ifdef OPENGPDB
       yfd.fileMode = fileMode;
 #else
       yfd.op_start_offset = -1;
@@ -258,11 +256,11 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
         }
       } else {
         /* not offloaded */
-#if IsModernYezzey
-        yfd.y_vfd = PathNameOpenFile(yfd.filepath.c_str(), yfd.fileFlags);
-#else
+#ifdef OPENGPDB
         yfd.y_vfd = PathNameOpenFile((char *)yfd.filepath.c_str(),
                                      yfd.fileFlags, yfd.fileMode);
+#else
+        yfd.y_vfd = PathNameOpenFile(yfd.filepath.c_str(), yfd.fileFlags);
 #endif
         if (yfd.y_vfd == -1) {
           YVirtFD_cache.erase(yezzey_fd);
@@ -275,8 +273,16 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
   }
 }
 
-#if IsModernYezzey
-
+#ifdef OPENGPDB
+EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, const char *nspname,
+                                         const char *relname, FileName fName,
+                                         int fileFlags, int fileMode,
+                                         int64 modcount) {
+  return yezzey_AORelOpenSegFile_internal(reloid, nspname, relname,
+                                          (const char *)fName, fileFlags,
+                                          fileMode, modcount);
+}
+#else
 EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
                                          int32 segmentFileNum, int fileFlags) {
   char path[MAXPGPATH];
@@ -309,16 +315,6 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
   relation_close(aorel, NoLock);
 
   return rv;
-}
-
-#else
-EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, const char *nspname,
-                                         const char *relname, FileName fName,
-                                         int fileFlags, int fileMode,
-                                         int64 modcount) {
-  return yezzey_AORelOpenSegFile_internal(reloid, nspname, relname,
-                                          (const char *)fName, fileFlags,
-                                          fileMode, modcount);
 }
 #endif
 
@@ -371,7 +367,9 @@ void yezzey_FileClose(SMGRFile file) {
 
 #define ALLOW_MODIFY_EXTERNAL_TABLE
 
-#if IsModernYezzey
+#ifdef OPENGPDB
+int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
+#else
 #if PG_VERSION_NUM >= 160000
 int yezzey_FileWrite(SMGRFile file, const void *buffer, size_t amount,
                      off_t offset, uint32 wait_event_info)
@@ -379,13 +377,11 @@ int yezzey_FileWrite(SMGRFile file, const void *buffer, size_t amount,
 int yezzey_FileWrite(SMGRFile file, char *buffer, int amount, off_t offset,
                      uint32 wait_event_info)
 #endif
-#else
-int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
 #endif
 {
   YVirtFD &yfd = YVirtFD_cache[file];
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   /* Initialize only on first use. */
   if (yfd.op_start_offset == -1) {
     yfd.op_start_offset = offset;
@@ -429,10 +425,10 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
     return rc;
   }
 
-#if IsModernYezzey
-  size_t rc = FileWrite(actual_fd, buffer, amount, offset, wait_event_info);
-#else
+#ifdef OPENGPDB
   size_t rc = FileWrite(actual_fd, buffer, amount);
+#else
+  size_t rc = FileWrite(actual_fd, buffer, amount, offset, wait_event_info);
 #endif
   if (rc > 0) {
     yfd.offset += rc;
@@ -441,7 +437,9 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
   return rc;
 }
 
-#if IsModernYezzey
+#ifdef OPENGPDB
+int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
+#else
 #if PG_VERSION_NUM >= 160000
 int yezzey_FileRead(SMGRFile file, void *buffer, size_t amount, off_t offset,
                     uint32 wait_event_info) {
@@ -449,14 +447,12 @@ int yezzey_FileRead(SMGRFile file, void *buffer, size_t amount, off_t offset,
 int yezzey_FileRead(SMGRFile file, char *buffer, int amount, off_t offset,
                     uint32 wait_event_info) {
 #endif
-#else
-int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
 #endif
 
   size_t curr = amount;
   YVirtFD &yfd = YVirtFD_cache[file];
 
-#if IsModernYezzey
+#ifndef OPENGPDB
   yfd.op_start_offset = offset;
   yfd.offset = offset;
 #endif
@@ -496,18 +492,18 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
     return curr;
   }
 
-#if IsModernYezzey
-  return FileRead(actual_fd, buffer, amount, offset, wait_event_info);
-#else
+#ifdef OPENGPDB
   return FileRead(actual_fd, buffer, amount);
+#else
+  return FileRead(actual_fd, buffer, amount, offset, wait_event_info);
 #endif
 }
 
-#if IsModernYezzey
+#ifdef OPENGPDB
+EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset)
+#else
 EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset,
                                 uint32 wait_event_info)
-#else
-EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset)
 #endif
 {
   YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
@@ -540,14 +536,14 @@ EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset)
     return 0;
   }
 
-#if IsModernYezzey
-  return FileTruncate(actual_fd, offset, wait_event_info);
-#else
+#ifdef OPENGPDB
   return FileTruncate(actual_fd, offset);
+#else
+  return FileTruncate(actual_fd, offset, wait_event_info);
 #endif
 }
 
-#if IsModernYezzey
+#ifndef OPENGPDB
 EXTERNC off_t yezzey_FileDiskSize(File file) {
   auto actual_fd = YVirtFD_cache[file].y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
