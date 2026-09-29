@@ -57,9 +57,9 @@ static char *getlocalpath(const YezzeyLocator &rnode, int segno) {
   return aorelpathbackend(rnode, InvalidBackendId, segno);
 }
 
-int offloadRelationSegmentPath(
-    Relation aorel, std::shared_ptr<IOadv> ioadv, int64 modcount,
-    int64 logicalEof, const std::string &external_storage_path) {
+int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
+                               int64 modcount, int64 logicalEof,
+                               const std::string &external_storage_path) {
   const auto local_rnode = YezzeyGetRelFileLocator(aorel);
   char *localPath = getlocalpath(local_rnode, ioadv->coords_.blkno);
 
@@ -319,9 +319,9 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
         storage_class, multipart_chunksize, coords, aorel->rd_id /* reloid */,
         use_gpg_crypto, yproxy_socket);
 
-    if (offloadRelationSegmentPath(
-            aorel, ioadv, modcount, logicalEof,
-            external_storage_path ? external_storage_path : "") < 0) {
+    if (offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
+                                   external_storage_path ? external_storage_path
+                                                         : "") < 0) {
       throw std::runtime_error("failed to offload relation");
     }
   } catch (const std::exception &e) {
