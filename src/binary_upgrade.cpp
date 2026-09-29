@@ -168,7 +168,8 @@ static void YezzeyCreateVirtualSpc() {
     xlrec.ts_id = tablespaceoid;
 
     XLogBeginInsert();
-    XLogRegisterData((char *)&xlrec, offsetof(xl_tblspc_create_rec, ts_path));
+    XLogRegisterData(reinterpret_cast<char *>(&xlrec),
+                     offsetof(xl_tblspc_create_rec, ts_path));
     XLogRegisterData((char *)location, strlen(location) + 1);
 
     (void)XLogInsert(RM_TBLSPC_ID, XLOG_TBLSPC_CREATE);
