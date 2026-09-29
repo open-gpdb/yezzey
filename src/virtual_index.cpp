@@ -76,6 +76,10 @@ static inline Oid yezzey_create_virtual_index_relation_internal(
 static inline void
 yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
                                          Oid relowner, char relpersistence) {
+
+  { /* check existed, if no, return */
+  }
+
   /* ShareLock is not really needed here, but take it anyway */
   auto yezzey_rel = heap_open(YEZZEY_VIRTUAL_INDEX_RELATION, ShareLock);
   const char *colname_fn = "filenode";

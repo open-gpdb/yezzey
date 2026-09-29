@@ -53,6 +53,8 @@ bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
 }
 
 void YezzeyCreateOffloadPolicyRelation() {
+  { /* check existed, if no, return */
+  }
   TupleDesc tupdesc;
 
   ObjectAddress baseobject;
