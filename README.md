@@ -44,7 +44,13 @@ Time: 5762.468 ms
 
 ### Upload data to S3
 
-Data is uploaded to S3 by calling `yezzey_define_offload_policy`:
+Data is uploaded to S3 by calling
+`yezzey_define_offload_policy(schema_name TEXT, relation_name TEXT, policy offload_policy DEFAULT 'remote_always')`:
+
+The third `policy` argument is optional; the two-argument call below uses its
+default value. The argument is currently ignored and retained only for
+compatibility. In future versions, it will be deprecated. We recommend that
+you do not use it.
 
 ```sql
 postgres=# SELECT * FROM yezzey_define_offload_policy('public', 'test');
