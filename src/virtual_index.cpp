@@ -1,6 +1,5 @@
 
 #include "virtual_index.h"
-#include "relfilelocator.h"
 #include "yezzey_heap_api.h"
 #include <algorithm>
 
@@ -11,11 +10,7 @@ Oid YezzeyFindAuxIndex_internal(Oid reloid);
 static inline Oid yezzey_create_virtual_index_relation_internal(
     Oid relid, const std::string &relname, Oid relowner, char relpersistence,
     bool shared_relation, bool mapped_relation) {
-#ifdef OPENGPDB
   auto tupdesc = CreateTemplateTupleDesc(Natts_yezzey_virtual_index, false);
-#else
-  auto tupdesc = CreateTemplateTupleDesc(Natts_yezzey_virtual_index);
-#endif
 
   TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_virtual_index_reloid,
                      "relation", OIDOID, -1, 0);
@@ -44,7 +39,6 @@ static inline Oid yezzey_create_virtual_index_relation_internal(
   TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_virtual_x_path, "x_path",
                      TEXTOID, -1, 0);
 
-#ifdef OPENGPDB
   auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
       relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
       0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
@@ -55,17 +49,6 @@ static inline Oid yezzey_create_virtual_index_relation_internal(
       NULL /* GP Policy */, (Datum)0, false /* use_user_acl */, true, true,
       false /* valid_opts */, false /* is_part_child */,
       false /* is part parent */, NULL);
-#else
-  auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
-      relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
-      0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
-      InvalidOid /* reloftypeid */, relowner /* owner */,
-      HEAP_TABLE_AM_OID /* access method*/, tupdesc /* rel tuple */, NIL,
-      RELKIND_RELATION /*relkind*/, RELPERSISTENCE_PERMANENT, false /*shared*/,
-      false /*mapped*/, ONCOMMIT_NOOP, NULL /* GP Policy */, (Datum)0,
-      false /* use_user_acl */, true, true, InvalidOid /*relrewrite*/, NULL,
-      false /* valid_opts */);
-#endif
 
   /* Make this table visible, else yezzey virtual index creation will fail */
   CommandCounterIncrement();
@@ -91,24 +74,13 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
   int16 coloptions[3];
 
   indexInfo->ii_NumIndexAttrs = 3;
-#ifdef OPENGPDB
   indexInfo->ii_KeyAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
   indexInfo->ii_KeyAttrNumbers[1] = Anum_yezzey_virtual_index_blkno;
   indexInfo->ii_KeyAttrNumbers[2] = Anum_yezzey_virtual_modcount;
-#else
-  indexInfo->ii_IndexAttrNumbers[0] = Anum_yezzey_virtual_index_filenode;
-  indexInfo->ii_IndexAttrNumbers[1] = Anum_yezzey_virtual_index_blkno;
-  indexInfo->ii_IndexAttrNumbers[2] = Anum_yezzey_virtual_modcount;
-  indexInfo->ii_NumIndexKeyAttrs = indexInfo->ii_NumIndexAttrs;
-#endif
   indexInfo->ii_Expressions = NIL;
   indexInfo->ii_ExpressionsState = NIL;
   indexInfo->ii_Predicate = NIL;
-#ifdef OPENGPDB
   indexInfo->ii_PredicateState = NIL;
-#else
-  indexInfo->ii_PredicateState = NULL;
-#endif
   indexInfo->ii_Unique = true;
   indexInfo->ii_Concurrent = true;
 
@@ -124,21 +96,11 @@ yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
 
   classObjectId[2] = INT8_BTREE_OPS_OID;
 
-#ifdef OPENGPDB
   (void)index_create(yezzey_rel, relname.c_str(), relid, InvalidOid, InvalidOid,
                      InvalidOid, indexInfo, indexColNames, BTREE_AM_OID,
                      0 /* tablespace */, collationObjectId, classObjectId,
                      coloptions, (Datum)0, true, false, false, false, true,
                      false, false, true, NULL);
-#else
-  bits16 flags, constr_flags;
-  flags = constr_flags = 0;
-  (void)index_create(yezzey_rel, relname.c_str(), relid, InvalidOid, InvalidOid,
-                     InvalidOid, indexInfo, indexColNames, BTREE_AM_OID,
-                     0 /* tablespace */, collationObjectId, classObjectId,
-                     coloptions, (Datum)0, flags, constr_flags, true, true,
-                     NULL);
-#endif
 
   /* Unlock target table -- no one can see it */
   heap_close(yezzey_rel, ShareLock);
@@ -227,12 +189,7 @@ Oid YezzeyFindAuxIndex_internal(Oid reloid) {
 
   if (HeapTupleIsValid(tup = systable_getnext(scan))) {
 
-#ifdef OPENGPDB
     yezzey_virtual_index_oid = HeapTupleGetOid(tup);
-#else
-    auto ytup = ((Form_pg_class)GETSTRUCT(tup));
-    yezzey_virtual_index_oid = ytup->oid;
-#endif
   } else {
     // use separate index for relations, offloaded without yezzey api
     // this may happen during expand process and maybe some other cases
@@ -327,10 +284,9 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
-  ScanKeyInit(
-      &skey[0], Anum_yezzey_virtual_index_filenode, BTEqualStrategyNumber,
-      F_OIDEQ,
-      ObjectIdGetDatum(YezzeyGetRelNode(YezzeyGetRelFileLocator(relation))));
+  ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_filenode,
+              BTEqualStrategyNumber, F_OIDEQ,
+              ObjectIdGetDatum(relation->rd_node.relNode));
 
   auto desc = yezzey_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
 
@@ -349,12 +305,8 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
     auto yandxtuple =
         heap_form_tuple(RelationGetDescr(relation), values, nulls);
 
-#ifdef OPENGPDB
     simple_heap_update(relation, &tuple->t_self, yandxtuple);
     CatalogUpdateIndexes(relation, yandxtuple);
-#else
-    CatalogTupleUpdate(relation, &tuple->t_self, yandxtuple);
-#endif
   }
 
   yezzey_endscan(desc);
@@ -409,33 +361,9 @@ void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,
 
   /* send tuple messages to master */
 
-#ifdef OPENGPDB
   /* if gp6 insert tuples locally */
   simple_heap_insert(yandxrel, yandxtuple);
   CatalogUpdateIndexes(yandxrel, yandxtuple);
-#else
-#if 0 /* Yezzey 3 */
-  auto mt_bind = create_memtuple_binding(
-      RelationGetDescr(yandxrel), RelationGetNumberOfAttributes(yandxrel));
-
-  auto memtup = memtuple_form(mt_bind, values, nulls);
-
-  /*
-   * get space to insert our next item (tuple)
-   */
-  auto itemLen = memtuple_get_size(memtup);
-
-  StringInfoData buf;
-
-  pq_beginmessage(&buf, 'z');
-  pq_sendint(&buf, itemLen, sizeof(itemLen));
-  pq_sendbytes(&buf, (const char *)memtup, itemLen);
-  pq_endmessage(&buf);
-
-#else
-  CatalogTupleInsert(yandxrel, yandxtuple);
-#endif
-#endif
 
   heap_freetuple(yandxtuple);
   heap_close(yandxrel, RowExclusiveLock);

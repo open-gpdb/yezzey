@@ -76,23 +76,14 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
 
   /* update the pg_class row */
   if (desttablespace_oid != YEZZEYTABLESPACE_OID) {
-#if PG_VERSION_NUM >= 160000
-    rd_rel->relfilenode = GetNewRelFileNumber(desttablespace_oid, NULL,
-                                              aorel->rd_rel->relpersistence);
-#else
     rd_rel->relfilenode = GetNewRelFileNode(desttablespace_oid, NULL,
                                             aorel->rd_rel->relpersistence);
-#endif
   }
 
   rd_rel->reltablespace = desttablespace_oid;
 
-#ifdef OPENGPDB
   simple_heap_update(pg_class, &tuple->t_self, tuple);
   CatalogUpdateIndexes(pg_class, tuple);
-#else
-  CatalogTupleUpdate(pg_class, &tuple->t_self, tuple);
-#endif
 
   InvokeObjectPostAlterHook(RelationRelationId, RelationGetRelid(aorel), 0);
 

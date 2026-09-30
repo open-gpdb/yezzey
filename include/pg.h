@@ -8,24 +8,9 @@ extern "C" {
 #include "c.h"
 #include "postgres.h"
 
-#if PG_VERSION_NUM >= 130000
-#include "postmaster/interrupt.h"
-#endif
-
-#if PG_VERSION_NUM >= 100000
-#include "common/md5.h"
-#else
 #include "libpq/md5.h"
-#endif
 
 #include "utils/timestamp.h"
-#if PG_VERSION_NUM >= 100000
-#include "common/file_perm.h"
-#endif
-
-#ifndef OPENGPDB
-#include "access/relation.h"
-#endif
 
 #include "access/aocssegfiles.h"
 #include "access/aosegfiles.h"
@@ -61,9 +46,7 @@ extern "C" {
 #include "storage/fd.h"
 #include "storage/lmgr.h"
 
-#if PG_VERSION_NUM < 100000
 #include "utils/tqual.h"
-#endif
 
 #include "utils/fmgroids.h"
 #include "utils/snapmgr.h"
@@ -90,12 +73,6 @@ extern "C" {
 #include "catalog/pg_opclass.h"
 
 #include "utils/pg_lsn.h"
-
-#ifndef OPENGPDB
-#include "access/heapam.h"
-#include "access/table.h"
-#include "access/tupdesc.h"
-#endif
 
 #include "libpq/pqformat.h"
 

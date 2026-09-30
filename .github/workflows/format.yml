@@ -2,7 +2,7 @@ name: Format
 
 on:
   push:
-    branches: [ v1.8_opengpdb, master ]
+    branches: [ opengpdb ]
   pull_request:
     types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/v1.8_opengpdb' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/opengpdb' }}
 
 jobs:
   format:
