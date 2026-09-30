@@ -80,13 +80,7 @@ void YezzeyBinaryUpgrade(void) {
   newTuple = heap_modify_tuple(systuple, RelationGetDescr(classrel), values,
                                nulls, replaces);
 
-#ifdef OPENGPDB
-  simple_heap_update(classrel, &newTuple->t_self, newTuple);
-  /* keep the catalog indexes up to date */
-  CatalogUpdateIndexes(classrel, newTuple);
-#else
   CatalogTupleUpdate(classrel, &newTuple->t_self, newTuple);
-#endif
 
   yezzey_systable_endscan(scan);
   UnregisterSnapshot(snap);
@@ -97,8 +91,6 @@ void YezzeyBinaryUpgrade(void) {
 
   allowSystemTableMods = prevAllowSystableMods;
 }
-
-#ifndef OPENGPDB
 
 static void YezzeyCreateVirtualSpc() {
 
@@ -186,34 +178,20 @@ static void YezzeyCreateVirtualSpc() {
   /* We keep the lock on pg_tablespace until commit */
   table_close(rel, NoLock);
 }
-#endif
 
 void YezzeyInitMetadata(void) {
 
-#ifndef OPENGPDB
   YezzeyCreateVirtualSpc();
-#endif
 
   (void)YezzeyCreateVirtualSchema();
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
 
-#ifndef OPENGPDB
   (void)YezzeyCreateVirtualIndexIdx();
   (void)YezzeyCreateExpireHint();
   (void)YezzeyCreateExpireHintIdx();
-#endif
 }
 
-void YezzeyBinaryUpgrade183(void) {
-#ifdef OPENGPDB
-  (void)YezzeyCreateVirtualIndexIdx();
-#endif
-}
+void YezzeyBinaryUpgrade183(void) {}
 
-void YezzeyBinaryUpgrade184(void) {
-#ifdef OPENGPDB
-  (void)YezzeyCreateExpireHint();
-  (void)YezzeyCreateExpireHintIdx();
-#endif
-}
+void YezzeyBinaryUpgrade184(void) {}

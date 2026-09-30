@@ -9,10 +9,8 @@
 #define EXTERNC
 #endif
 
-#ifndef OPENGPDB
 #define YEZZEY_AUX_NAMESPACE 8001
 #define YEZZEYTABLESPACE_OID 8555
-#endif
 
 EXTERNC void YezzeyUpdateMetadataRelations(
     Oid yandexoid /*yezzey auxiliary index oid*/, Oid reloid,

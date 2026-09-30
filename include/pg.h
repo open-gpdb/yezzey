@@ -23,9 +23,7 @@ extern "C" {
 #include "common/file_perm.h"
 #endif
 
-#ifndef OPENGPDB
 #include "access/relation.h"
-#endif
 
 #include "access/aocssegfiles.h"
 #include "access/aosegfiles.h"
@@ -91,11 +89,9 @@ extern "C" {
 
 #include "utils/pg_lsn.h"
 
-#ifndef OPENGPDB
 #include "access/heapam.h"
 #include "access/table.h"
 #include "access/tupdesc.h"
-#endif
 
 #include "libpq/pqformat.h"
 
