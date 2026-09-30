@@ -342,7 +342,7 @@ jobs:
           set -x
 
           chmod +x "${SRC_DIR}"/../yezzey/devops/scripts/launch_yproxy.sh
-          if ! time su - gpadmin -c "cd ${SRC_DIR} && ../yezzey/devops/scripts/launch_yproxy.sh && cd ${SRC_DIR}/gpcontrib/yezzey && source /usr/local/cloudberry-db/cloudberry-env.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && IS_CLOUDBERRY=true make installcheck"; then
+          if ! time su - gpadmin -c "cd ${SRC_DIR} && ../yezzey/devops/scripts/launch_yproxy.sh && cd ${SRC_DIR}/gpcontrib/yezzey && source /usr/local/cloudberry-db/cloudberry-env.sh && source ../../gpAux/gpdemo/gpdemo-env.sh && make installcheck"; then
             echo "::error::Test yezzey failed"
             cat ${SRC_DIR}/gpcontrib/yezzey/regression.diffs
             exit 1
