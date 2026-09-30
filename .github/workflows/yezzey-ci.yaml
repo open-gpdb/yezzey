@@ -437,7 +437,7 @@ jobs:
             echo "# Yezzey Test Pipeline Report"
 
               echo "## Job Status"
-              echo "- OpenGPDB Job: ${{ needs.test-gpdb.result }}"
+              echo "- Test Job: ${{ needs.test-gpdb.result }}"
               echo "- Completion Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
               if [[ "${{ needs.test-gpdb.result }}" == "success" ]]; then
