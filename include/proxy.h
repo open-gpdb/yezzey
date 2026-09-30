@@ -7,7 +7,6 @@
 #include "storage.h"
 
 #include "relfilelocator.h"
-#include "ygpver.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -15,33 +14,19 @@
 #define EXTERNC
 #endif
 
-#if IsModernYezzey
 typedef File SMGRFile;
-#endif
 
 EXTERNC int64 yezzey_NonVirtualCurSeek(SMGRFile file);
 EXTERNC void yezzey_FileClose(SMGRFile file);
 EXTERNC int64 yezzey_FileSeek(SMGRFile file, int64 offset, int whence);
 
-#if IsModernYezzey
 EXTERNC int yezzey_FileSync(SMGRFile file, uint32 wait_event_info);
-#else
-EXTERNC int yezzey_FileSync(SMGRFile file);
-#endif
 
-#if IsModernYezzey
 EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
                                      int fileFlags);
 EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
                                          int32 segmentFileNum, int fileFlags);
-#else
-EXTERNC SMGRFile yezzey_AORelOpenSegFile(Oid reloid, const char *nspname,
-                                         const char *relname, FileName fName,
-                                         int fileFlags, int fileMode,
-                                         int64 modcount);
-#endif
 
-#if IsModernYezzey
 #if PG_VERSION_NUM >= 160000
 EXTERNC int yezzey_FileWrite(SMGRFile file, const void *buffer, size_t amount,
                              off_t offset, uint32 wait_event_info);
@@ -53,24 +38,12 @@ EXTERNC int yezzey_FileWrite(SMGRFile file, char *buffer, int amount,
 EXTERNC int yezzey_FileRead(SMGRFile file, char *buffer, int amount,
                             off_t offset, uint32 wait_event_info);
 #endif
-#else
-EXTERNC int yezzey_FileWrite(SMGRFile file, char *buffer, int amount);
-EXTERNC int yezzey_FileRead(SMGRFile file, char *buffer, int amount);
-#endif
 
-#if IsModernYezzey
 EXTERNC int yezzey_FileTruncate(SMGRFile file, int64 offset,
                                 uint32 wait_event_info);
-#else
-EXTERNC int yezzey_FileTruncate(SMGRFile file, int64 offset);
-#endif
 
-#if IsModernYezzey
 EXTERNC off_t yezzey_FileDiskSize(File file);
-#endif
 
-#if IsModernYezzey
 EXTERNC off_t yezzey_FileSize(File file);
-#endif
 
 #endif /* YEZZEY_PROXY_H */

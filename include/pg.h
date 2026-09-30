@@ -8,8 +8,6 @@ extern "C" {
 #include "c.h"
 #include "postgres.h"
 
-#include "ygpver.h"
-
 #if PG_VERSION_NUM >= 130000
 #include "postmaster/interrupt.h"
 #endif
@@ -25,9 +23,7 @@ extern "C" {
 #include "common/file_perm.h"
 #endif
 
-#if IsModernYezzey
 #include "access/relation.h"
-#endif
 
 #include "access/aocssegfiles.h"
 #include "access/aosegfiles.h"
@@ -77,10 +73,8 @@ extern "C" {
 #include "access/xact.h"
 
 // For GpIdentity
-#if IsGreenplum6 || IsModernYezzey
 #include "cdb/cdbappendonlyxlog.h"
 #include "cdb/cdbvars.h"
-#endif
 
 #include "catalog/heap.h"
 
@@ -95,11 +89,9 @@ extern "C" {
 
 #include "utils/pg_lsn.h"
 
-#if PG_VERSION_NUM >= 120000
 #include "access/heapam.h"
 #include "access/table.h"
 #include "access/tupdesc.h"
-#endif
 
 #include "libpq/pqformat.h"
 

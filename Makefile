@@ -27,7 +27,6 @@ OBJS = \
 	src/offload.o \
 	src/virtual_tablespace.o \
 	src/virtual_schema.o \
-	src/partition.o \
 	src/xvacuum.o \
 	src/meta.o \
 	src/binary_upgrade.o \
@@ -51,7 +50,8 @@ DATA = yezzey--1.0.sql yezzey--1.8.8.sql \
 		 yezzey--1.8.5--1.8.6.sql \
 		 yezzey--1.8.6--1.8.7.sql \
 		 yezzey--1.8.7--1.8.8.sql \
-		 yezzey--1.8.8--1.8.11.sql
+		 yezzey--1.8.8--1.8.11.sql \
+		 yezzey--1.8.11--1.8.12.sql
 
 PGFILEDESC = "yezzey - external storage tables offloading extension"
 
@@ -59,7 +59,6 @@ ifdef IS_CLOUDBERRY_3
 REGRESS = \
           simple_cbdb_3
 else
-ifdef IS_CLOUDBERRY
 REGRESS = \
           simple_cbdb \
           drop-column_cbdb \
@@ -73,7 +72,8 @@ REGRESS = \
           yezzey_feat_cbdb_last \
           yezzey-reorg_cbdb \
           yezzey-vac-relation_cbdb \
-          yezzey-vac-relation-187_cbdb 
+          yezzey-vac-relation-187_cbdb \
+          yezzey-offload-errors_cbdb
 #          yezzey-otm-feat_cbdb \
  #         yezzey-otm-deletion_cbdb \
   #        yezzey-vi-eh-unique_cbdb \
@@ -82,30 +82,6 @@ REGRESS = \
      #     yezzey-create-offloaded_cbdb \
       #    yezzey-offload-errors_cbdb
           
-else
-REGRESS = \
-	  simple \
-	  versions \
-	  drop-column \
-	  yezzey-alter\
-	  yezzey-alter-toast\
-	  yezzey-vacuum \
-	  yezzey-vacuum-garbage \
-	  yezzey-trunc \
-	  yezzey-expand \
-	  load_offload_load \
-	  yezzey_feat_cbdb \
-	  yezzey-reorg \
-	  yezzey-vac-relation \
-	  yezzey-vac-relation-187 \
-	  yezzey-otm-feat \
-	  yezzey-otm-deletion \
-	  yezzey-vi-eh-unique \
-	  yezzey-stat \
-	  yezzey-alter-ts \
-	  yezzey-create-offloaded \
-	  yezzey-offload-errors
-endif
 endif
 
 ifdef USE_PGXS

@@ -111,7 +111,6 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
               BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
   auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
-#if IsModernYezzey
   auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
   /* No map tuple created. Assume 'pg_default' by default */
   if (!table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
@@ -138,24 +137,6 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
 
   offtuple = ExecFetchSlotHeapTuple(slot, false, &shouldFree);
   Assert(!shouldFree);
-#else
-  offtuple = heap_getnext(scanoff, ForwardScanDirection);
-  /* No map tuple created. Assume 'pg_default' by default */
-  if (!HeapTupleIsValid(offtuple)) {
-    heap_close(offload_tablespace_map_rel, RowExclusiveLock);
-
-    yezzey_endscan(scanoff);
-    UnregisterSnapshot(snap);
-
-    /* should be OK */
-    if (Gp_role == GP_ROLE_UTILITY || Gp_role == GP_ROLE_DISPATCH) {
-      return "pg_default";
-    }
-
-    elog(ERROR, "failed to map relation %d (%s.%s) to its origin tablespace",
-         i_reloid, nspname, relname);
-  }
-#endif
 
   auto rv = ((Form_offload_tablespace_map)GETSTRUCT(offtuple))
                 ->origin_tablespace_name;
@@ -172,9 +153,7 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
   yezzey_endscan(scanoff);
   UnregisterSnapshot(snap);
 
-#if IsModernYezzey
   ExecDropSingleTupleTableSlot(slot);
-#endif
 
   return tablespace_val;
 }
@@ -206,7 +185,6 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
 
   auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
 
-#if IsModernYezzey
   auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
 
   /* Already registered, from previous offloads */
@@ -219,19 +197,6 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
     UnregisterSnapshot(snap);
     return;
   }
-
-#else
-  auto offtuple = heap_getnext(scanoff, ForwardScanDirection);
-
-  /* Already registered, from previous offloads */
-  if (HeapTupleIsValid(offtuple)) {
-    heap_close(offload_tablespace_map_rel, RowExclusiveLock);
-
-    yezzey_endscan(scanoff);
-    UnregisterSnapshot(snap);
-    return;
-  }
-#endif
   yezzey_endscan(scanoff);
 
   values[Anum_offload_tablespace_map_reloid - 1] = ObjectIdGetDatum(i_reloid);
@@ -241,20 +206,13 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
   auto nofftuple = heap_form_tuple(RelationGetDescr(offload_tablespace_map_rel),
                                    values, nulls);
 
-#if IsGreenplum6
-  simple_heap_insert(offload_tablespace_map_rel, nofftuple);
-  CatalogUpdateIndexes(offload_tablespace_map_rel, nofftuple);
-#else
   CatalogTupleInsert(offload_tablespace_map_rel, nofftuple);
-#endif
 
   heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
   heap_freetuple(nofftuple);
 
-#if IsModernYezzey
   ExecDropSingleTupleTableSlot(slot);
-#endif
 
   UnregisterSnapshot(snap);
 }
@@ -299,43 +257,6 @@ void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
   relation_close(r, NoLock);
 }
 
-void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {
-
-#if IsModernYezzey
-  return;
-  if (IsCatalogRelationOid(targRelationOid) ||
-      IsCatalogRelationOid(sourceRelationOid)) {
-    return;
-  }
-#else
-  /* TODO */
-#endif
-
-  auto r = try_relation_open(sourceRelationOid, NoLock, false);
-
-  if (r == NULL)
-    return;
-
-  /* If not yezzey, we do not care */
-  if (r->rd_rel->reltablespace == YEZZEYTABLESPACE_OID) {
-
-    auto val = YezzeyGetRelationOriginTablespace(NULL, NULL, sourceRelationOid);
-
-    auto r2 = relation_open(targRelationOid, NoLock);
-
-    auto key = y_stringify_rv(get_namespace_name(r2->rd_rel->relnamespace),
-                              RelationGetRelationName(r2));
-
-    auto key_origin =
-        y_stringify_rv(get_namespace_name(r->rd_rel->relnamespace),
-                       RelationGetRelationName(r));
-    yezzey_otm_hint[key_origin] = val;
-
-    yezzey_otm_hint[key] = val;
-
-    relation_close(r2, NoLock);
-  }
-  relation_close(r, NoLock);
-}
+void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {}
 
 void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/ }

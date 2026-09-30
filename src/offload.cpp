@@ -22,23 +22,13 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
 
   auto nvp = aorel->rd_att->natts;
 
-#if IsModernYezzey
-  Oid segrelid;
-#endif
-
   /*
    * Relation segments named base/DBOID/YezzeyGetRelFileLocator(aorel).*
    */
 
-#if IsModernYezzey
   elog(yezzey_log_level, "offloading relation %s, relnode %u",
        RelationGetRelationName(aorel),
        YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
-#else
-  elog(yezzey_log_level, "offloading relation %s, relnode %d",
-       RelationGetRelationName(aorel),
-       YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
-#endif
 
   /* for now, we locked relation */
 
@@ -49,13 +39,9 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
 
   if (RelationIsAoRows(aorel)) {
     /* Get information about all the file segments we need to scan */
-#if IsModernYezzey
+    Oid segrelid;
     segfile_array = GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
                                       &total_segfiles, &segrelid);
-#else
-    segfile_array =
-        GetAllFileSegInfo(aorel, appendOnlyMetaDataSnapshot, &total_segfiles);
-#endif
 
     for (int i = 0; i < total_segfiles; i++) {
       auto segno = segfile_array[i]->segno;
@@ -77,13 +63,9 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
     }
   } else if (RelationIsAoCols(aorel)) {
     /* ao columns, relstorage == 'c' */
-#if IsGreenplum6
-    segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
-                                             &total_segfiles);
-#else
+    Oid segrelid;
     segfile_array_cs = GetAllAOCSFileSegInfo(aorel, appendOnlyMetaDataSnapshot,
                                              &total_segfiles, &segrelid);
-#endif
     for (int inat = 0; inat < nvp; ++inat) {
       for (int i = 0; i < total_segfiles; i++) {
         auto segno = segfile_array_cs[i]->segno;

@@ -27,9 +27,7 @@ typedef struct yezzeyChunkMeta {
 #include "types.h"
 #include <memory>
 
-std::string getlocalpath(const std::string &local_path, int segno);
-bool ensureFilepathLocal(const std::string &filepath);
-std::string getlocalpath(const relnodeCoord &coords);
+bool ensureFilepathLocal(const char *filepath);
 
 int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                int64 modcount, int64 logicalEof,
@@ -42,8 +40,7 @@ EXTERNC void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                                     const char *external_storage_path);
 
 EXTERNC void loadRelationSegment(Relation aorel, Oid loadSpcOid,
-                                 Oid orig_relnode, int segno,
-                                 const char *dest_path);
+                                 Oid orig_relnode, int segno);
 
 EXTERNC int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                                    int64 logicalEof, size_t *local_bytes,

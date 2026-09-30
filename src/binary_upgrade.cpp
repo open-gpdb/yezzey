@@ -80,13 +80,7 @@ void YezzeyBinaryUpgrade(void) {
   newTuple = heap_modify_tuple(systuple, RelationGetDescr(classrel), values,
                                nulls, replaces);
 
-#if IsGreenplum6
-  simple_heap_update(classrel, &newTuple->t_self, newTuple);
-  /* keep the catalog indexes up to date */
-  CatalogUpdateIndexes(classrel, newTuple);
-#else
   CatalogTupleUpdate(classrel, &newTuple->t_self, newTuple);
-#endif
 
   yezzey_systable_endscan(scan);
   UnregisterSnapshot(snap);
@@ -98,8 +92,6 @@ void YezzeyBinaryUpgrade(void) {
   allowSystemTableMods = prevAllowSystableMods;
 }
 
-#if IsModernYezzey
-
 static void YezzeyCreateVirtualSpc() {
 
   Relation rel;
@@ -107,7 +99,6 @@ static void YezzeyCreateVirtualSpc() {
   bool nulls[Natts_pg_tablespace];
   HeapTuple tuple;
   Oid tablespaceoid;
-  const char *location = "";
   Oid ownerId;
   HeapTuple tp;
 
@@ -164,12 +155,14 @@ static void YezzeyCreateVirtualSpc() {
   /* Record the filesystem change in XLOG */
   {
     xl_tblspc_create_rec xlrec;
+    char location[] = "";
 
     xlrec.ts_id = tablespaceoid;
 
     XLogBeginInsert();
-    XLogRegisterData((char *)&xlrec, offsetof(xl_tblspc_create_rec, ts_path));
-    XLogRegisterData((char *)location, strlen(location) + 1);
+    XLogRegisterData(reinterpret_cast<char *>(&xlrec),
+                     offsetof(xl_tblspc_create_rec, ts_path));
+    XLogRegisterData(location, strlen(location) + 1);
 
     (void)XLogInsert(RM_TBLSPC_ID, XLOG_TBLSPC_CREATE);
   }
@@ -185,36 +178,20 @@ static void YezzeyCreateVirtualSpc() {
   /* We keep the lock on pg_tablespace until commit */
   table_close(rel, NoLock);
 }
-#endif
 
 void YezzeyInitMetadata(void) {
 
-#if IsModernYezzey
   YezzeyCreateVirtualSpc();
-#endif
 
   (void)YezzeyCreateVirtualSchema();
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
 
-#if IsModernYezzey
   (void)YezzeyCreateVirtualIndexIdx();
   (void)YezzeyCreateExpireHint();
   (void)YezzeyCreateExpireHintIdx();
-#endif
 }
 
-void YezzeyBinaryUpgrade183(void) {
-#if IsModernYezzey
-#else
-  (void)YezzeyCreateVirtualIndexIdx();
-#endif
-}
+void YezzeyBinaryUpgrade183(void) {}
 
-void YezzeyBinaryUpgrade184(void) {
-#if IsModernYezzey
-#else
-  (void)YezzeyCreateExpireHint();
-  (void)YezzeyCreateExpireHintIdx();
-#endif
-}
+void YezzeyBinaryUpgrade184(void) {}

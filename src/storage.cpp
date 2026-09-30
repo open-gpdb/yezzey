@@ -1,7 +1,9 @@
 #include "storage.h"
 #include "util.h"
 
+#include <exception>
 #include <fstream>
+#include <stdexcept>
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -20,7 +22,6 @@
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
-#include "ygpver.h"
 #include "yproxy.h"
 
 int yezzey_log_level = DEBUG1;
@@ -29,28 +30,29 @@ int yezzey_ao_log_level = DEBUG1;
 /*
  * This function used by AO-related relation functions
  */
-bool ensureFilepathLocal(const std::string &filepath) {
+bool ensureFilepathLocal(const char *filepath) {
   struct stat buffer;
-  if (stat(filepath.c_str(), &buffer) != 0) {
+  if (stat(filepath, &buffer) != 0) {
     if (errno == ENOENT) {
       return false;
     }
-    elog(ERROR, "could not stat \"%s\" (%m)", filepath.c_str());
+    elog(ERROR, "could not stat \"%s\" (%m)", filepath);
   }
   return true;
+}
+
+static char *getlocalpath(const YezzeyLocator &rnode, int segno) {
+  return aorelpathbackend(rnode, InvalidBackendId, segno);
 }
 
 int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
                                int64 modcount, int64 logicalEof,
                                const std::string &external_storage_path) {
-  /* An empty AO segment has no local or external data to transfer. */
-  if (logicalEof == 0) {
-    return 0;
-  }
-
-  const std::string localPath = getlocalpath(ioadv->coords_);
+  const auto local_rnode = YezzeyGetRelFileLocator(aorel);
+  char *localPath = getlocalpath(local_rnode, ioadv->coords_.blkno);
 
   if (!ensureFilepathLocal(localPath)) {
+    pfree(localPath);
     return 0;
   }
 
@@ -60,16 +62,12 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   int64 curr_read_chunk;
 
   std::vector<char> buffer(chunkSize);
-#if IsGreenplum6
-  const auto vfd =
-      PathNameOpenFile((FileName)localPath.c_str(), O_RDONLY, 0600);
-#else
-  const auto vfd = PathNameOpenFile(localPath.c_str(), O_RDONLY);
-#endif
+  const auto vfd = PathNameOpenFile(localPath, O_RDONLY);
   if (vfd <= 0) {
-    elog(ERROR,
-         "yezzey: failed to open %s file to transfer to external storage",
-         localPath.c_str());
+    const std::string error = std::string("failed to open ") + localPath +
+                              " file to transfer to external storage";
+    pfree(localPath);
+    throw std::runtime_error(error);
   }
 
   auto iohandler =
@@ -86,6 +84,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   if (virtual_size == -1) {
     elog(NOTICE, "yezzey: failed to calculate virtual size");
     FileClose(vfd);
+    pfree(localPath);
     return -1;
   }
 
@@ -97,10 +96,13 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   const auto fLen = FileSeek(vfd, 0L, SEEK_END);
 
   if (fLen < logicalEof) {
-    elog(ERROR,
-         "yezzey: failed to offload corrupt relation, partial data file %s: "
-         "%lu < %lu",
-         localPath.c_str(), fLen, logicalEof);
+    const std::string error =
+        std::string("failed to offload corrupt relation, partial data file ") +
+        localPath + ": " + std::to_string(fLen) + " < " +
+        std::to_string(logicalEof);
+    FileClose(vfd);
+    pfree(localPath);
+    throw std::runtime_error(error);
   }
 
   FileSeek(vfd, progress, SEEK_SET);
@@ -109,12 +111,14 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   const auto fLen = FileSize(vfd);
 
   if (fLen < logicalEof) {
-    elog(ERROR,
-         "yezzey: failed to offload corrupt relation, partial data file %s: "
-         "%lu < %lu",
-         localPath.c_str(), fLen, logicalEof);
+    const std::string error =
+        std::string("failed to offload corrupt relation, partial data file ") +
+        localPath + ": " + std::to_string(fLen) + " < " +
+        std::to_string(logicalEof);
+    FileClose(vfd);
+    pfree(localPath);
+    throw std::runtime_error(error);
   }
-
 #endif
 
   ioadv->multipart_upload = fLen > multipart_threshold;
@@ -126,14 +130,11 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       /* should not read beyond logical eof */
       curr_read_chunk = logicalEof - progress;
     }
-#if IsGreenplum6
-    rc = FileRead(vfd, buffer.data(), curr_read_chunk);
-#else
     rc = FileRead(vfd, buffer.data(), curr_read_chunk, progress,
                   WAIT_EVENT_DATA_FILE_READ);
-#endif
     if (rc < 0) {
       FileClose(vfd);
+      pfree(localPath);
       return rc;
     }
     if (rc == 0) {
@@ -148,6 +149,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       auto currptrtot = static_cast<size_t>(rc - tot);
       if (!iohandler.io_write(bptr, &currptrtot)) {
         FileClose(vfd);
+        pfree(localPath);
         return -1;
       }
 
@@ -171,23 +173,33 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
       yezzey_fqrelname_md5(ioadv->nspname, ioadv->relname).c_str());
 
   if (!iohandler.io_close()) {
-    elog(ERROR, "yezzey: failed to complete %s offloading", localPath.c_str());
+    const std::string error =
+        std::string("yezzey: failed to complete ") + localPath + " offloading";
+    FileClose(vfd);
+    pfree(localPath);
+    throw std::runtime_error(error);
   } else {
-    elog(DEBUG1, "yezzey: complete %s offloading", localPath.c_str());
+    elog(DEBUG1, "yezzey: complete %s offloading", localPath);
   }
 
   FileClose(vfd);
+  pfree(localPath);
   return rc;
 }
 
-void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
-                                    const std::string &relname, int segno,
+void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
+                                    const char *relname, int segno,
                                     const relnodeCoord &coords,
-                                    const std::string &dest_path) {
+                                    const char *dest_path) {
   const size_t chunkSize = 1 << 20;
   std::vector<char> buffer(chunkSize);
 
   std::ofstream ostrm(dest_path, std::ios::binary);
+
+  if (!ostrm.is_open()) {
+    throw std::runtime_error(std::string("could not open \"") + dest_path +
+                             "\" for writing");
+  }
 
   auto ioadv = std::make_shared<IOadv>(
       nspname, relname, storage_class, multipart_chunksize,
@@ -212,12 +224,14 @@ void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   while (!iohandler.reader_empty()) {
     size_t amount = chunkSize;
     if (!iohandler.io_read(buffer.data(), &amount)) {
-      elog(ERROR, "failed to read file from external storage");
+      throw std::runtime_error(std::string("failed to read \"") + dest_path +
+                               "\" from external storage");
     }
 
     ostrm.write(buffer.data(), amount);
     if (ostrm.fail()) {
-      elog(ERROR, "failed to read file from external storage");
+      throw std::runtime_error(std::string("failed to write \"") + dest_path +
+                               "\" while loading from external storage");
     }
 
     xlog_ao_insert(rnode, segno, position, buffer.data(), amount);
@@ -225,50 +239,47 @@ void loadSegmentFromExternalStorage(Relation rel, const std::string &nspname,
   }
 
   if (!iohandler.io_close()) {
-    elog(ERROR, "yezzey: failed to complete %s offloading", dest_path.c_str());
+    throw std::runtime_error(std::string("failed to complete ") + dest_path +
+                             " offloading");
   } else {
-    elog(DEBUG1, "yezzey: complete %s offloading", dest_path.c_str());
+    elog(DEBUG1, "yezzey: complete %s offloading", dest_path);
   }
 }
 
 void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
-                         int segno, const char *dest_path) {
+                         int segno) {
   const auto rnode = YezzeyGetRelFileLocator(aorel);
 
   const auto coords = relnodeCoord(
       YezzeyGetRelSpcOid(rnode), YezzeyGetRelDbOid(rnode), orig_relnode, segno);
 
-  std::string nspname;
-  std::string relname;
-  {
-    const auto tp = SearchSysCache1(
-        NAMESPACEOID, ObjectIdGetDatum(aorel->rd_rel->relnamespace));
+  auto local_rnode = rnode;
+  YezzeyGetRelSpcOid(local_rnode) = loadSpcOid;
+  char *path = getlocalpath(local_rnode, segno);
 
-    if (!HeapTupleIsValid(tp)) {
-      elog(ERROR, "yezzey: failed to get namescape name of relation %s",
-           RelationGetRelationName(aorel));
-    }
-
-    Form_pg_namespace nsptup = (Form_pg_namespace)GETSTRUCT(tp);
-    nspname = std::string(NameStr(nsptup->nspname));
-    relname = std::string(RelationGetRelationName(aorel));
-    ReleaseSysCache(tp);
-  }
-
-  std::string path;
-  if (dest_path) {
-    path = std::string(dest_path);
-  } else {
-    path = getlocalpath(relnodeCoord(loadSpcOid, YezzeyGetRelDbOid(rnode),
-                                     YezzeyGetRelNode(rnode), segno));
-  }
-
-  elog(yezzey_ao_log_level, "contructed path %s", path.c_str());
+  elog(yezzey_ao_log_level, "constructed path %s", path);
   if (ensureFilepathLocal(path)) {
+    pfree(path);
     return;
   }
 
-  loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords, path);
+  const char *relname = RelationGetRelationName(aorel);
+  char *nspname = get_namespace_name(RelationGetNamespace(aorel));
+  if (nspname == nullptr) {
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s", relname);
+  }
+
+  try {
+    loadSegmentFromExternalStorage(aorel, nspname, relname, segno, coords,
+                                   path);
+  } catch (const std::exception &e) {
+    elog(ERROR, "yezzey: failed to load relation segment: %s", e.what());
+  } catch (...) {
+    elog(ERROR, "yezzey: unknown exception while loading relation segment");
+  }
+
+  pfree(path);
+  pfree(nspname);
 }
 
 int removeLocalFile(const char *localPath) {
@@ -276,21 +287,6 @@ int removeLocalFile(const char *localPath) {
   elog(yezzey_ao_log_level,
        "[YEZZEY_SMGR_BG] remove local file \"%s\", result: %d", localPath, res);
   return res;
-}
-
-std::string getlocalpath(const std::string &local_path, int segno) {
-  if (segno != 0) {
-    return local_path + "." + std::to_string(segno);
-  }
-  return local_path;
-}
-
-std::string getlocalpath(const relnodeCoord &coords) {
-  std::string local_path(GetRelationPath(coords.dboid, coords.spcNode,
-                                         coords.filenode, InvalidBackendId,
-                                         MAIN_FORKNUM));
-
-  return getlocalpath(local_path, coords.blkno);
 }
 
 void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
@@ -311,30 +307,27 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
   }
 
   const auto nsptup = (Form_pg_namespace)GETSTRUCT(tp);
-  const auto nspname = std::string(NameStr(nsptup->nspname));
-  const auto relname = std::string(RelationGetRelationName(aorel));
-  const auto storage_path =
-      !external_storage_path ? "" : std::string(external_storage_path);
+  char *nspname = pstrdup(NameStr(nsptup->nspname));
   ReleaseSysCache(tp);
 
-  const auto ioadv = std::make_shared<IOadv>(
-      nspname, relname, storage_class, multipart_chunksize, coords,
-      aorel->rd_id /* reloid */, use_gpg_crypto, yproxy_socket);
-
-  int off_rc;
-
   try {
-    off_rc = offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
-                                        storage_path);
+    const auto ioadv = std::make_shared<IOadv>(
+        std::string(nspname), std::string(RelationGetRelationName(aorel)),
+        storage_class, multipart_chunksize, coords, aorel->rd_id /* reloid */,
+        use_gpg_crypto, yproxy_socket);
+
+    if (offloadRelationSegmentPath(aorel, ioadv, modcount, logicalEof,
+                                   external_storage_path ? external_storage_path
+                                                         : "") < 0) {
+      throw std::runtime_error("failed to offload relation");
+    }
+  } catch (const std::exception &e) {
+    elog(ERROR, "yezzey: failed to offload relation segment: %s", e.what());
   } catch (...) {
-    /* Keep compiler quiet */
-    off_rc = -1;
-    elog(ERROR, "Caught an unexpected exception.");
+    elog(ERROR, "yezzey: unknown exception while offloading relation segment");
   }
 
-  if (off_rc < 0)
-    elog(ERROR, "yezzey: failed to offload relation %s",
-         RelationGetRelationName(aorel));
+  pfree(nspname);
 
   elog(NOTICE,
        "yezzey: relation segment reached external storage (blkno=%ld), up to "
@@ -442,6 +435,12 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   ReleaseSysCache(tp);
 
   const auto ioadv = makeIOadvForOriginRelation(aorel, nspname, segno);
+  auto local_rnode = rnode;
+  /*
+   * Replace YEZZEYTABLESPACE_OID, if present, with the origin tablespace
+   * that contains the local AO file.
+   */
+  YezzeyGetRelSpcOid(local_rnode) = ioadv->coords_.spcNode;
   const auto virtual_sz = yezzey_relation_metadata_size(ioadv);
   if (virtual_sz == -1)
     elog(ERROR, "yezzey: failed to stat size of relation %s",
@@ -450,21 +449,16 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
   *external_bytes = virtual_sz;
 
   /* No local storage cache logic for now */
-  const auto local_path = getlocalpath(ioadv->coords_);
+  char *local_path = getlocalpath(local_rnode, segno);
 
   *local_bytes = 0;
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
-#if IsGreenplum6
-    const auto f = PathNameOpenFile((FileName)local_path.c_str(),
-                                    O_RDONLY | PG_BINARY, S_IRUSR);
-#else
-    const auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
-#endif
+    const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
 
     if (f < 0)
-      elog(ERROR, "could not open file \"%s\": %m", local_path.c_str());
+      elog(ERROR, "could not open file \"%s\": %m", local_path);
 
 #if PG_VERSION_NUM < 120000
     *local_bytes = FileSeek(f, 0L, SEEK_END);
@@ -477,6 +471,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   *local_committed_bytes = 0;
 
+  pfree(local_path);
   return 0;
 }
 
@@ -499,6 +494,12 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   ReleaseSysCache(tp);
 
   const auto ioadv = makeIOadvForOriginRelation(aorel, nspname, 0);
+  auto local_rnode = rnode;
+  /*
+   * Replace YEZZEYTABLESPACE_OID, if present, with the origin tablespace
+   * that contains the local AO file.
+   */
+  YezzeyGetRelSpcOid(local_rnode) = ioadv->coords_.spcNode;
 
   auto lister = YProxyLister(ioadv, GpIdentity.segindex);
 
@@ -516,20 +517,15 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   }
 
   /* No local storage cache logic for now */
-  const auto local_path = getlocalpath(ioadv->coords_);
+  char *local_path = getlocalpath(local_rnode, 0);
   *local_bytes = 0;
 
   if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
 
-#if IsGreenplum6
-    const auto f = PathNameOpenFile((FileName)local_path.c_str(),
-                                    O_RDONLY | PG_BINARY, S_IRUSR);
-#else
-    const auto f = PathNameOpenFile(local_path.c_str(), O_RDONLY | PG_BINARY);
-#endif
+    const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
 
     if (f < 0)
-      elog(ERROR, "could not open file \"%s\": %m", local_path.c_str());
+      elog(ERROR, "could not open file \"%s\": %m", local_path);
 
 #if PG_VERSION_NUM < 120000
     *local_bytes = FileSeek(f, 0L, SEEK_END);
@@ -541,6 +537,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   }
 
   *local_commited_bytes = 0;
+  pfree(local_path);
   return 0;
 }
 
