@@ -71,6 +71,4 @@ void YezzeyCreateVirtualSchema(void) {
   recordDependencyOnCurrentExtension(&myself, false);
 
   CommandCounterIncrement();
-
-  return;
 }

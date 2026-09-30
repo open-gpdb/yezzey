@@ -59,7 +59,6 @@ void getYezzeyExternalStoragePathByCoords(const char *nspname,
   /* +1 for the terminating null byte that strcpy writes */
   *dest = (char *)palloc(sizeof(char) * (prefix.size() + 1));
   strcpy(*dest, prefix.c_str());
-  return;
 }
 
 /*
