@@ -417,7 +417,7 @@ jobs:
   ## ======================================================================
 
   report:
-    name: Generate OpenGPDB Build Report
+    name: Generate Apache Cloudberry Build Report
     needs: [test-gpdb]
     if: always()
     runs-on: ubuntu-22.04
