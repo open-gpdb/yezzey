@@ -60,7 +60,6 @@ ifdef IS_CLOUDBERRY_3
 REGRESS = \
           simple_cbdb_3
 else
-ifdef IS_CLOUDBERRY
 REGRESS = \
           simple_cbdb \
           drop-column_cbdb \
@@ -84,8 +83,6 @@ REGRESS = \
      #     yezzey-create-offloaded_cbdb \
       #    yezzey-offload-errors_cbdb
           
-else
-endif
 endif
 
 ifdef USE_PGXS

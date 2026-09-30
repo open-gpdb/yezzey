@@ -1280,8 +1280,6 @@ yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
       post_alter_offload_rel = stmt->relation;
     }
   } break;
-  case T_VacuumStmt:
-    break;
   default:
     break;
   }
