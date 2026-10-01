@@ -6,15 +6,13 @@ export secretAccessKey=some_key
 export bucketName=gpyezzey
 export s3endpoint="http:\\/\\/minio:9000"
 
-mkdir -p /home/gpadmin/yezzey_test
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
-cp devops/config/priv.gpg /home/gpadmin/yezzey_test/priv.gpg
-cp devops/config/pub.gpg /home/gpadmin/yezzey_test/pub.gpg
+# The test keypair is generated on the fly instead of being stored in the
+# repository, see generate_test_gpg_keys.sh.
+"${script_dir}/generate_test_gpg_keys.sh" /home/gpadmin/yezzey_test
 
-gpg --import /home/gpadmin/yezzey_test/pub.gpg
-gpg --import /home/gpadmin/yezzey_test/priv.gpg
-
-cp -f devops/config/yproxy.conf /tmp/yproxy.yaml
+cp -f "${script_dir}/../config/yproxy.conf" /tmp/yproxy.yaml
 sed -i "s/\$AWS_ACCESS_KEY_ID/${accessKeyId}/g" /tmp/yproxy.yaml
 sed -i "s/\$AWS_SECRET_ACCESS_KEY/${secretAccessKey}/g" /tmp/yproxy.yaml
 sed -i "s/\$AWS_ENDPOINT/${s3endpoint}/g" /tmp/yproxy.yaml
