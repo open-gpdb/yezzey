@@ -25,6 +25,19 @@ What are our extension doing is:
 
 The result was called yezzey. The idea is to be able to offload data to S3 without a significant degradation of query performance and changes to the user interface.
 
+## Development
+
+Yezzey is maintained in two implementation branches:
+
+- `master` supports Apache Cloudberry;
+- `OPENGPDB_STABLE` supports OpenGPDB (Greenplum 6).
+
+`OPENGPDB_STABLE` is the primary development branch. Open pull requests and
+merge changes there first. Then cherry-pick the resulting commits into `master`,
+adapt them to the Apache Cloudberry APIs where necessary, and validate them with
+Cloudberry tests. Keep platform-specific implementations separate; do not add
+new cross-platform `#ifdef` branches for implementation differences.
+
 ## Interfaces
 
 Yezzey currently only works with Append Only (AO/AOCO) Greenplum tables. The simple example:
