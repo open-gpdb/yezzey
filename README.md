@@ -57,10 +57,16 @@ Time: 5762.468 ms
 
 ### Upload data to S3
 
-Data is uploaded to S3 by calling the `yezzey_define_offload_policy(reloid OID, remove_locally BOOLEAN)` method from the yezzey extension:
+Data is uploaded to S3 by calling
+`yezzey_define_offload_policy(schema_name TEXT, relation_name TEXT, policy offload_policy DEFAULT 'remote_always')`:
 
-```
-postgres=# select yezzey_define_offload_policy('public', 'test');
+The third `policy` argument is optional; the two-argument call below uses its
+default value. The argument is currently ignored and retained only for
+compatibility. In future versions, it will be deprecated. We recommend that
+you do not use it.
+
+```sql
+postgres=# SELECT * FROM yezzey_define_offload_policy('public', 'test');
 NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 10.129.0.12:6000 pid=706966)
 NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 10.129.0.30:6000 pid=707950)
 INFO:  yezzey: relation segment reached external storage (blkno=1), up to logical eof 200242112  (seg0 slice1 10.129.0.12:6000 pid=706966)
@@ -145,10 +151,10 @@ INFO:  loaded relation ... to local storage
 
 ### Get info about offloaded data
 
-Just query extension:
+Query the extension:
 
 ```sql
-SELECT * FROM yezzey_offload_relation_status('<имя_схемы>', '<имя_таблицы>');
+SELECT * FROM yezzey_offload_relation_status('<schema_name>', '<table_name>');
 ```
 The query result contains the following fields:
 
