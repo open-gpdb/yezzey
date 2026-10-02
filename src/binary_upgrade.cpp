@@ -13,7 +13,7 @@
 #include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
 
-void YezzeyBinaryUpgrade(void) {
+static void YezzeyBinaryUpgrade(void) {
   /**/
   ScanKeyData skey[2];
   HeapTuple newTuple;
@@ -190,8 +190,5 @@ void YezzeyInitMetadata(void) {
   (void)YezzeyCreateVirtualIndexIdx();
   (void)YezzeyCreateExpireHint();
   (void)YezzeyCreateExpireHintIdx();
+  YezzeyBinaryUpgrade();
 }
-
-void YezzeyBinaryUpgrade183(void) {}
-
-void YezzeyBinaryUpgrade184(void) {}

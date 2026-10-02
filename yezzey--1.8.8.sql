@@ -16,7 +16,7 @@ LANGUAGE C STRICT;
 
 CREATE FUNCTION yezzey_init_metadata_seg()
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_init_metadata'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
@@ -272,27 +272,6 @@ CREATE TABLE yezzey.offload_tablespace_map(
 ) DISTRIBUTED REPLICATED;
 
 
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m()
-RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
-VOLATILE
-LANGUAGE C STRICT
-EXECUTE ON MASTER;
-
-
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
-RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
-VOLATILE
-LANGUAGE C STRICT
-EXECUTE ON ALL SEGMENTS;
-
-SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
-SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
-
-DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
-DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
-
 CREATE TABLE yezzey.yezzey_virtual_index_stale AS 
     SELECT * FROM yezzey.yezzey_virtual_index LIMIT 0;
 
@@ -329,55 +308,6 @@ $$
     SELECT false;
 $$ LANGUAGE SQL
 EXECUTE ON ALL SEGMENTS;
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m()
-RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
-VOLATILE
-LANGUAGE C STRICT
-EXECUTE ON MASTER;
-
-
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg()
-RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
-VOLATILE
-LANGUAGE C STRICT
-EXECUTE ON ALL SEGMENTS;
-
-SELECT yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg();
-SELECT yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m();
-
-DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg();
-DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m();
-
-
--- create yezzey hint index here
-
-
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m()
-RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'
-VOLATILE
-EXECUTE ON MASTER
-LANGUAGE C STRICT;
-
-
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg()
-RETURNS TABLE (status BOOLEAN) 
-AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'
-VOLATILE
-EXECUTE ON ALL SEGMENTS
-LANGUAGE C STRICT;
-
-SET allow_segment_dml TO ON;
-
-SELECT yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg();
-SELECT yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m();
-
-RESET allow_segment_DML;
-
-DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg();
-DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m();
 
 
 CREATE FUNCTION

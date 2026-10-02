@@ -111,7 +111,6 @@ PG_FUNCTION_INFO_V1(yezzey_define_relation_offload_policy_internal_seg);
 PG_FUNCTION_INFO_V1(yezzey_define_relation_offload_policy_internal_prepare);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_to_external_path);
 PG_FUNCTION_INFO_V1(yezzey_show_relation_external_path);
-PG_FUNCTION_INFO_V1(yezzey_init_metadata_seg);
 PG_FUNCTION_INFO_V1(yezzey_init_metadata);
 PG_FUNCTION_INFO_V1(yezzey_set_relation_expirity_seg);
 PG_FUNCTION_INFO_V1(yezzey_check_part_exr);
@@ -120,10 +119,6 @@ PG_FUNCTION_INFO_V1(yezzey_delete_chunk);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage_tablespace);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
-
-PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
-PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_2_to_1_8_3);
-PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_3_to_1_8_4);
 
 PG_FUNCTION_INFO_V1(yezzey_delete_obsolete);
 PG_FUNCTION_INFO_V1(yezzey_collect_obsolete);
@@ -137,10 +132,6 @@ static ProcessUtility_hook_type prev_ProcessUtility_hook = NULL;
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
   YezzeyInitMetadata();
   PG_RETURN_VOID();
-}
-
-Datum yezzey_init_metadata_seg(PG_FUNCTION_ARGS) {
-  return yezzey_init_metadata(fcinfo);
 }
 
 void yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
@@ -481,23 +472,6 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
    * sure we return something; see also validate_sql_exec_location for details
    */
   PG_RETURN_BOOL(true);
-}
-
-Datum yezzey_binary_upgrade_1_8_to_1_8_1(PG_FUNCTION_ARGS) {
-  YezzeyBinaryUpgrade();
-  PG_RETURN_VOID();
-}
-
-/* Create yezzey metadata tables */
-Datum yezzey_binary_upgrade_1_8_2_to_1_8_3(PG_FUNCTION_ARGS) {
-  YezzeyBinaryUpgrade183();
-  PG_RETURN_VOID();
-}
-
-/* Create expire hint table */
-Datum yezzey_binary_upgrade_1_8_3_to_1_8_4(PG_FUNCTION_ARGS) {
-  YezzeyBinaryUpgrade184();
-  PG_RETURN_VOID();
 }
 
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
