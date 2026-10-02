@@ -111,7 +111,6 @@ PG_FUNCTION_INFO_V1(yezzey_define_relation_offload_policy_internal_seg);
 PG_FUNCTION_INFO_V1(yezzey_define_relation_offload_policy_internal_prepare);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_to_external_path);
 PG_FUNCTION_INFO_V1(yezzey_show_relation_external_path);
-PG_FUNCTION_INFO_V1(yezzey_init_metadata_seg);
 PG_FUNCTION_INFO_V1(yezzey_init_metadata);
 PG_FUNCTION_INFO_V1(yezzey_set_relation_expirity_seg);
 PG_FUNCTION_INFO_V1(yezzey_check_part_exr);
@@ -137,10 +136,6 @@ static ProcessUtility_hook_type prev_ProcessUtility_hook = NULL;
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
   YezzeyInitMetadata();
   PG_RETURN_VOID();
-}
-
-Datum yezzey_init_metadata_seg(PG_FUNCTION_ARGS) {
-  return yezzey_init_metadata(fcinfo);
 }
 
 void yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
