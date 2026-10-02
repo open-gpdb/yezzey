@@ -9,7 +9,6 @@
 #define EXTERNC
 #endif
 
-#define YEZZEY_AUX_NAMESPACE 8001
 #define YEZZEYTABLESPACE_OID 8555
 
 EXTERNC void YezzeyUpdateMetadataRelations(
