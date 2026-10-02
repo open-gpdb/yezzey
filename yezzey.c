@@ -1198,10 +1198,6 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
     (void)FixupOffloadMetadata(RelationGetRelid(offRel));
 
     relation_close(offRel, AccessShareLock);
-  } else if (access == OAT_POST_ALTER) {
-    /* TODO: implement properly */
-    /* XXX: what are use cases here? */
-    /* (void)YezzeyFixupVirtualIndex(offRel) */;
   }
 }
 

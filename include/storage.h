@@ -1,8 +1,6 @@
 #ifndef YEZZEY_STORAGE_H
 #define YEZZEY_STORAGE_H
 
-// XXX: todo proder interface for external storage offloading
-
 #include <unistd.h>
 
 #include "pg.h"

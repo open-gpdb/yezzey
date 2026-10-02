@@ -1,12 +1,9 @@
-/* STAGE delete */
-
 #include "expire_hint.h"
 
 #include "yezzey_meta.h"
 
 #include "yezzey_heap_api.h"
 
-// STAGE needed?
 Oid YezzeyFindAuxIndex_internal(Oid reloid);
 
 static inline Oid yezzey_create_expire_hint_relation_internal(

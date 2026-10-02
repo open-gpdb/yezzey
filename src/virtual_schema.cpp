@@ -49,7 +49,7 @@ void YezzeyCreateVirtualSchema(void) {
 
   HeapTupleSetOid(tup, nspoid);
 
-  /* if gp6 insert tuples locally */
+  /* Insert the catalog tuple locally. */
   simple_heap_insert(nspdesc, tup);
   CatalogUpdateIndexes(nspdesc, tup);
   Assert(OidIsValid(nspoid));

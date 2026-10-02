@@ -25,7 +25,6 @@ static Oid YezzeyResolveTablespaceMapOid() {
   /* SELECT FROM pg_catalog.pg_class WHERE relname = 'offload_tablespace_map'
    * and relnamespace = 8001; */
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
-  /**/
   ScanKeyData skey[2];
 
   auto classrel = yezzey_relation_open(RelationRelationId, RowExclusiveLock);

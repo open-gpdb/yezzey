@@ -294,7 +294,6 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
     // update
     auto meta = (Form_yezzey_virtual_index)GETSTRUCT(tuple);
 
-    // Assert(meta->yrelfileoid == relfileoid);
     if (meta->reloid == RelationGetRelid(relation)) {
       continue;
     }
@@ -359,9 +358,7 @@ void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,
 
   auto yandxtuple = heap_form_tuple(RelationGetDescr(yandxrel), values, nulls);
 
-  /* send tuple messages to master */
-
-  /* if gp6 insert tuples locally */
+  /* Insert the catalog tuple locally. */
   simple_heap_insert(yandxrel, yandxtuple);
   CatalogUpdateIndexes(yandxrel, yandxtuple);
 
@@ -388,10 +385,6 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
-  // ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_reloid,
-  // BTEqualStrategyNumber,
-  //             F_OIDEQ, ObjectIdGetDatum(reloid));
-
   ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_filenode,
               BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(relfilenode));
 
@@ -410,7 +403,6 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
     }
   }
 
-  /* TBD: Read index */
   auto desc = yezzey_systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
                                         use_y_index, snap, 2, skey);
 
