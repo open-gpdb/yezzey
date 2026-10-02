@@ -121,18 +121,13 @@ void YezzeyCreateVirtualIndexIdx() {
       YEZZEY_VIRTUAL_INDEX_IDX_RELATION, yezzey_ao_auxiliary_idxname,
       GetUserId(), RELPERSISTENCE_PERMANENT);
 
-  ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
 
-  baseobject.classId = ExtensionRelationId;
-  baseobject.objectId = get_extension_oid("yezzey", false);
-  baseobject.objectSubId = 0;
   yezzey_ao_auxiliaryobject.classId = RelationRelationId;
   yezzey_ao_auxiliaryobject.objectId = YEZZEY_VIRTUAL_INDEX_IDX_RELATION;
   yezzey_ao_auxiliaryobject.objectSubId = 0;
 
-  recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
-                     DEPENDENCY_INTERNAL);
+  recordDependencyOnCurrentExtension(&yezzey_ao_auxiliaryobject, false);
 
   /*
    * Make changes visible
@@ -147,18 +142,13 @@ void YezzeyCreateVirtualIndex() {
       YEZZEY_VIRTUAL_INDEX_RELATION, yezzey_ao_auxiliary_relname, GetUserId(),
       RELPERSISTENCE_PERMANENT, false, false);
 
-  ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
 
-  baseobject.classId = ExtensionRelationId;
-  baseobject.objectId = get_extension_oid("yezzey", false);
-  baseobject.objectSubId = 0;
   yezzey_ao_auxiliaryobject.classId = RelationRelationId;
   yezzey_ao_auxiliaryobject.objectId = YEZZEY_VIRTUAL_INDEX_RELATION;
   yezzey_ao_auxiliaryobject.objectSubId = 0;
 
-  recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
-                     DEPENDENCY_INTERNAL);
+  recordDependencyOnCurrentExtension(&yezzey_ao_auxiliaryobject, false);
 
   /*
    * Make changes visible
