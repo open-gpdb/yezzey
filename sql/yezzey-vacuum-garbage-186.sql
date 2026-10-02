@@ -1,5 +1,4 @@
-CREATE EXTENSION yezzey VERSION '1.0';
-ALTER EXTENSION yezzey UPDATE TO '1.8.6';
+CREATE EXTENSION yezzey;
 
 CREATE TABLE vacuum_garbage_aot(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
 SELECT yezzey_define_offload_policy('vacuum_garbage_aot');

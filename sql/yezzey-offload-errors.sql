@@ -2,7 +2,7 @@
 -- Error cases are wrapped so only the raised message is printed (no volatile
 -- CONTEXT stack), keeping the expected output stable across environments.
 
-CREATE EXTENSION yezzey VERSION '1.8.7';
+CREATE EXTENSION yezzey;
 
 SET client_min_messages TO NOTICE;
 

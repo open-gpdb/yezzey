@@ -1,3 +1,4 @@
+-- Start from the oldest supported version and verify every upgrade path.
 CREATE EXTENSION yezzey VERSION '1.8.7';
 
 ALTER EXTENSION yezzey UPDATE TO '1.8.8';

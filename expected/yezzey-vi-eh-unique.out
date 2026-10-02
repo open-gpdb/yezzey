@@ -1,4 +1,4 @@
-CREATE EXTENSION yezzey VERSION '1.8.7';
+CREATE EXTENSION yezzey;
 INSERT INTO yezzey.yezzey_virtual_index (filenode,blkno,modcount) VALUES (1,1,1);
 INSERT INTO yezzey.yezzey_virtual_index (filenode,blkno,modcount) VALUES (1,1,1);
 ERROR:  duplicate key value violates unique constraint "yezzey_virtual_index_idx"

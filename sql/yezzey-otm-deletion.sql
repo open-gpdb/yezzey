@@ -1,4 +1,4 @@
-CREATE EXTENSION yezzey VERSION '1.8.7';
+CREATE EXTENSION yezzey;
 
 -- check that load result of is correct
 
