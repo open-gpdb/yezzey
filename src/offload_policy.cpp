@@ -9,6 +9,7 @@
 
 #include "offload_tablespace_map.h"
 #include "relfilelocator.h"
+#include "catalog/namespace.h"
 
 /*
 
@@ -72,7 +73,7 @@ void YezzeyCreateOffloadPolicyRelation() {
 
   (void)heap_create_with_catalog(
       offload_metadata_relname.c_str() /* relname */,
-      YEZZEY_AUX_NAMESPACE /* namespace */, 0 /* tablespace */,
+      get_namespace_oid("yezzey", false) /* namespace */, 0 /* tablespace */,
       YEZZEY_OFFLOAD_POLICY_RELATION /* relid */,
       GetNewObjectId() /* reltype oid */, InvalidOid /* reloftypeid */,
       GetUserId() /* owner */, HEAP_TABLE_AM_OID /* access method*/,

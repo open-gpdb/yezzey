@@ -8,9 +8,9 @@
 #include "binary_upgrade.h"
 #include "offload_policy.h"
 #include "virtual_index.h"
-#include "virtual_schema.h"
 #include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
+#include "catalog/namespace.h"
 
 static void YezzeyCreateVirtualSpc() {
 
@@ -103,7 +103,6 @@ void YezzeyInitMetadata(void) {
 
   YezzeyCreateVirtualSpc();
 
-  (void)YezzeyCreateVirtualSchema();
   (void)YezzeyCreateOffloadPolicyRelation();
   (void)YezzeyCreateVirtualIndex();
 

@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "yezzey_meta.h"
+#include "catalog/namespace.h"
 
 Oid YezzeyFindAuxIndex_internal(Oid reloid);
 
@@ -41,7 +42,7 @@ static inline Oid yezzey_create_virtual_index_relation_internal(
                      TEXTOID, -1, 0);
 
   auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
-      relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
+      relname.c_str() /* relname */, get_namespace_oid("yezzey", false) /* namespace */,
       0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
       InvalidOid /* reloftypeid */, relowner /* owner */,
       HEAP_TABLE_AM_OID /* access method*/, tupdesc /* rel tuple */, NIL,
@@ -185,7 +186,7 @@ Oid YezzeyFindAuxIndex_internal(Oid reloid) {
               CStringGetDatum(yezzey_ao_auxiliary_relname.c_str()));
 
   ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
-              F_OIDEQ, ObjectIdGetDatum(YEZZEY_AUX_NAMESPACE));
+              F_OIDEQ, ObjectIdGetDatum(get_namespace_oid("yezzey", false)));
 
   auto scan =
       systable_beginscan(pg_class, ClassNameNspIndexId, true, NULL, 2, skey);
