@@ -329,31 +329,10 @@ $$
     SELECT false;
 $$ LANGUAGE SQL
 EXECUTE ON ALL SEGMENTS;
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m()
-RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
-VOLATILE
-LANGUAGE C STRICT
-EXECUTE ON MASTER;
 
-
-CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg()
-RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
-VOLATILE
-LANGUAGE C STRICT
-EXECUTE ON ALL SEGMENTS;
-
-SELECT yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg();
-SELECT yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m();
-
-DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg();
-DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m();
 
 
 -- create yezzey hint index here
-
-
 CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m()
 RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'

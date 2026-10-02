@@ -121,7 +121,6 @@ PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage_tablespace);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
-PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_2_to_1_8_3);
 PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_3_to_1_8_4);
 
 PG_FUNCTION_INFO_V1(yezzey_delete_obsolete);
@@ -480,12 +479,6 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
 
 Datum yezzey_binary_upgrade_1_8_to_1_8_1(PG_FUNCTION_ARGS) {
   YezzeyBinaryUpgrade();
-  PG_RETURN_VOID();
-}
-
-/* Create yezzey metadata tables */
-Datum yezzey_binary_upgrade_1_8_2_to_1_8_3(PG_FUNCTION_ARGS) {
-  YezzeyBinaryUpgrade183();
   PG_RETURN_VOID();
 }
 
