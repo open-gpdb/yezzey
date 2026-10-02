@@ -43,7 +43,7 @@ SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
           8555
 (1 row)
 
-SELECT yezzey_load_relation('regaotylol');
+SELECT yezzey_load_relation('public', 'regaotylol');
             yezzey_load_relation             
 ---------------------------------------------
  loaded relation regaotylol to local storage

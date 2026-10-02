@@ -19,7 +19,7 @@ $$;
 -- 2) Offloading in a non-existent schema must also fail.
 DO $$
 BEGIN
-    PERFORM yezzey_define_offload_policy('no_such_schema', 'no_such_relation_xyz');
+    PERFORM yezzey_define_offload_policy('no_such_schema.no_such_relation_xyz'::regclass);
     RAISE NOTICE 'unexpected: no error raised';
 EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE 'caught: %', SQLERRM;

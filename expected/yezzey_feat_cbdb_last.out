@@ -15,7 +15,7 @@ SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
           8555
 (1 row)
 
-SELECT yezzey_load_relation('regaotylol187');
+SELECT yezzey_load_relation('public', 'regaotylol187');
               yezzey_load_relation              
 ------------------------------------------------
  loaded relation regaotylol187 to local storage
@@ -90,7 +90,7 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
      3
 (1 row)
 
-SELECT yezzey_vacuum_garbage_relation('vacuum_garbage_aot_187_r_187', true, true);
+SELECT yezzey_vacuum_relation('vacuum_garbage_aot_187_r_187'::regclass, true, true) AS yezzey_vacuum_garbage_relation;
  yezzey_vacuum_garbage_relation 
 --------------------------------
  t

@@ -75,7 +75,7 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
      3
 (1 row)
 
-SELECT yezzey_vacuum_garbage_relation('vacuum_garbage_aot_r', true, true);
+SELECT yezzey_vacuum_relation('vacuum_garbage_aot_r'::regclass, true, true) AS yezzey_vacuum_garbage_relation;
  yezzey_vacuum_garbage_relation 
 --------------------------------
  t

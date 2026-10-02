@@ -10,7 +10,7 @@ INSERT INTO regaotylol187 SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('regaotylol187');
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
-SELECT yezzey_load_relation('regaotylol187');
+SELECT yezzey_load_relation('public', 'regaotylol187');
 SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
 
 SELECT * FROM yezzey_define_offload_policy('regaotylol187');
@@ -47,7 +47,7 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
 -- should be three files, old and new, and after vacuum
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187');
 
-SELECT yezzey_vacuum_garbage_relation('vacuum_garbage_aot_187_r_187', true, true);
+SELECT yezzey_vacuum_relation('vacuum_garbage_aot_187_r_187'::regclass, true, true) AS yezzey_vacuum_garbage_relation;
 
 -- should single file.
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187_r_187');

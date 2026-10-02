@@ -49,7 +49,7 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts1');
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts2');
 
-SELECT yezzey_vacuum_garbage_relation('vacuum_garbage_aot_r', true, true);
+SELECT yezzey_vacuum_relation('vacuum_garbage_aot_r'::regclass, true, true) AS yezzey_vacuum_garbage_relation;
 
 -- should single file.
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_r');
