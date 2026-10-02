@@ -10,6 +10,7 @@
 #endif
 
 #define YEZZEYTABLESPACE_OID 8555
+#define IsYezzeyOperateSpc(spc) ((spc) == YEZZEYTABLESPACE_OID)
 
 EXTERNC void YezzeyUpdateMetadataRelations(
     Oid yandexoid /*yezzey auxiliary index oid*/, Oid reloid,

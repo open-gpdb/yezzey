@@ -75,11 +75,11 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
    */
 
   /* drop old relation, and close new one */
-  if (desttablespace_oid == YEZZEYTABLESPACE_OID)
+  if (IsYezzeyOperateSpc(desttablespace_oid))
     RelationDropStorage(aorel);
 
   /* update the pg_class row */
-  if (desttablespace_oid != YEZZEYTABLESPACE_OID) {
+  if (!IsYezzeyOperateSpc(desttablespace_oid)) {
 #if PG_VERSION_NUM >= 160000
     rd_rel->relfilenode = GetNewRelFileNumber(desttablespace_oid, NULL,
                                               aorel->rd_rel->relpersistence);

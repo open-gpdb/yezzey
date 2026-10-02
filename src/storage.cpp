@@ -447,7 +447,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   *local_bytes = 0;
 
-  if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
+  if (!IsYezzeyOperateSpc(YezzeyGetRelSpcOid(rnode))) {
 
     const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
 
@@ -514,7 +514,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   char *local_path = getlocalpath(local_rnode, 0);
   *local_bytes = 0;
 
-  if (YezzeyGetRelSpcOid(rnode) != YEZZEYTABLESPACE_OID) {
+  if (!IsYezzeyOperateSpc(YezzeyGetRelSpcOid(rnode))) {
 
     const auto f = PathNameOpenFile(local_path, O_RDONLY | PG_BINARY);
 

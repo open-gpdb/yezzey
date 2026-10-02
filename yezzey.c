@@ -211,8 +211,7 @@ void yezzey_load_relation_internal(Oid reloid) {
   /* acquire snapshot for aoseg table lookup */
   appendOnlyMetaDataSnapshot = SnapshotSelf;
   /*sanity check */
-  if (YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(aorel)) !=
-      YEZZEYTABLESPACE_OID) {
+  if (!IsYezzeyOperateSpc(YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(aorel)))) {
     /* shoulde never happen*/
     elog(ERROR, "attempted to load non-offloaded relation");
   }
@@ -1193,8 +1192,8 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
 
   if (access == OAT_DROP && subId == 0) {
     offRel = relation_open(objectId, AccessShareLock);
-    if (YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(offRel)) !=
-        YEZZEYTABLESPACE_OID) {
+    if (!IsYezzeyOperateSpc(
+            YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(offRel)))) {
       relation_close(offRel, AccessShareLock);
       return;
     }
