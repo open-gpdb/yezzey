@@ -430,7 +430,6 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
--- New utilities & functions
 CREATE FUNCTION yezzey_vacuum_garbage(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
