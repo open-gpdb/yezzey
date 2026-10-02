@@ -27,7 +27,7 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaot
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty'::regclass);
  count |   sum   
 -------+---------
      3 | 1001640
@@ -58,7 +58,7 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaot
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty'::regclass);
  count |   sum   
 -------+---------
      6 | 2003280
@@ -98,7 +98,7 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaot
      0
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty'::regclass);
  count |   sum   
 -------+---------
     12 | 4006560
@@ -142,7 +142,7 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoc
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty'::regclass);
  count |  sum   
 -------+--------
      3 | 400656
@@ -173,7 +173,7 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoc
      3
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty'::regclass);
  count |  sum   
 -------+--------
      6 | 801312
@@ -213,7 +213,7 @@ SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoc
      0
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty'::regclass);
  count |   sum   
 -------+---------
     12 | 1602624

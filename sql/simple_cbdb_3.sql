@@ -26,11 +26,11 @@ SELECT * FROM simple_regaoty ORDER BY i LIMIT 5 OFFSET 7823;
 
 SELECT segindex,external_bytes FROM yezzey_offload_relation_status('simple_regaoty');
 SELECT segindex,segfileindex,external_bytes FROM yezzey_offload_relation_status_per_filesegment('simple_regaoty');
-SELECT segindex,segfileindex,external_bytes FROM yezzey_relation_describe_external_storage_structure('simple_regaoty');
+SELECT segindex,segfileindex,external_bytes FROM yezzey_relation_describe_external_storage_structure('simple_regaoty'::regclass);
 
 SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('simple_regaoty');
 SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('simple_regaoty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('simple_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('simple_regaoty'::regclass);
 
 DROP TABLE simple_regaoty;
 

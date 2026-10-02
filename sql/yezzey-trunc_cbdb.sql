@@ -11,7 +11,7 @@ SELECT reltablespace FROM pg_class where oid = 'trunc_regaoty'::regclass::oid;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty'::regclass);
 
 SELECT count(1) FROM trunc_regaoty;
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
@@ -19,7 +19,7 @@ SELECT count(1) FROM trunc_regaoty;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty'::regclass);
 
 DELETE FROM trunc_regaoty;
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
@@ -32,7 +32,7 @@ SELECT count(1) FROM trunc_regaoty;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty'::regclass);
 
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
@@ -52,7 +52,7 @@ SELECT reltablespace FROM pg_class where oid = 'trunc_regaocsty'::regclass::oid;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty'::regclass);
 
 SELECT count(1) FROM trunc_regaocsty;
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
@@ -60,7 +60,7 @@ SELECT count(1) FROM trunc_regaocsty;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty'::regclass);
 
 DELETE FROM trunc_regaocsty;
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
@@ -73,7 +73,7 @@ SELECT count(1) FROM trunc_regaocsty;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty'::regclass);
 
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
