@@ -14,7 +14,6 @@
 #include "yezzey_meta.h"
 
 void YezzeyBinaryUpgrade(void) {
-  /**/
   ScanKeyData skey[2];
   HeapTuple newTuple;
   Datum values[Natts_pg_class];
