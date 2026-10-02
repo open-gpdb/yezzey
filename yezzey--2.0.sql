@@ -421,7 +421,6 @@ AS $$
 DECLARE
     v_tmprow OID;
     v_reloid OID;
-    v_par_reloid OID;
 BEGIN
     SELECT 
         oid
@@ -455,13 +454,6 @@ BEGIN
         v_reloid
     );
 
-/*
-    SELECT parrelid 
-         FROM pg_partition
-    INTO v_par_reloid 
-    WHERE parrelid = v_reloid;
-*/
-
     -- non-partitioned relation
     PERFORM yezzey_define_relation_offload_policy_internal_seg(
         v_reloid
@@ -469,30 +461,6 @@ BEGIN
     PERFORM yezzey_define_relation_offload_policy_internal(
         v_reloid
     );
-
-    IF NOT FOUND THEN
-
-    ELSE 
-
-    /*
-         FOR v_tmprow IN 
-             SELECT (i_offload_nspname||'.'||partitiontablename)::regclass::oid FROM pg_partitions WHERE schemaname = i_offload_nspname AND tablename = i_offload_relname
-         LOOP
-
-             RAISE NOTICE 'offloading partition oid %', v_tmprow;
-             -- offload each part
-             PERFORM yezzey_define_relation_offload_policy_internal_seg(
-                 v_tmprow
-             );
-             PERFORM yezzey_define_relation_offload_policy_internal(
-                 v_tmprow
-             );
-         END LOOP;
-
-    */
-
-    END IF;
-
 
     RETURN QUERY SELECT ('offloaded relation ' || i_offload_nspname ||'.'|| i_offload_relname || ' to external storage' )::TEXT;
 END;
