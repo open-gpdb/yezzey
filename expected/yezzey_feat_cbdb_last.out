@@ -90,9 +90,9 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
      3
 (1 row)
 
-SELECT yezzey_vacuum_relation('vacuum_garbage_aot_187_r_187', true, true) AS yezzey_vacuum_garbage_relation;
- yezzey_vacuum_garbage_relation 
---------------------------------
+SELECT yezzey_vacuum_relation('vacuum_garbage_aot_187_r_187', true, true);
+ yezzey_vacuum_relation 
+------------------------
  t
  t
  t
