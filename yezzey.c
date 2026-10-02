@@ -120,9 +120,6 @@ PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage_tablespace);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 
-PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_to_1_8_1);
-PG_FUNCTION_INFO_V1(yezzey_binary_upgrade_1_8_3_to_1_8_4);
-
 PG_FUNCTION_INFO_V1(yezzey_delete_obsolete);
 PG_FUNCTION_INFO_V1(yezzey_collect_obsolete);
 
@@ -475,17 +472,6 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
    * sure we return something; see also validate_sql_exec_location for details
    */
   PG_RETURN_BOOL(true);
-}
-
-Datum yezzey_binary_upgrade_1_8_to_1_8_1(PG_FUNCTION_ARGS) {
-  YezzeyBinaryUpgrade();
-  PG_RETURN_VOID();
-}
-
-/* Create expire hint table */
-Datum yezzey_binary_upgrade_1_8_3_to_1_8_4(PG_FUNCTION_ARGS) {
-  YezzeyBinaryUpgrade184();
-  PG_RETURN_VOID();
 }
 
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
