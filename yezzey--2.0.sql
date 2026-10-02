@@ -59,59 +59,12 @@ LANGUAGE C STRICT;
 
 
 -- even more detailed debug about relations file segments
-CREATE FUNCTION yezzey_relation_describe_external_storage_structure_internal(reloid OID) 
+CREATE FUNCTION yezzey_relation_describe_external_storage_structure(relation regclass) 
 RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS 'MODULE_PATHNAME'
 VOLATILE
 LANGUAGE C STRICT;
 
-CREATE FUNCTION yezzey_relation_describe_external_storage_structure(
-    i_nspname TEXT, i_relname TEXT) 
-RETURNS TABLE (offload_reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
-AS $$
-DECLARE
-    v_tmp_relname yezzey.offload_metadata%rowtype;
-    v_reloid OID;
-BEGIN
-    SELECT 
-        oid
-    FROM 
-        pg_catalog.pg_class
-    INTO v_reloid 
-    WHERE 
-        relname = i_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_nspname);
-
-    -- SELECT * FROM yezzey.offload_metadata INTO v_tmp_relname WHERE reloid = v_reloid;
-
-    -- IF NOT FOUND THEN
-    --     RAISE WARNING'relation %.% is not in offload metadata table', i_nspname, i_relname;
-    -- END IF;
- 
-    RETURN QUERY SELECT 
-        *
-    FROM yezzey_relation_describe_external_storage_structure_internal(
-        v_reloid
-    );
-END;
-$$
-EXECUTE ON ALL SEGMENTS
-LANGUAGE PLPGSQL;
-
-
-CREATE FUNCTION yezzey_relation_describe_external_storage_structure(i_relname TEXT) 
-RETURNS TABLE (offload_reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
-AS $$
-BEGIN
-    RETURN QUERY SELECT 
-        *
-    FROM yezzey_relation_describe_external_storage_structure(
-        'public',
-        i_relname
-    );
-END;
-$$
-EXECUTE ON ALL SEGMENTS
-LANGUAGE PLPGSQL;
 
 CREATE TABLE yezzey.auto_offload_relations(
     reloid OID,
