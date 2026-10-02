@@ -3,8 +3,9 @@
 #include "relfilelocator.h"
 #include "yezzey_heap_api.h"
 #include <algorithm>
-
+extern "C" {
 #include "catalog/namespace.h"
+}
 #include "yezzey_meta.h"
 
 Oid YezzeyFindAuxIndex_internal(Oid reloid);
