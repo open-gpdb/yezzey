@@ -349,68 +349,45 @@ LANGUAGE C STRICT;
 
 
 CREATE FUNCTION
-yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT)
+yezzey_define_offload_policy(relation regclass)
 RETURNS TABLE (status TEXT)
 AS $$
 DECLARE
     v_tmprow OID;
-    v_reloid OID;
-BEGIN
-    SELECT 
-        oid
-    FROM 
-        pg_catalog.pg_class
-    INTO v_reloid 
-    WHERE 
-        relname = i_offload_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_offload_nspname);
-
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'relation % is not found in pg_class', i_offload_relname;
-    END IF;
-    
+BEGIN   
     SELECT 
         reloid
     FROM
         yezzey.offload_metadata
     INTO v_tmprow 
     WHERE 
-        reloid = v_reloid AND relpolicy = 1;
+        reloid = relation::oid AND relpolicy = 1;
 
     IF FOUND THEN
-	    RETURN QUERY SELECT 'relation ' || i_offload_relname || ' already offloaded';
+	    RETURN QUERY SELECT 'relation already offloaded';
     END IF;
 
     PERFORM yezzey_define_relation_offload_policy_internal_prepare(
-        v_reloid
+        relation
     );
 
     PERFORM yezzey_define_relation_offload_policy_internal_prepare_master(
-        v_reloid
+        relation
     );
 
     -- non-partitioned relation
     PERFORM yezzey_define_relation_offload_policy_internal_seg(
-        v_reloid
+        relation
     );
     PERFORM yezzey_define_relation_offload_policy_internal(
-        v_reloid
+        relation
     );
 
-    RETURN QUERY SELECT ('offloaded relation ' || i_offload_nspname ||'.'|| i_offload_relname || ' to external storage' )::TEXT;
+    RETURN QUERY SELECT ('offloaded relation to external storage' )::TEXT;
 END;
 $$
 LANGUAGE PLPGSQL;
 
-
-CREATE FUNCTION
-yezzey_define_offload_policy(i_offload_relname TEXT)
-RETURNS TABLE (status TEXT)
-AS $$
-BEGIN
-    RETURN QUERY SELECT yezzey_define_offload_policy('public', i_offload_relname);
-END;
-$$
-LANGUAGE PLPGSQL;
 
 CREATE FUNCTION yezzey_delete_obsolete(
     crazyDrop BOOLEAN DEFAULT FALSE
