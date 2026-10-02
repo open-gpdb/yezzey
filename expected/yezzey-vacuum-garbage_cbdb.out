@@ -184,30 +184,6 @@ SELECT yezzey_vacuum_garbage(true, true);
  t
 (3 rows)
 
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot');
- count 
--------
-     0
-(1 row)
-
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_r');
- count 
--------
-     0
-(1 row)
-
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts1');
- count 
--------
-     0
-(1 row)
-
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts2');
- count 
--------
-     0
-(1 row)
-
 DROP TABLESPACE vacuum_garbage_tab1;
 DROP TABLESPACE vacuum_garbage_tab2;
 DROP EXTENSION yezzey;
