@@ -297,7 +297,6 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
   relation_close(aorel, NoLock);
 }
 
-/* Mark an offloaded relation as local in the offload metadata. */
 void YezzeyLoadRelation(Oid i_reloid) {
   ScanKeyData skey[1];
 
