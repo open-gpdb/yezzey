@@ -49,6 +49,7 @@ CREATE FUNCTION yezzey_offload_relation_status(relation regclass)
 RETURNS TABLE (reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
 AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_modern'
 VOLATILE
+EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
@@ -57,6 +58,7 @@ CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(relation regclass
 RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
 AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_per_filesegment_modern'
 VOLATILE
+EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
@@ -65,6 +67,7 @@ CREATE FUNCTION yezzey_relation_describe_external_storage_structure(relation reg
 RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS 'MODULE_PATHNAME', 'yezzey_relation_describe_external_storage_structure_internal'
 VOLATILE
+EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 

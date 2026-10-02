@@ -12,7 +12,7 @@ EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE 'caught: %', SQLERRM;
 END;
 $$;
-NOTICE:  caught: relation no_such_relation_xyz is not found in pg_class
+NOTICE:  caught: relation "no_such_relation_xyz" does not exist
 -- 2) Offloading in a non-existent schema must also fail.
 DO $$
 BEGIN
@@ -22,7 +22,7 @@ EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE 'caught: %', SQLERRM;
 END;
 $$;
-NOTICE:  caught: relation "no_such_schema.no_such_relation_xyz" does not exist
+NOTICE:  caught: schema "no_such_schema" does not exist
 CREATE TABLE offload_err_regaoty(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
 INSERT INTO offload_err_regaoty SELECT * FROM generate_series(1, 10000);
 -- 3) First offload succeeds.
@@ -31,9 +31,9 @@ INSERT INTO offload_err_regaoty SELECT * FROM generate_series(1, 10000);
 -- keep the expected output stable.
 SET client_min_messages TO WARNING;
 SELECT yezzey_define_offload_policy('offload_err_regaoty');
-                   yezzey_define_offload_policy                    
--------------------------------------------------------------------
- offloaded relation public.offload_err_regaoty to external storage
+      yezzey_define_offload_policy      
+----------------------------------------
+ offloaded relation to external storage
 (1 row)
 
 RESET client_min_messages;
@@ -52,10 +52,10 @@ WHERE reloid = 'offload_err_regaoty'::regclass AND relpolicy = 1;
 --    neither error nor duplicate the metadata entries.
 SET client_min_messages TO WARNING;
 SELECT * FROM yezzey_define_offload_policy('offload_err_regaoty') AS res ORDER BY res;
-                              status                               
--------------------------------------------------------------------
- offloaded relation public.offload_err_regaoty to external storage
- relation offload_err_regaoty already offloaded
+                 status                 
+----------------------------------------
+ offloaded relation to external storage
+ relation already offloaded
 (2 rows)
 
 RESET client_min_messages;
