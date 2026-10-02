@@ -17,6 +17,7 @@ OBJS = \
 	$(WIN32RES) \
 	src/storage.o src/proxy.o \
 	src/virtual_index.o \
+	src/expire_hint.o \
 	src/util.o \
 	src/url.o \
 	src/io.o \
