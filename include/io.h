@@ -11,13 +11,6 @@
 #include "io_adv.h"
 
 struct YIO {
-  // private fields
-
-  // GPG
-
-  //  S3 + WAL-G - related structs
-
-  //   reader and writer
   std::shared_ptr<YProxyReader> reader_{nullptr};
   std::shared_ptr<YProxyWriter> writer_{nullptr};
 
@@ -28,11 +21,9 @@ struct YIO {
   /* order of external storage chunk to read */
   std::vector<ChunkInfo> order_;
 
-  // constructor
   YIO(std::shared_ptr<IOadv> adv, ssize_t segindx, ssize_t modcount,
       const std::string &storage_path);
 
-  /* read-only case  constructor*/
   YIO(std::shared_ptr<IOadv> adv, ssize_t segindx);
 
   ~YIO();
