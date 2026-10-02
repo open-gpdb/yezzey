@@ -20,8 +20,9 @@ static inline Oid yezzey_create_expire_hint_relation_internal(
                      "x_path", TEXTOID, -1, 0);
 
   auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
-      relname.c_str() /* relname */, YEZZEY_AUX_NAMESPACE /* namespace */,
-      0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
+      relname.c_str() /* relname */,
+      get_namespace_oid("yezzey", false) /* namespace */, 0 /* tablespace */,
+      relid /* relid */, GetNewObjectId() /* reltype oid */,
       InvalidOid /* reloftypeid */, relowner /* owner */,
       HEAP_TABLE_AM_OID /* access method*/, tupdesc /* rel tuple */, NIL,
       RELKIND_RELATION /*relkind*/, RELPERSISTENCE_PERMANENT, false /*shared*/,
