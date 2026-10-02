@@ -63,7 +63,7 @@ LANGUAGE C STRICT;
 -- even more detailed debug about relations file segments
 CREATE FUNCTION yezzey_relation_describe_external_storage_structure(relation regclass) 
 RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_relation_describe_external_storage_structure_internal'
 VOLATILE
 LANGUAGE C STRICT;
 
