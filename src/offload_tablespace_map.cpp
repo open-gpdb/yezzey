@@ -12,6 +12,7 @@
 #include <map>
 
 #include "cdb/cdbvars.h"
+
 #include "offload_tablespace_map.h"
 
 const std::string offload_tablespace_map_relname = "offload_tablespace_map";
