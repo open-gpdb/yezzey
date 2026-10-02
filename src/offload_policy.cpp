@@ -55,6 +55,7 @@ bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
 void YezzeyCreateOffloadPolicyRelation() {
   TupleDesc tupdesc;
 
+  ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
 
   tupdesc = CreateTemplateTupleDesc(Natts_offload_metadata);
@@ -129,11 +130,15 @@ void YezzeyCreateOffloadPolicyRelation() {
    * Register dependency from the auxiliary table to the master, so that the
    * aoseg table will be deleted if the master is.
    */
+  baseobject.classId = ExtensionRelationId;
+  baseobject.objectId = get_extension_oid("yezzey", false);
+  baseobject.objectSubId = 0;
   yezzey_ao_auxiliaryobject.classId = RelationRelationId;
   yezzey_ao_auxiliaryobject.objectId = YEZZEY_OFFLOAD_POLICY_RELATION;
   yezzey_ao_auxiliaryobject.objectSubId = 0;
 
-  recordDependencyOnCurrentExtension(&yezzey_ao_auxiliaryobject, false);
+  recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
+                     DEPENDENCY_INTERNAL);
 
   /*
    * Make changes visible
@@ -235,11 +240,21 @@ void YezzeyDefineOffloadPolicyPrepare(Oid reloid) {
  * 6) add the dependency in pg_depend
  */
 void YezzeyDefineOffloadPolicy(Oid reloid) {
-  ObjectAddress relationAddr;
+  ObjectAddress relationAddr, extensionAddr;
 
   relationAddr.classId = RelationRelationId;
   relationAddr.objectId = reloid;
   relationAddr.objectSubId = 0;
+
+  auto yezzey_ext_oid = get_extension_oid("yezzey", false);
+
+  if (!yezzey_ext_oid) {
+    elog(ERROR, "failed to get yezzey extension oid");
+  }
+
+  extensionAddr.classId = ExtensionRelationId;
+  extensionAddr.objectId = yezzey_ext_oid;
+  extensionAddr.objectSubId = 0;
 
   /*
    * 1.1: check if data has already been offloaded (maybe in the same
@@ -286,15 +301,10 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
   /*
    * OK, add the dependency.
    */
-  if (Gp_role == GP_ROLE_DISPATCH) {
-    ObjectAddress extensionAddr;
-
-    extensionAddr.classId = ExtensionRelationId;
-    extensionAddr.objectId = get_extension_oid("yezzey", false);
-    extensionAddr.objectSubId = 0;
-
-    recordDependencyOn(&relationAddr, &extensionAddr, DEPENDENCY_NORMAL);
-  }
+  // recordDependencyOn(&relationAddr, &extensionAddr, DEPENDENCY_EXTENSION);
+  // recordDependencyOn(&extensionAddr, &relationAddr, DEPENDENCY_NORMAL);
+  recordDependencyOn(&relationAddr, &extensionAddr, DEPENDENCY_NORMAL);
+  // recordDependencyOn(&extensionAddr, &relationAddr, DEPENDENCY_INTERNAL);
   relation_close(aorel, NoLock);
 }
 
