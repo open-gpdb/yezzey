@@ -1,4 +1,4 @@
-CREATE EXTENSION yezzey VERSION '1.0';
+CREATE EXTENSION yezzey VERSION '1.8.7';
 ALTER EXTENSION yezzey UPDATE TO '1.8.8';
 
 SET client_min_messages TO WARNING;

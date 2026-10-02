@@ -1,4 +1,4 @@
-CREATE EXTENSION yezzey VERSION '1.0';
+CREATE EXTENSION yezzey VERSION '1.8.7';
 
 create table regao_tt_alr_off (i int) with (appendonly=true) TABLESPACE "yezzey(cloud-storage)" DISTRIBUTED BY (i);
 
