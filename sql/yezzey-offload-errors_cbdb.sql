@@ -42,13 +42,9 @@ SELECT count(1) AS offloaded_rows
 FROM yezzey.offload_metadata
 WHERE reloid = 'offload_err_regaoty'::regclass AND relpolicy = 1;
 
--- 4) Re-offloading the same relation must be a no-op: on a distributed array
---    the dispatch fan-out emits per-segment NOTICEs that carry volatile
---    (pid, socket) info, so keep the message threshold high. The call must
---    neither error nor duplicate the metadata entries.
-SET client_min_messages TO WARNING;
-SELECT * FROM yezzey_define_offload_policy('offload_err_regaoty') AS res ORDER BY res;
-RESET client_min_messages;
+-- 4) Re-offloading the same relation is a no-op. It returns the status below
+--    and must not proceed to the offload path.
+SELECT yezzey_define_offload_policy('offload_err_regaoty');
 
 -- Still exactly one metadata row after the repeated call.
 SELECT count(1) AS offloaded_rows
