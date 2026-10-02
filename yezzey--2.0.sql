@@ -43,7 +43,7 @@ GRANT SELECT ON yezzey.offload_metadata TO PUBLIC;
 
 -- external bytes always commited
 
-CREATE FUNCTION yezzey_offload_relation_status_internal(reloid OID) 
+CREATE FUNCTION yezzey_offload_relation_status(relation regclass) 
 RETURNS TABLE (reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
 AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_modern'
 VOLATILE
@@ -56,67 +56,6 @@ RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes B
 AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_per_filesegment_modern'
 VOLATILE
 LANGUAGE C STRICT;
-
-
-CREATE FUNCTION yezzey_offload_relation_status(
-    i_nspname TEXT,
-    i_relname TEXT
-) 
-RETURNS TABLE (
-    offload_reloid OID,
-    segindex INTEGER,
-    local_bytes BIGINT,
-    external_bytes BIGINT,
-    external_bloat_bytes BIGINT)
-AS $$
-DECLARE
-    v_tmp_relname yezzey.offload_metadata%rowtype;
-    v_reloid OID;
-BEGIN
-
-    SELECT 
-        oid
-    FROM 
-        pg_catalog.pg_class
-    INTO v_reloid 
-    WHERE 
-        relname = i_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_nspname);
-
-    -- SELECT * FROM yezzey.offload_metadata INTO v_tmp_relname WHERE reloid = v_reloid;
-    -- IF NOT FOUND THEN
-    --     RAISE WARNING'relation %.% is not in offload metadata table', i_nspname, i_relname;
-    -- END IF;
-
-    RETURN QUERY SELECT 
-        y.reloid, y.segindex, y.local_bytes, y.external_bytes, y.external_bloat_bytes
-    FROM yezzey_offload_relation_status_internal(
-        v_reloid
-    ) y;
-END;
-$$
-EXECUTE ON ALL SEGMENTS
-LANGUAGE PLPGSQL;
-
-
-CREATE FUNCTION yezzey_offload_relation_status(i_relname TEXT) 
-RETURNS TABLE (
-    offload_reloid OID,
-    segindex INTEGER,
-    local_bytes BIGINT,
-    external_bytes BIGINT,
-    external_bloat_bytes BIGINT)
-AS $$
-BEGIN
-    RETURN QUERY SELECT 
-            y.offload_reloid, y.segindex, y.local_bytes, y.external_bytes, y.external_bloat_bytes
-    FROM yezzey_offload_relation_status(
-        'public',
-        i_relname
-    ) y;
-END;
-$$
-EXECUTE ON ALL SEGMENTS
-LANGUAGE PLPGSQL;
 
 
 CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(
