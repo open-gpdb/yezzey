@@ -23,7 +23,8 @@ static Oid YezzeyResolveTablespaceMapOid() {
   }
 
   /* SELECT FROM pg_catalog.pg_class WHERE relname = 'offload_tablespace_map'
-   * and relnamespace = 8001; */
+   * and relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'yezzey');
+   */
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
   /**/
   ScanKeyData skey[2];
@@ -34,7 +35,7 @@ static Oid YezzeyResolveTablespaceMapOid() {
               CStringGetDatum(offload_tablespace_map_relname.c_str()));
 
   ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
-              F_OIDEQ, ObjectIdGetDatum(YEZZEY_AUX_NAMESPACE));
+              F_OIDEQ, ObjectIdGetDatum(get_namespace_oid("yezzey", false)));
 
   auto scan = yezzey_systable_beginscan(classrel, ClassNameNspIndexId, true,
                                         snap, 2, skey);

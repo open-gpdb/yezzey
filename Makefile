@@ -17,7 +17,6 @@ OBJS = \
 	$(WIN32RES) \
 	src/storage.o src/proxy.o \
 	src/virtual_index.o \
-	src/expire_hint.o \
 	src/util.o \
 	src/url.o \
 	src/io.o \
@@ -26,7 +25,6 @@ OBJS = \
 	src/offload_policy.o \
 	src/offload.o \
 	src/virtual_tablespace.o \
-	src/virtual_schema.o \
 	src/xvacuum.o \
 	src/meta.o \
 	src/binary_upgrade.o \

@@ -7,6 +7,8 @@
 -- see ao_foreach_extent_file
 -- 
 
+CREATE SCHEMA yezzey;
+
 CREATE FUNCTION yezzey_init_metadata()
 RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME'

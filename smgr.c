@@ -86,8 +86,6 @@ void yezzey_init(void) {
   mdinit();
 }
 
-#define IsYezzeyOperateSpc(spc) ((spc) == YEZZEYTABLESPACE_OID)
-
 void yezzey_open(SMgrRelation reln) {
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
