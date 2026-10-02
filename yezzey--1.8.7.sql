@@ -638,3 +638,540 @@ AS 'MODULE_PATHNAME'
 VOLATILE
 LANGUAGE C STRICT;
 
+
+reindex index yezzey.offload_metadata_indx;
+
+CREATE TABLE yezzey.offload_tablespace_map(
+    reloid                 OID PRIMARY KEY,
+    origin_tablespace_name NAME
+) DISTRIBUTED REPLICATED;
+
+SET allow_segment_DML to on;
+
+CREATE FUNCTION
+yezzey_upgrade_function() RETURNS VOID
+AS $$ 
+BEGIN
+
+    -- SET gp_session_role to 'utility';
+    INSERT INTO 
+        yezzey.offload_tablespace_map
+    SELECT 
+        reloid, 'pg_default'
+    FROM 
+        yezzey.offload_metadata
+    ;
+
+    -- RESET gp_session_role;
+END;
+$$ 
+EXECUTE ON ALL SEGMENTS
+LANGUAGE PLPGSQL;
+
+SELECT yezzey_upgrade_function();
+
+RESET allow_segment_DML;
+
+CREATE FUNCTION yezzey_define_relation_offload_policy_internal_prepare(reloid OID) RETURNS void
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_define_offload_policy(TEXT, TEXT, offload_policy);
+
+CREATE FUNCTION
+yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
+RETURNS VOID
+AS $$
+DECLARE
+    v_tmprow OID;
+    v_reloid OID;
+    v_par_reloid OID;
+BEGIN
+    SELECT 
+        oid
+    FROM 
+        pg_catalog.pg_class
+    INTO v_reloid 
+    WHERE 
+        relname = i_offload_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_offload_nspname);
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'relation % is not found in pg_class', i_offload_relname;
+    END IF;
+    
+    SELECT 
+        reloid
+    FROM
+        yezzey.offload_metadata
+    INTO v_tmprow 
+    WHERE 
+        reloid = v_reloid AND relpolicy = 1;
+
+    IF FOUND THEN
+        RAISE NOTICE 'relation % already offloaded', i_offload_relname;
+	RETURN;
+    END IF;
+
+    PERFORM yezzey_define_relation_offload_policy_internal_prepare(
+        v_reloid
+    );
+
+    SELECT parrelid 
+         FROM pg_partition
+    INTO v_par_reloid 
+    WHERE parrelid = v_reloid;
+
+    IF NOT FOUND THEN
+        -- non-partitioned relation
+        PERFORM yezzey_define_relation_offload_policy_internal_seg(
+            v_reloid
+        );
+        PERFORM yezzey_define_relation_offload_policy_internal(
+            v_reloid
+        );
+    ELSE 
+
+         FOR v_tmprow IN 
+             SELECT (i_offload_nspname||'.'||partitiontablename)::regclass::oid FROM pg_partitions WHERE schemaname = i_offload_nspname AND tablename = i_offload_relname
+         LOOP
+
+             RAISE NOTICE 'offloading partition oid %', v_tmprow;
+             -- offload each part
+             PERFORM yezzey_define_relation_offload_policy_internal_seg(
+                 v_tmprow
+             );
+             PERFORM yezzey_define_relation_offload_policy_internal(
+                 v_tmprow
+             );
+         END LOOP;
+
+    END IF;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+DROP FUNCTION yezzey_upgrade_function();
+reindex index yezzey.offload_metadata_indx;
+
+-- New utilities & functions
+CREATE FUNCTION yezzey_vacuum_garbage(
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE
+) RETURNS VOID
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+CREATE FUNCTION yezzey_vacuum_relation(
+    reloid OID,
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE
+) RETURNS VOID
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+
+CREATE FUNCTION yezzey_vacuum_relation(
+    relname TEXT,
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE
+) RETURNS VOID
+AS $$ SELECT yezzey_vacuum_relation(relname::regclass::oid, confirm, crazyDrop) $$
+LANGUAGE SQL;
+
+CREATE FUNCTION yezzey_vacuum_garbage_relation(
+    i_offload_nspname TEXT,
+    i_offload_relname TEXT,
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE
+) RETURNS VOID
+AS $$
+DECLARE
+    v_reloid OID;
+BEGIN
+    SELECT 
+        oid
+    FROM 
+        pg_catalog.pg_class
+    INTO v_reloid 
+    WHERE 
+        relname = i_offload_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_offload_nspname);
+
+    PERFORM yezzey_vacuum_relation(
+        v_reloid,confirm,crazyDrop
+    );
+END;
+$$
+LANGUAGE PLPGSQL;
+
+
+CREATE FUNCTION
+yezzey_vacuum_garbage_relation(
+    i_offload_relname TEXT,
+    confirm BOOLEAN DEFAULT FALSE,
+    crazyDrop BOOLEAN DEFAULT FALSE)
+RETURNS VOID
+AS $$
+BEGIN
+    PERFORM yezzey_vacuum_garbage_relation('public', i_offload_relname, confirm, crazyDrop);
+END;
+$$
+LANGUAGE PLPGSQL;
+
+
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m() RETURNS VOID
+AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
+VOLATILE
+LANGUAGE C STRICT
+EXECUTE ON MASTER;
+
+
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg() 
+RETURNS VOID AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_to_1_8_1'
+VOLATILE
+LANGUAGE C STRICT
+EXECUTE ON ALL SEGMENTS;
+
+SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
+SELECT yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
+
+DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_seg();
+DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_to_1_8_1_m();
+reindex index yezzey.offload_metadata_indx;
+
+CREATE TABLE yezzey.yezzey_virtual_index_stale AS 
+    SELECT * FROM yezzey.yezzey_virtual_index LIMIT 0;
+
+CREATE TABLE yezzey.offload_metadata_stale AS
+    SELECT * FROM yezzey.offload_metadata LIMIT 0;
+
+CREATE FUNCTION
+yezzey.yezzey_fixup_stale_metadata() RETURNS VOID
+AS
+$$
+    WITH stale_data AS (
+        SELECT * FROM
+            yezzey.yezzey_virtual_index vi 
+        WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE relfilenode = vi.filenode)
+    )
+    INSERT INTO yezzey.yezzey_virtual_index_stale TABLE stale_data;
+
+    DELETE FROM 
+            yezzey.yezzey_virtual_index vi 
+        WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE relfilenode = vi.filenode);
+
+    WITH stale_offload_data AS (
+        SELECT * FROM
+            yezzey.offload_metadata op 
+        WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE oid = op.reloid)
+    )
+    INSERT INTO yezzey.offload_metadata_stale TABLE stale_offload_data;
+
+    DELETE FROM 
+            yezzey.offload_metadata op 
+        WHERE NOT EXISTS (SELECT 1 FROM pg_class WHERE oid = op.reloid);
+
+$$ LANGUAGE SQL
+EXECUTE ON ALL SEGMENTS;reindex index yezzey.offload_metadata_indx;
+
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m() RETURNS VOID
+AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
+VOLATILE
+LANGUAGE C STRICT
+EXECUTE ON MASTER;
+
+
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg() RETURNS VOID 
+AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_2_to_1_8_3'
+VOLATILE
+LANGUAGE C STRICT
+EXECUTE ON ALL SEGMENTS;
+
+SELECT yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg();
+SELECT yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m();
+
+DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_seg();
+DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_2_to_1_8_3_m();
+
+-- create yezzey hint index here
+reindex index yezzey.offload_metadata_indx;
+reindex index yezzey.yezzey_virtual_index_idx;
+
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m() RETURNS void
+AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'
+VOLATILE
+EXECUTE ON MASTER
+LANGUAGE C STRICT;
+
+
+CREATE FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg() RETURNS void  
+AS 'MODULE_PATHNAME','yezzey_binary_upgrade_1_8_3_to_1_8_4'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+SET allow_segment_dml TO ON;
+
+SELECT yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg();
+SELECT yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m();
+
+RESET allow_segment_DML;
+
+DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_seg();
+DROP FUNCTION yezzey.yezzey_binary_upgrade_1_8_3_to_1_8_4_m();
+/* Bloat files deletion */
+reindex index yezzey.offload_metadata_indx;
+reindex index yezzey.yezzey_virtual_index_idx;
+
+CREATE FUNCTION yezzey_delete_obsolete(
+    crazyDrop BOOLEAN DEFAULT FALSE
+) RETURNS void
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;
+
+
+CREATE FUNCTION yezzey_collect_obsolete(
+) RETURNS void
+AS 'MODULE_PATHNAME'
+VOLATILE
+EXECUTE ON ALL SEGMENTS
+LANGUAGE C STRICT;/* Fixes OTM feature */
+
+reindex index yezzey.offload_metadata_indx;
+reindex index yezzey.yezzey_virtual_index_idx;
+
+CREATE FUNCTION yezzey_define_relation_offload_policy_internal_prepare_master(reloid OID) RETURNS void
+AS 'MODULE_PATHNAME','yezzey_define_relation_offload_policy_internal_prepare'
+VOLATILE
+EXECUTE ON MASTER
+LANGUAGE C STRICT;
+
+
+DROP FUNCTION yezzey_define_offload_policy(TEXT, TEXT, offload_policy);
+
+CREATE FUNCTION
+yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
+RETURNS VOID
+AS $$
+DECLARE
+    v_tmprow OID;
+    v_reloid OID;
+    v_par_reloid OID;
+BEGIN
+    SELECT 
+        oid
+    FROM 
+        pg_catalog.pg_class
+    INTO v_reloid 
+    WHERE 
+        relname = i_offload_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_offload_nspname);
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'relation % is not found in pg_class', i_offload_relname;
+    END IF;
+    
+    SELECT 
+        reloid
+    FROM
+        yezzey.offload_metadata
+    INTO v_tmprow 
+    WHERE 
+        reloid = v_reloid AND relpolicy = 1;
+
+    IF FOUND THEN
+        RAISE NOTICE 'relation % already offloaded', i_offload_relname;
+	RETURN;
+    END IF;
+
+    PERFORM yezzey_define_relation_offload_policy_internal_prepare(
+        v_reloid
+    );
+
+    PERFORM yezzey_define_relation_offload_policy_internal_prepare_master(
+        v_reloid
+    );
+
+    SELECT parrelid 
+         FROM pg_partition
+    INTO v_par_reloid 
+    WHERE parrelid = v_reloid;
+
+    IF NOT FOUND THEN
+        -- non-partitioned relation
+        PERFORM yezzey_define_relation_offload_policy_internal_seg(
+            v_reloid
+        );
+        PERFORM yezzey_define_relation_offload_policy_internal(
+            v_reloid
+        );
+    ELSE 
+
+         FOR v_tmprow IN 
+             SELECT (i_offload_nspname||'.'||partitiontablename)::regclass::oid FROM pg_partitions WHERE schemaname = i_offload_nspname AND tablename = i_offload_relname
+         LOOP
+
+             RAISE NOTICE 'offloading partition oid %', v_tmprow;
+             -- offload each part
+             PERFORM yezzey_define_relation_offload_policy_internal_seg(
+                 v_tmprow
+             );
+             PERFORM yezzey_define_relation_offload_policy_internal(
+                 v_tmprow
+             );
+         END LOOP;
+
+    END IF;
+END;
+$$
+LANGUAGE PLPGSQL;
+/* Here will be yezzey_offload_status* modern functions */
+
+reindex index yezzey.offload_metadata_indx;
+reindex index yezzey.yezzey_virtual_index_idx;
+
+
+
+DROP FUNCTION yezzey_offload_relation_status_internal(OID);
+
+CREATE FUNCTION yezzey_offload_relation_status_internal(reloid OID) 
+RETURNS TABLE (reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
+AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_modern'
+VOLATILE
+LANGUAGE C STRICT;
+
+
+DROP FUNCTION yezzey_offload_relation_status_per_filesegment(OID);
+
+-- more detailed debug about relations file segments
+CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(reloid OID) 
+RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
+AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_per_filesegment_modern'
+VOLATILE
+LANGUAGE C STRICT;
+
+DROP FUNCTION yezzey_offload_relation_status(
+    TEXT, TEXT
+);
+
+CREATE FUNCTION yezzey_offload_relation_status(
+    i_nspname TEXT,
+    i_relname TEXT
+) 
+RETURNS TABLE (
+    offload_reloid OID,
+    segindex INTEGER,
+    local_bytes BIGINT,
+    external_bytes BIGINT,
+    external_bloat_bytes BIGINT)
+AS $$
+DECLARE
+    v_tmp_relname yezzey.offload_metadata%rowtype;
+    v_reloid OID;
+BEGIN
+
+    SELECT 
+        oid
+    FROM 
+        pg_catalog.pg_class
+    INTO v_reloid 
+    WHERE 
+        relname = i_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_nspname);
+
+    RETURN QUERY SELECT 
+        y.reloid, y.segindex, y.local_bytes, y.external_bytes, y.external_bloat_bytes
+    FROM yezzey_offload_relation_status_internal(
+        v_reloid
+    ) y;
+END;
+$$
+EXECUTE ON ALL SEGMENTS
+LANGUAGE PLPGSQL;
+
+
+DROP FUNCTION yezzey_offload_relation_status(
+    TEXT
+);
+
+CREATE FUNCTION yezzey_offload_relation_status(i_relname TEXT) 
+RETURNS TABLE (
+    offload_reloid OID,
+    segindex INTEGER,
+    local_bytes BIGINT,
+    external_bytes BIGINT,
+    external_bloat_bytes BIGINT)
+AS $$
+BEGIN
+    RETURN QUERY SELECT 
+        *
+    FROM yezzey_offload_relation_status(
+        'public',
+        i_relname
+    );
+END;
+$$
+EXECUTE ON ALL SEGMENTS
+LANGUAGE PLPGSQL;
+
+DROP FUNCTION yezzey_offload_relation_status_per_filesegment(TEXT, TEXT);
+
+CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(
+    i_nspname TEXT,
+    i_relname TEXT
+    ) 
+RETURNS TABLE (
+    offload_reloid OID,
+    segindex INTEGER,
+    segfileindex INTEGER,
+    local_bytes BIGINT,
+    external_bytes BIGINT,
+    external_bloat_bytes BIGINT)
+AS $$
+DECLARE
+    v_tmp_relname yezzey.offload_metadata%rowtype;
+    v_reloid OID;
+BEGIN
+
+    SELECT 
+        oid
+    FROM 
+        pg_catalog.pg_class
+    INTO v_reloid 
+    WHERE 
+        relname = i_relname AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = i_nspname);
+
+    RETURN QUERY SELECT 
+        y.reloid, y.segindex, y.segfileindex, y.local_bytes, y.external_bytes, y.external_bloat_bytes
+    FROM yezzey_offload_relation_status_per_filesegment(
+        v_reloid
+    ) y;
+END;
+$$
+EXECUTE ON ALL SEGMENTS
+LANGUAGE PLPGSQL;
+
+DROP FUNCTION yezzey_offload_relation_status_per_filesegment(TEXT);
+
+CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(i_relname TEXT) 
+RETURNS TABLE (offload_reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
+AS $$
+DECLARE
+    v_tmp_relname yezzey.offload_metadata%rowtype;
+BEGIN
+ 
+    RETURN QUERY SELECT 
+        *
+    FROM yezzey_offload_relation_status_per_filesegment(
+        'public',
+        i_relname
+    );
+END;
+$$
+EXECUTE ON ALL SEGMENTS
+LANGUAGE PLPGSQL;
