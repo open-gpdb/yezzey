@@ -36,8 +36,6 @@ VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
-CREATE TYPE offload_policy AS ENUM ('remote_always', 'cache_writes');
-
 GRANT USAGE ON SCHEMA yezzey to public;
 
 GRANT SELECT ON yezzey.offload_metadata TO PUBLIC;
@@ -415,7 +413,7 @@ LANGUAGE C STRICT;
 
 
 CREATE FUNCTION
-yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
+yezzey_define_offload_policy(i_offload_nspname TEXT, i_offload_relname TEXT)
 RETURNS TABLE (status TEXT)
 AS $$
 DECLARE
@@ -469,11 +467,11 @@ LANGUAGE PLPGSQL;
 
 
 CREATE FUNCTION
-yezzey_define_offload_policy(i_offload_relname TEXT, i_policy offload_policy DEFAULT 'remote_always')
+yezzey_define_offload_policy(i_offload_relname TEXT)
 RETURNS TABLE (status TEXT)
 AS $$
 BEGIN
-    RETURN QUERY SELECT yezzey_define_offload_policy('public', i_offload_relname, i_policy);
+    RETURN QUERY SELECT yezzey_define_offload_policy('public', i_offload_relname);
 END;
 $$
 LANGUAGE PLPGSQL;
