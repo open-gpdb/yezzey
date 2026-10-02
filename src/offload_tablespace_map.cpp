@@ -261,5 +261,4 @@ void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
 
 void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {}
 
-void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/
-}
+void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/ }
