@@ -31,3 +31,49 @@ BEGIN
 END;
 $$
 LANGUAGE PLPGSQL;
+
+
+CREATE OR REPLACE FUNCTION yezzey_define_offload_policy(
+    i_offload_nspname TEXT,
+    i_offload_relname TEXT,
+    i_policy offload_policy DEFAULT 'remote_always'
+)
+RETURNS TABLE (status TEXT)
+AS $$
+DECLARE
+    v_tmprow OID;
+    v_reloid OID;
+BEGIN
+    v_reloid := format('%I.%I', i_offload_nspname, i_offload_relname)::regclass::oid;
+
+    SELECT
+        reloid
+    FROM
+        yezzey.offload_metadata
+    INTO v_tmprow
+    WHERE
+        reloid = v_reloid AND relpolicy = 1;
+
+    IF FOUND THEN
+        RETURN QUERY SELECT 'relation ' || i_offload_relname || ' already offloaded';
+    END IF;
+
+    PERFORM yezzey_define_relation_offload_policy_internal_prepare(
+        v_reloid
+    );
+
+    PERFORM yezzey_define_relation_offload_policy_internal_prepare_master(
+        v_reloid
+    );
+
+    PERFORM yezzey_define_relation_offload_policy_internal_seg(
+        v_reloid
+    );
+    PERFORM yezzey_define_relation_offload_policy_internal(
+        v_reloid
+    );
+
+    RETURN QUERY SELECT ('offloaded relation ' || i_offload_nspname ||'.'|| i_offload_relname || ' to external storage' )::TEXT;
+END;
+$$
+LANGUAGE PLPGSQL;
