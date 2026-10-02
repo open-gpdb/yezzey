@@ -13,8 +13,8 @@
 
 #include "cdb/cdbvars.h"
 
-#include "offload_tablespace_map.h"
 #include "catalog/namespace.h"
+#include "offload_tablespace_map.h"
 
 const std::string offload_tablespace_map_relname = "offload_tablespace_map";
 
@@ -24,7 +24,8 @@ static Oid YezzeyResolveTablespaceMapOid() {
   }
 
   /* SELECT FROM pg_catalog.pg_class WHERE relname = 'offload_tablespace_map'
-   * and relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'yezzey'); */
+   * and relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'yezzey');
+   */
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
   /**/
   ScanKeyData skey[2];
@@ -260,4 +261,5 @@ void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid) {
 
 void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {}
 
-void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/ }
+void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/
+}

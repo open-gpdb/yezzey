@@ -10,7 +10,6 @@
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
-#include "catalog/namespace.h"
 
 static void YezzeyCreateVirtualSpc() {
 

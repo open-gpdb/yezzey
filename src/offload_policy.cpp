@@ -7,9 +7,9 @@
 #include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
 
+#include "catalog/namespace.h"
 #include "offload_tablespace_map.h"
 #include "relfilelocator.h"
-#include "catalog/namespace.h"
 
 /*
 

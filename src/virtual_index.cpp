@@ -4,8 +4,8 @@
 #include "yezzey_heap_api.h"
 #include <algorithm>
 
-#include "yezzey_meta.h"
 #include "catalog/namespace.h"
+#include "yezzey_meta.h"
 
 Oid YezzeyFindAuxIndex_internal(Oid reloid);
 
@@ -42,8 +42,9 @@ static inline Oid yezzey_create_virtual_index_relation_internal(
                      TEXTOID, -1, 0);
 
   auto yezzey_ao_auxiliary_relid = heap_create_with_catalog(
-      relname.c_str() /* relname */, get_namespace_oid("yezzey", false) /* namespace */,
-      0 /* tablespace */, relid /* relid */, GetNewObjectId() /* reltype oid */,
+      relname.c_str() /* relname */,
+      get_namespace_oid("yezzey", false) /* namespace */, 0 /* tablespace */,
+      relid /* relid */, GetNewObjectId() /* reltype oid */,
       InvalidOid /* reloftypeid */, relowner /* owner */,
       HEAP_TABLE_AM_OID /* access method*/, tupdesc /* rel tuple */, NIL,
       RELKIND_RELATION /*relkind*/, RELPERSISTENCE_PERMANENT, false /*shared*/,
