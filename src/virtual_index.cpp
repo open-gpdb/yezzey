@@ -358,9 +358,7 @@ void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,
 
   auto yandxtuple = heap_form_tuple(RelationGetDescr(yandxrel), values, nulls);
 
-  /* send tuple messages to master */
-
-  /* if gp6 insert tuples locally */
+  /* Insert the catalog tuple locally. */
   simple_heap_insert(yandxrel, yandxtuple);
   CatalogUpdateIndexes(yandxrel, yandxtuple);
 
@@ -405,7 +403,6 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
     }
   }
 
-  /* TBD: Read index */
   auto desc = yezzey_systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
                                         use_y_index, snap, 2, skey);
 

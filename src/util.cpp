@@ -163,8 +163,6 @@ int64_t yezzey_calc_virtual_relation_size(std::shared_ptr<IOadv> adv,
   return 0;
 #endif
 }
-/*XXX: fix cleanup*/
-
 XLogRecPtr yezzeyGetXStorageInsertLsn(void) {
   if (RecoveryInProgress())
     ereport(

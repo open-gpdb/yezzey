@@ -297,13 +297,7 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
   relation_close(aorel, NoLock);
 }
 
-/*
- * YezzeyLoadRelation:
- * do all offload-metadata related work for relation loading:
- * 1) simply change relation offload policy in yezzey.offload_metadata
- * 2) ????
- * 3) success
- */
+/* Mark an offloaded relation as local in the offload metadata. */
 void YezzeyLoadRelation(Oid i_reloid) {
   ScanKeyData skey[1];
 
