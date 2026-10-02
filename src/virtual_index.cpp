@@ -294,7 +294,6 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
     // update
     auto meta = (Form_yezzey_virtual_index)GETSTRUCT(tuple);
 
-    // Assert(meta->yrelfileoid == relfileoid);
     if (meta->reloid == RelationGetRelid(relation)) {
       continue;
     }
@@ -387,10 +386,6 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
   auto rel = heap_open(yandexoid, RowExclusiveLock);
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
-
-  // ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_reloid,
-  // BTEqualStrategyNumber,
-  //             F_OIDEQ, ObjectIdGetDatum(reloid));
 
   ScanKeyInit(&skey[0], Anum_yezzey_virtual_index_filenode,
               BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(relfilenode));

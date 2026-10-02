@@ -293,10 +293,7 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
   /*
    * OK, add the dependency.
    */
-  // recordDependencyOn(&relationAddr, &extensionAddr, DEPENDENCY_EXTENSION);
-  // recordDependencyOn(&extensionAddr, &relationAddr, DEPENDENCY_NORMAL);
   recordDependencyOn(&relationAddr, &extensionAddr, DEPENDENCY_NORMAL);
-  // recordDependencyOn(&extensionAddr, &relationAddr, DEPENDENCY_INTERNAL);
   relation_close(aorel, NoLock);
 }
 

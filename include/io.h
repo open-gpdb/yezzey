@@ -13,8 +13,6 @@
 struct YIO {
   // private fields
 
-  // bool use_gpg_crypto;
-
   // GPG
 
   //  S3 + WAL-G - related structs

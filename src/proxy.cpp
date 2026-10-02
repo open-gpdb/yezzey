@@ -39,9 +39,6 @@ typedef struct YVirtFD {
   int64 offset;
 
   int64 op_start_offset;
-  /* unneede, because this offset is equal to total offset and moment of
-   * FileClose */
-  // int64 op_end_offset;
 
   int64 virtualSize;
   int64 modcount;
@@ -100,8 +97,6 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
 
   elog(yezzey_ao_log_level, "prepared writer handle for modcount %ld",
        modcount);
-
-  //   Assert(YVirtFD_cache[file].handler.writer_ != NULL);
 
 #ifdef CACHE_LOCAL_WRITES_FEATURE
 /* CACHE_LOCAL_WRITES_FEATURE to do*/
