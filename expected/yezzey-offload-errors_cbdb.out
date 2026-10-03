@@ -31,9 +31,9 @@ INSERT INTO offload_err_regaoty SELECT * FROM generate_series(1, 10000);
 -- keep the expected output stable.
 SET client_min_messages TO WARNING;
 SELECT yezzey_define_offload_policy('offload_err_regaoty');
-      yezzey_define_offload_policy      
-----------------------------------------
- offloaded relation to external storage
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 RESET client_min_messages;
@@ -51,12 +51,12 @@ WHERE reloid = 'offload_err_regaoty'::regclass AND relpolicy = 1;
 --    (pid, socket) info, so keep the message threshold high. The call must
 --    neither error nor duplicate the metadata entries.
 SET client_min_messages TO WARNING;
-SELECT * FROM yezzey_define_offload_policy('offload_err_regaoty') AS res ORDER BY res;
-                 status                 
-----------------------------------------
- offloaded relation to external storage
- relation already offloaded
-(2 rows)
+SELECT yezzey_define_offload_policy('offload_err_regaoty');
+WARNING:  The relation has already been offloaded
+ yezzey_define_offload_policy 
+------------------------------
+ 
+(1 row)
 
 RESET client_min_messages;
 -- Still exactly one metadata row after the repeated call.

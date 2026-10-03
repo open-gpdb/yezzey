@@ -47,7 +47,7 @@ WHERE reloid = 'offload_err_regaoty'::regclass AND relpolicy = 1;
 --    (pid, socket) info, so keep the message threshold high. The call must
 --    neither error nor duplicate the metadata entries.
 SET client_min_messages TO WARNING;
-SELECT * FROM yezzey_define_offload_policy('offload_err_regaoty') AS res ORDER BY res;
+SELECT yezzey_define_offload_policy('offload_err_regaoty');
 RESET client_min_messages;
 
 -- Still exactly one metadata row after the repeated call.

@@ -3,10 +3,10 @@ SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE trunc_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('trunc_regaoty');
-                 status                 
-----------------------------------------
- offloaded relation to external storage
+SELECT yezzey_define_offload_policy('trunc_regaoty');
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'trunc_regaoty'::regclass::oid;
@@ -118,10 +118,10 @@ AO simple test OK
 -- AOCS
 CREATE TABLE trunc_regaocsty(i INT) WITH (appendonly=true, orientation=column);
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('trunc_regaocsty');
-                 status                 
-----------------------------------------
- offloaded relation to external storage
+SELECT yezzey_define_offload_policy('trunc_regaocsty');
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'trunc_regaocsty'::regclass::oid;
