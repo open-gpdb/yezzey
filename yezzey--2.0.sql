@@ -70,12 +70,6 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE TABLE yezzey.auto_offload_relations(
-    reloid OID,
-    expire_date DATE
-)
-DISTRIBUTED REPLICATED;
-
 CREATE FUNCTION yezzey_dump_virtual_index(i_relname text) 
 RETURNS 
     TABLE(
