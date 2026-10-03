@@ -7,7 +7,7 @@ SET client_min_messages TO WARNING;
 CREATE TABLE simple_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO simple_regaoty SELECT * FROM generate_series(1, 100000);
 
-SELECT * FROM yezzey_define_offload_policy('simple_regaoty');
+SELECT yezzey_define_offload_policy('simple_regaoty');
 
 SELECT reltablespace FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
 

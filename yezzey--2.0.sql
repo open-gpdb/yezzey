@@ -184,9 +184,8 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION
-yezzey_define_offload_policy(relation regclass)
-RETURNS TABLE (status TEXT)
+CREATE FUNCTION yezzey_define_offload_policy(relation regclass)
+RETURNS VOID
 AS $$
 DECLARE
     v_tmprow OID;
@@ -200,7 +199,8 @@ BEGIN
         reloid = relation::oid AND relpolicy = 1;
 
     IF FOUND THEN
-	    RETURN QUERY SELECT 'relation already offloaded';
+        RAISE WARNING 'The relation has already been offloaded';
+        RETURN;
     END IF;
 
     PERFORM yezzey_define_relation_offload_policy_internal_prepare(
@@ -218,8 +218,6 @@ BEGIN
     PERFORM yezzey_define_relation_offload_policy_internal(
         relation
     );
-
-    RETURN QUERY SELECT ('offloaded relation to external storage' )::TEXT;
 END;
 $$
 LANGUAGE PLPGSQL;
@@ -295,13 +293,11 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 CREATE OR REPLACE FUNCTION yezzey_load_relation(relation regclass)
-RETURNS TABLE (status TEXT)
+RETURNS VOID
 AS $$
 BEGIN
     PERFORM yezzey_load_relation_internal_seg(relation);
     PERFORM yezzey_load_relation_internal(relation);
-
-    RETURN QUERY SELECT 'relation loaded to local storage';
 END;
 $$
 LANGUAGE PLPGSQL;
