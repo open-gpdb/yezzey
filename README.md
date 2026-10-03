@@ -107,26 +107,7 @@ postgres=# select * from yezzey_relation_describe_external_storage_structure('te
   17072 |        2 |          129 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_129__DY_1_xlog_760632952  |           0 |                    0 |      133511128
   17072 |        2 |            1 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_1__DY_1_xlog_760625784    |           0 |                    0 |      133511128
   17072 |        2 |          257 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_257__DY_1_xlog_760632952  |           0 |                    0 |      133511128
-  17072 |        2 |          385 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_385__DY_1_xlog_760632952  |           0 |                    0 |      133511128
-  17072 |        2 |          129 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_129__DY_1_xlog_1319704032 |           0 |                    0 |      133516976
-  17072 |        2 |            1 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_1__DY_1_xlog_1319703528   |           0 |                    0 |      133516976
-  17072 |        2 |          257 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_257__DY_1_xlog_1319704032 |           0 |                    0 |      133516976
-  17072 |        2 |          385 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_385__DY_1_xlog_1319704032 |           0 |                    0 |      133516976
-  17072 |        1 |          129 | /segments_005/seg1/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_129__DY_1_xlog_760763656  |           0 |                    0 |      133542336
-  17072 |        1 |            1 | /segments_005/seg1/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_1__DY_1_xlog_760756328    |           0 |                    0 |      133542336
-  17072 |        1 |          257 | /segments_005/seg1/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_257__DY_1_xlog_760763656  |           0 |                    0 |      133542336
-  17072 |        1 |          385 | /segments_005/seg1/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_385__DY_1_xlog_760763656  |           0 |                    0 |      133542336
-  17072 |        1 |          129 | /segments_005/seg1/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_129__DY_1_xlog_1319756816 |           0 |                    0 |      133498392
-  17072 |        1 |            1 | /segments_005/seg1/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_1__DY_1_xlog_1319756312   |           0 |                    0 |      133498392
-  17072 |        1 |          257 | /segments_005/seg1/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_257__DY_1_xlog_1319756816 |           0 |                    0 |      133498392
-  17072 |        1 |          385 | /segments_005/seg1/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_385__DY_1_xlog_1319756816 |           0 |                    0 |      133498392
-  17072 |        0 |          129 | /segments_005/seg0/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_129__DY_1_xlog_760521056  |           0 |                    0 |      133484432
-  17072 |        0 |            1 | /segments_005/seg0/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_1__DY_1_xlog_760513888    |           0 |                    0 |      133484432
-  17072 |        0 |          257 | /segments_005/seg0/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_257__DY_1_xlog_760521056  |           0 |                    0 |      133484432
-  17072 |        0 |          385 | /segments_005/seg0/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_385__DY_1_xlog_760521056  |           0 |                    0 |      133484432
-  17072 |        0 |          129 | /segments_005/seg0/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_129__DY_1_xlog_1319615408 |           0 |                    0 |      133522528
-  17072 |        0 |            1 | /segments_005/seg0/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_1__DY_1_xlog_1319614904   |           0 |                    0 |      133522528
-  17072 |        0 |          257 | /segments_005/seg0/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_257__DY_1_xlog_1319615408 |           0 |                    0 |      133522528
+...
   17072 |        0 |          385 | /segments_005/seg0/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_385__DY_1_xlog_1319615408 |           0 |                    0 |      133522528
 (24 rows)
 ```
