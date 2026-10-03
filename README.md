@@ -290,7 +290,7 @@ SELECT yezzey_vacuum_relation(
 );
 ```
 
-`yezzey_vacuum_relation` cleans garbage only for the requested offloaded relation. The single-argument relation-name wrapper uses the `public` schema.
+`yezzey_vacuum_relation` cleans garbage only for the requested offloaded relation.
 
 `confirm` controls whether YProxy should actually delete objects. Keep the default `false` for a dry-run-style request, and set it to `true` to confirm deletion. `crazyDrop` enables a more aggressive cleanup mode and is restricted to superusers.
 
