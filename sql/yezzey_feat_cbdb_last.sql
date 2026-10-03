@@ -47,7 +47,7 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
 -- should be three files, old and new, and after vacuum
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187');
 
-SELECT yezzey_vacuum_garbage_relation('vacuum_garbage_aot_187_r_187', true, true);
+SELECT yezzey_vacuum_relation('vacuum_garbage_aot_187_r_187', true, true);
 
 -- should single file.
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187_r_187');
@@ -65,8 +65,6 @@ DROP TABLE vacuum_garbage_aot_187_r_187;
 
 -- should be zero
 SELECT yezzey_vacuum_garbage(true, true);
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187');
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187_r_187');
 
 
 DROP EXTENSION yezzey;

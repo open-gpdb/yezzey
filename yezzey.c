@@ -98,7 +98,6 @@ PG_MODULE_MAGIC;
 
 PG_FUNCTION_INFO_V1(yezzey_offload_relation);
 PG_FUNCTION_INFO_V1(yezzey_load_relation);
-PG_FUNCTION_INFO_V1(yezzey_load_relation_seg);
 PG_FUNCTION_INFO_V1(yezzey_force_segment_offload);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_internal);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_modern);
@@ -327,10 +326,6 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
   yezzey_load_relation_internal(PG_GETARG_OID(0));
 
   PG_RETURN_VOID();
-}
-
-Datum yezzey_load_relation_seg(PG_FUNCTION_ARGS) {
-  return yezzey_load_relation(fcinfo);
 }
 
 Datum yezzey_offload_relation(PG_FUNCTION_ARGS) {

@@ -4,9 +4,9 @@ SET client_min_messages TO WARNING;
 CREATE TABLE regaotylol(i INT) WITH (appendonly=true);
 INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('regaotylol');
-                          status                          
-----------------------------------------------------------
- offloaded relation public.regaotylol to external storage
+                 status                 
+----------------------------------------
+ offloaded relation to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
@@ -44,9 +44,9 @@ SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
 (1 row)
 
 SELECT yezzey_load_relation('regaotylol');
-            yezzey_load_relation             
----------------------------------------------
- loaded relation regaotylol to local storage
+       yezzey_load_relation       
+----------------------------------
+ relation loaded to local storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
@@ -69,9 +69,9 @@ SELECT count(1) FROM regaotylol;
 (1 row)
 
 SELECT * FROM yezzey_define_offload_policy('regaotylol');
-                          status                          
-----------------------------------------------------------
- offloaded relation public.regaotylol to external storage
+                 status                 
+----------------------------------------
+ offloaded relation to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;

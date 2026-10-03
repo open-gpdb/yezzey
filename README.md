@@ -57,35 +57,38 @@ Time: 5762.468 ms
 
 ### Upload data to S3
 
-Data is uploaded to S3 by calling
-`yezzey_define_offload_policy(schema_name TEXT, relation_name TEXT, policy offload_policy DEFAULT 'remote_always')`:
+Data is uploaded to S3 by calling `yezzey_define_offload_policy(relation regclass)`:
 
-The third `policy` argument is optional; the two-argument call below uses its
-default value. The argument is currently ignored and retained only for
-compatibility. In future versions, it will be deprecated. We recommend that
-you do not use it.
 
 ```sql
-postgres=# SELECT * FROM yezzey_define_offload_policy('public', 'test');
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 10.129.0.12:6000 pid=706966)
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 10.129.0.30:6000 pid=707950)
-INFO:  yezzey: relation segment reached external storage (blkno=1), up to logical eof 200242112  (seg0 slice1 10.129.0.12:6000 pid=706966)
-INFO:  yezzey: relation segment reached external storage (blkno=1), up to logical eof 200295736  (seg1 slice1 10.129.0.30:6000 pid=707950)
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 10.129.0.30:6000 pid=707950)
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 10.129.0.12:6000 pid=706966)
-INFO:  yezzey: relation segment reached external storage (blkno=129), up to logical eof 200295736  (seg1 slice1 10.129.0.30:6000 pid=707950)
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 10.129.0.30:6000 pid=707950)
-INFO:  yezzey: relation segment reached external storage (blkno=129), up to logical eof 200242112  (seg0 slice1 10.129.0.12:6000 pid=706966)
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 10.129.0.12:6000 pid=706966)
-INFO:  yezzey: relation segment reached external storage (blkno=257), up to logical eof 200295736  (seg1 slice1 10.129.0.30:6000 pid=707950)
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 10.129.0.30:6000 pid=707950)
-INFO:  yezzey: relation segment reached external storage (blkno=257), up to logical eof 200242112  (seg0 slice1 10.129.0.12:6000 pid=706966)
-NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 10.129.0.12:6000 pid=706966)
-INFO:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 200295736  (seg1 slice1 10.129.0.30:6000 pid=707950)
-INFO:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 200242112  (seg0 slice1 10.129.0.12:6000 pid=706966)
- yezzey_define_offload_policy
-------------------------------
-
+postgres=# SELECT yezzey_define_offload_policy('test');
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 127.0.1.1:7002 pid=27159)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 127.0.1.1:7003 pid=27161)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:7004 pid=27160)
+NOTICE:  yezzey: relation segment reached external storage (blkno=1), up to logical eof 133498392  (seg1 slice1 127.0.1.1:7003 pid=27161)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 127.0.1.1:7003 pid=27161)
+NOTICE:  yezzey: relation segment reached external storage (blkno=1), up to logical eof 133522528  (seg0 slice1 127.0.1.1:7002 pid=27159)
+NOTICE:  yezzey: relation segment reached external storage (blkno=1), up to logical eof 133516976  (seg2 slice1 127.0.1.1:7004 pid=27160)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 127.0.1.1:7002 pid=27159)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:7004 pid=27160)
+NOTICE:  yezzey: relation segment reached external storage (blkno=129), up to logical eof 133522528  (seg0 slice1 127.0.1.1:7002 pid=27159)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 127.0.1.1:7002 pid=27159)
+NOTICE:  yezzey: relation segment reached external storage (blkno=129), up to logical eof 133498392  (seg1 slice1 127.0.1.1:7003 pid=27161)
+NOTICE:  yezzey: relation segment reached external storage (blkno=129), up to logical eof 133516976  (seg2 slice1 127.0.1.1:7004 pid=27160)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 127.0.1.1:7003 pid=27161)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:7004 pid=27160)
+NOTICE:  yezzey: relation segment reached external storage (blkno=257), up to logical eof 133522528  (seg0 slice1 127.0.1.1:7002 pid=27159)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 127.0.1.1:7002 pid=27159)
+NOTICE:  yezzey: relation segment reached external storage (blkno=257), up to logical eof 133516976  (seg2 slice1 127.0.1.1:7004 pid=27160)
+NOTICE:  yezzey: relation segment reached external storage (blkno=257), up to logical eof 133498392  (seg1 slice1 127.0.1.1:7003 pid=27161)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 127.0.1.1:7003 pid=27161)
+NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:7004 pid=27160)
+NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133516976  (seg2 slice1 127.0.1.1:7004 pid=27160)
+NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133498392  (seg1 slice1 127.0.1.1:7003 pid=27161)
+NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133522528  (seg0 slice1 127.0.1.1:7002 pid=27159)
+      yezzey_define_offload_policy      
+----------------------------------------
+ offloaded relation to external storage
 (1 row)
 
 Time: 63464.499 ms
@@ -98,18 +101,15 @@ postgres=# select count(1) from public.test;
 
 Time: 6331.992 ms
 
-postgres=# select offload_reloid, segindex, segfileindex, external_storage_filepath, external_bytes from yezzey_relation_describe_external_storage_structure('test');
- offload_reloid | segindex | segfileindex |                                                   external_storage_filepath                                                    | external_bytes
-----------------+----------+--------------+--------------------------------------------------------------------------------------------------------------------------------+----------------
-          32176 |        1 |            0 | wal-e/6/segments_005/seg1/basebackups_005/yezzey/1663_12813_81b5e60c711c42d92d6115c2140f6be4_27082_1__DY_1_xlog_279307134824   | 200296702
-          32176 |        1 |            0 | wal-e/6/segments_005/seg1/basebackups_005/yezzey/1663_12813_81b5e60c711c42d92d6115c2140f6be4_27082_129__DY_1_xlog_279307157504 | 200296702
-          32176 |        1 |            0 | wal-e/6/segments_005/seg1/basebackups_005/yezzey/1663_12813_81b5e60c711c42d92d6115c2140f6be4_27082_257__DY_1_xlog_279307179720 | 200296702
-          32176 |        1 |            0 | wal-e/6/segments_005/seg1/basebackups_005/yezzey/1663_12813_81b5e60c711c42d92d6115c2140f6be4_27082_385__DY_1_xlog_279307180720 | 200296702
-          32176 |        0 |            0 | wal-e/6/segments_005/seg0/basebackups_005/yezzey/1663_12813_81b5e60c711c42d92d6115c2140f6be4_27082_1__DY_1_xlog_279307134824   | 200243079
-          32176 |        0 |            0 | wal-e/6/segments_005/seg0/basebackups_005/yezzey/1663_12813_81b5e60c711c42d92d6115c2140f6be4_27082_129__DY_1_xlog_279307157504 | 200243079
-          32176 |        0 |            0 | wal-e/6/segments_005/seg0/basebackups_005/yezzey/1663_12813_81b5e60c711c42d92d6115c2140f6be4_27082_257__DY_1_xlog_279307179720 | 200243079
-          32176 |        0 |            0 | wal-e/6/segments_005/seg0/basebackups_005/yezzey/1663_12813_81b5e60c711c42d92d6115c2140f6be4_27082_385__DY_1_xlog_279307180720 | 200243079
-(8 rows)
+postgres=# select * from yezzey_relation_describe_external_storage_structure('test');
+ reloid | segindex | segfileindex |                                               external_storage_filepath                                               | local_bytes | local_commited_bytes | external_bytes 
+--------+----------+--------------+-----------------------------------------------------------------------------------------------------------------------+-------------+----------------------+----------------
+  17072 |        2 |          129 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_129__DY_1_xlog_760632952  |           0 |                    0 |      133511128
+  17072 |        2 |            1 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_1__DY_1_xlog_760625784    |           0 |                    0 |      133511128
+  17072 |        2 |          257 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_257__DY_1_xlog_760632952  |           0 |                    0 |      133511128
+...
+  17072 |        0 |          385 | /segments_005/seg0/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16395_385__DY_1_xlog_1319615408 |           0 |                    0 |      133522528
+(24 rows)
 ```
 
 The object itself remains unchanged, and further work with it continues as if the data were located on a local disk.
@@ -129,38 +129,38 @@ The message `yezzey: relation segment reached external storage (blkno=385), up t
 
 ### Download data from S3
 
-Invoke one of the following functions:
+Data is downloaded from S3 by calling `yezzey_load_relation(relation regclass)`.
 
-* With the table name specified:
-
-    ```sql
-    SELECT yezzey_load_relation('<table_name>');
-    ```
-
-* With the schema the table is in and the table name specified:
-
-    ```sql
-    SELECT yezzey_load_relation('<schema_name>', '<table_name>');
-    ```
-
-The time the download takes depends on the table size and the number of segment files. After the download is completed, you will get a message in the following format:
+The time the download takes depends on the table size and the number of segment files. After the download is completed, you will get a message:
 
 ```sql
-INFO:  loaded relation ... to local storage
+postgres=# select yezzey_load_relation('test');
+       yezzey_load_relation       
+----------------------------------
+ relation loaded to local storage
+(1 row)
 ```
 
 ### Get info about offloaded data
 
+Call `yezzey_offload_relation_status(relation regclass)`.
+
 Query the extension:
 
 ```sql
-SELECT * FROM yezzey_offload_relation_status('<schema_name>', '<table_name>');
+postgres=# SELECT * FROM yezzey_offload_relation_status('test');
+ reloid | segindex | local_bytes | local_commited_bytes | external_bytes | external_bloat_bytes 
+--------+----------+-------------+----------------------+----------------+----------------------
+  17072 |        2 |   534067904 |                    0 |     1068112416 |           1068112416
+  17072 |        1 |   533993568 |                    0 |     1068162912 |           1068162912
+  17072 |        0 |   534090112 |                    0 |     1068027840 |           1068027840
+(3 rows)
 ```
 The query result contains the following fields:
 
 | Field | Description |
 |------|----------|
-| `offload_reloid` | OID of the object. |
+| `reloid` | OID of the object. |
 | `segindex` | Segment ID. The value `-1` corresponds to the master. |
 | `local_bytes` | The size of the data stored in the cluster storage. If '0`, the table is unloaded. |
 | `external_bytes` | The size of the data uploaded to the cold storage. If all values in the column are zero, the table is placed in the cluster storage. If the column has non-zero values, the table is placed in cold storage.|
@@ -267,13 +267,13 @@ In `yezzey_expire_index`, for each file in S3, `expire_lsn` is specified. `expir
 Yezzey provides several SQL helpers to remove obsolete objects from external storage. All of them run on every segment and send delete requests through YProxy.
 
 ```sql
-SELECT * FROM yezzey_vacuum_garbage(confirm := false, crazyDrop := false);
+SELECT yezzey_vacuum_garbage(confirm := false, crazyDrop := false);
 ```
 
 `yezzey_vacuum_garbage` scans all tablespaces from `pg_tablespace` and removes garbage under the corresponding Yezzey storage paths.
 
 ```sql
-SELECT * FROM yezzey_vacuum_garbage_tablespace(
+SELECT yezzey_vacuum_garbage_tablespace(
   tablespace := '<tablespace_oid>'::oid,
   confirm := false,
   crazyDrop := false
@@ -283,21 +283,14 @@ SELECT * FROM yezzey_vacuum_garbage_tablespace(
 `yezzey_vacuum_garbage_tablespace` limits cleanup to a single tablespace. This is useful when only one tablespace has to be compacted or when relations are offloaded to custom tablespaces and the default tablespace must be left untouched.
 
 ```sql
-SELECT * FROM yezzey_vacuum_garbage_relation(
-  i_offload_nspname := 'public',
-  i_offload_relname := '<table_name>',
-  confirm := false,
-  crazyDrop := false
-);
-
-SELECT * FROM yezzey_vacuum_garbage_relation(
-  i_offload_relname := '<table_name>',
+SELECT yezzey_vacuum_relation(
+  relation := '<table>',
   confirm := false,
   crazyDrop := false
 );
 ```
 
-`yezzey_vacuum_garbage_relation` cleans garbage only for the requested offloaded relation. The single-argument relation-name wrapper uses the `public` schema.
+`yezzey_vacuum_relation` cleans garbage only for the requested offloaded relation.
 
 `confirm` controls whether YProxy should actually delete objects. Keep the default `false` for a dry-run-style request, and set it to `true` to confirm deletion. `crazyDrop` enables a more aggressive cleanup mode and is restricted to superusers.
 
@@ -305,7 +298,7 @@ A typical cleanup flow is:
 
 1. Run regular `VACUUM` on the AO/AOCO relation so obsolete Yezzey files become garbage.
 2. Inspect the relation storage with `yezzey_relation_describe_external_storage_structure('<table_name>')`.
-3. Use `yezzey_vacuum_garbage_relation`, `yezzey_vacuum_garbage_tablespace`, or `yezzey_vacuum_garbage` depending on the desired cleanup scope.
+3. Use `yezzey_vacuum_relation`, `yezzey_vacuum_garbage_tablespace`, or `yezzey_vacuum_garbage` depending on the desired cleanup scope.
 4. Re-check `yezzey_relation_describe_external_storage_structure('<table_name>')` to verify that obsolete files were removed.
 
 ## Performance tests
