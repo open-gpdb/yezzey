@@ -24,8 +24,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 -- manually/automatically relocated relations
--- this creates schema yezzey with pre-defined oid
--- 8001, virtual index relation, etc
+-- this creates virtual index relation, etc
 SELECT yezzey_init_metadata();
 SELECT yezzey_init_metadata_seg();
 
