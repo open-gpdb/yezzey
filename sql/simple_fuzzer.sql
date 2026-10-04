@@ -7,7 +7,7 @@ SET client_min_messages TO WARNING;
 CREATE TABLE simple_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO simple_regaoty SELECT * FROM generate_series(1, 100000);
 
-SELECT yezzey_offload_relation('simple_regaoty');
+SELECT yezzey.offload_relation('simple_regaoty');
 
 SELECT reltablespace FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
 
@@ -29,9 +29,9 @@ DECLARE
   i INTEGER;
 BEGIN
   FOR i IN 1..100 LOOP
-    PERFORM * FROM yezzey_offload_relation_status('simple_regaoty');
-    PERFORM * FROM yezzey_offload_relation_status_per_filesegment('simple_regaoty');
-    PERFORM * FROM yezzey_relation_describe_external_storage_structure('simple_regaoty');
+    PERFORM * FROM yezzey.offload_relation_status('simple_regaoty');
+    PERFORM * FROM yezzey.offload_relation_status_per_filesegment('simple_regaoty');
+    PERFORM * FROM yezzey.relation_describe_external_storage_structure('simple_regaoty');
   END LOOP;
 END $$;
 
@@ -40,9 +40,9 @@ DECLARE
   i INTEGER;
 BEGIN
   FOR i IN 1..100 LOOP
-    PERFORM count(), sum(external_bytes) FROM yezzey_offload_relation_status('simple_regaoty');
-    PERFORM count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('simple_regaoty');
-    PERFORM count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('simple_regaoty');
+    PERFORM count(), sum(external_bytes) FROM yezzey.offload_relation_status('simple_regaoty');
+    PERFORM count(), sum(external_bytes) FROM yezzey.offload_relation_status_per_filesegment('simple_regaoty');
+    PERFORM count(), sum(external_bytes) FROM yezzey.relation_describe_external_storage_structure('simple_regaoty');
   END LOOP;
 END $$;
 

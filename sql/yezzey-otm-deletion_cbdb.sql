@@ -22,7 +22,7 @@ INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
 
 
 
-SELECT yezzey_offload_relation('yezzey_otm_regaoty_1');
+SELECT yezzey.offload_relation('yezzey_otm_regaoty_1');
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
 
@@ -36,11 +36,11 @@ SELECT count(x_path) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE re
 
 SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_1', true, true);
 
-SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
+SELECT * FROM yezzey.relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
 
 
 
-SELECT yezzey_offload_relation('yezzey_otm_regaoty_2');
+SELECT yezzey.offload_relation('yezzey_otm_regaoty_2');
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
 
@@ -54,15 +54,15 @@ SELECT count(x_path) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE re
 
 SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_2', true, true);
 
-SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
+SELECT * FROM yezzey.relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
 
 
 
-SELECT yezzey_load_relation('yezzey_otm_regaoty_1');
+SELECT yezzey.load_relation('yezzey_otm_regaoty_1');
 
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_1');
 
-SELECT yezzey_load_relation('yezzey_otm_regaoty_2');
+SELECT yezzey.load_relation('yezzey_otm_regaoty_2');
 
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_2');
 

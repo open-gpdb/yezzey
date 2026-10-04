@@ -57,11 +57,11 @@ Time: 5762.468 ms
 
 ### Upload data to S3
 
-Data is uploaded to S3 by calling `yezzey_offload_relation(relation regclass)`:
+Data is uploaded to S3 by calling `yezzey.offload_relation(relation regclass)`:
 
 
 ```sql
-postgres=# SELECT yezzey_offload_relation('test');
+postgres=# SELECT yezzey.offload_relation('test');
 NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 127.0.1.1:7002 pid=27159)
 NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 127.0.1.1:7003 pid=27161)
 NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:7004 pid=27160)
@@ -86,8 +86,8 @@ NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:700
 NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133516976  (seg2 slice1 127.0.1.1:7004 pid=27160)
 NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133498392  (seg1 slice1 127.0.1.1:7003 pid=27161)
 NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133522528  (seg0 slice1 127.0.1.1:7002 pid=27159)
- yezzey_offload_relation 
--------------------------
+ offload_relation 
+------------------
  
 (1 row)
 
@@ -101,7 +101,7 @@ postgres=# select count(1) from public.test;
 
 Time: 6331.992 ms
 
-postgres=# select * from yezzey_relation_describe_external_storage_structure('test');
+postgres=# select * from yezzey.relation_describe_external_storage_structure('test');
  reloid | segindex | segfileindex |                                               external_storage_filepath                                               | local_bytes | local_commited_bytes | external_bytes 
 --------+----------+--------------+-----------------------------------------------------------------------------------------------------------------------+-------------+----------------------+----------------
   17072 |        2 |          129 | /segments_005/seg2/basebackups_005/yezzey/1663_13141_81b5e60c711c42d92d6115c2140f6be4_16391_129__DY_1_xlog_760632952  |           0 |                    0 |      133511128
@@ -129,26 +129,26 @@ The message `yezzey: relation segment reached external storage (blkno=385), up t
 
 ### Download data from S3
 
-Data is downloaded from S3 by calling `yezzey_load_relation(relation regclass)`.
+Data is downloaded from S3 by calling `yezzey.load_relation(relation regclass)`.
 
 The time the download takes depends on the table size and the number of segment files.
 
 ```sql
-postgres=# select yezzey_load_relation('test');
- yezzey_load_relation 
-----------------------
+postgres=# select yezzey.load_relation('test');
+ load_relation 
+---------------
  
 (1 row)
 ```
 
 ### Get info about offloaded data
 
-Call `yezzey_offload_relation_status(relation regclass)`.
+Call `yezzey.offload_relation_status(relation regclass)`.
 
 Query the extension:
 
 ```sql
-postgres=# SELECT * FROM yezzey_offload_relation_status('test');
+postgres=# SELECT * FROM yezzey.offload_relation_status('test');
  reloid | segindex | local_bytes | local_commited_bytes | external_bytes | external_bloat_bytes 
 --------+----------+-------------+----------------------+----------------+----------------------
   17072 |        2 |   534067904 |                    0 |     1068112416 |           1068112416
@@ -267,39 +267,39 @@ In `yezzey_expire_index`, for each file in S3, `expire_lsn` is specified. `expir
 Yezzey provides several SQL helpers to remove obsolete objects from external storage. All of them run on every segment and send delete requests through YProxy.
 
 ```sql
-SELECT yezzey_vacuum(confirm := false, crazyDrop := false);
+SELECT yezzey.vacuum(confirm := false, crazyDrop := false);
 ```
 
-`yezzey_vacuum` scans all tablespaces from `pg_tablespace` and removes garbage under the corresponding Yezzey storage paths.
+`yezzey.vacuum` scans all tablespaces from `pg_tablespace` and removes garbage under the corresponding Yezzey storage paths.
 
 ```sql
-SELECT yezzey_vacuum_tablespace(
+SELECT yezzey.vacuum_tablespace(
   tablespace := '<tablespace_oid>'::oid,
   confirm := false,
   crazyDrop := false
 );
 ```
 
-`yezzey_vacuum_tablespace` limits cleanup to a single tablespace. This is useful when only one tablespace has to be compacted or when relations are offloaded to custom tablespaces and the default tablespace must be left untouched.
+`yezzey.vacuum_tablespace` limits cleanup to a single tablespace. This is useful when only one tablespace has to be compacted or when relations are offloaded to custom tablespaces and the default tablespace must be left untouched.
 
 ```sql
-SELECT yezzey_vacuum_relation(
+SELECT yezzey.vacuum_relation(
   relation := '<table>',
   confirm := false,
   crazyDrop := false
 );
 ```
 
-`yezzey_vacuum_relation` cleans garbage only for the requested offloaded relation.
+`yezzey.vacuum_relation` cleans garbage only for the requested offloaded relation.
 
 `confirm` controls whether YProxy should actually delete objects. Keep the default `false` for a dry-run-style request, and set it to `true` to confirm deletion. `crazyDrop` enables a more aggressive cleanup mode and is restricted to superusers.
 
 A typical cleanup flow is:
 
 1. Run regular `VACUUM` on the AO/AOCO relation so obsolete Yezzey files become garbage.
-2. Inspect the relation storage with `yezzey_relation_describe_external_storage_structure('<table_name>')`.
-3. Use `yezzey_vacuum_relation`, `yezzey_vacuum_tablespace`, or `yezzey_vacuum` depending on the desired cleanup scope.
-4. Re-check `yezzey_relation_describe_external_storage_structure('<table_name>')` to verify that obsolete files were removed.
+2. Inspect the relation storage with `yezzey.relation_describe_external_storage_structure('<table_name>')`.
+3. Use `yezzey.vacuum_relation`, `yezzey.vacuum_tablespace`, or `yezzey.vacuum` depending on the desired cleanup scope.
+4. Re-check `yezzey.relation_describe_external_storage_structure('<table_name>')` to verify that obsolete files were removed.
 
 ## Performance tests
 

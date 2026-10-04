@@ -7,7 +7,7 @@ SELECT count(1) FROM regao_tt_alr_off;
  10010
 (1 row)
 
-SELECT segindex, local_bytes, external_bytes FROM yezzey_offload_relation_status('regao_tt_alr_off');
+SELECT segindex, local_bytes, external_bytes FROM yezzey.offload_relation_status('regao_tt_alr_off');
  segindex | local_bytes | external_bytes 
 ----------+-------------+----------------
         1 |           0 |          33928
@@ -23,7 +23,7 @@ SELECT count(1) FROM regao_tt_alr_off;
  20020
 (1 row)
 
-SELECT segindex, local_bytes, external_bytes FROM yezzey_offload_relation_status('regao_tt_alr_off');
+SELECT segindex, local_bytes, external_bytes FROM yezzey.offload_relation_status('regao_tt_alr_off');
  segindex | local_bytes | external_bytes 
 ----------+-------------+----------------
         0 |           0 |         155464
@@ -31,15 +31,15 @@ SELECT segindex, local_bytes, external_bytes FROM yezzey_offload_relation_status
         1 |           0 |         155960
 (3 rows)
 
-SELECT yezzey_load_relation('regao_tt_alr_off');
+SELECT yezzey.load_relation('regao_tt_alr_off');
 INFO:  loaded relation regao_tt_alr_offs to local storage
-CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+CONTEXT:  SQL statement "SELECT yezzey.load_relation(
         'public',
         load_relname
     )"
-PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
- yezzey_load_relation 
-----------------------
+PL/pgSQL function yezzey.load_relation(text) line 5 at PERFORM
+ load_relation 
+---------------
  
 (1 row)
 
@@ -49,7 +49,7 @@ SELECT count(1) FROM regao_tt_alr_off;
  20020
 (1 row)
 
-SELECT segindex, local_bytes, external_bytes FROM yezzey_offload_relation_status('regao_tt_alr_off');
+SELECT segindex, local_bytes, external_bytes FROM yezzey.offload_relation_status('regao_tt_alr_off');
  segindex | local_bytes | external_bytes 
 ----------+-------------+----------------
         2 |      117104 |         149664

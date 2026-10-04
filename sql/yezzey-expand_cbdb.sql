@@ -8,7 +8,7 @@ set allow_system_table_mods TO on;
 
 update gp_distribution_policy set numsegments = 2 where localoid = 'expand_regaoty'::regclass::oid;
 
-SELECT yezzey_offload_relation('expand_regaoty');
+SELECT yezzey.offload_relation('expand_regaoty');
 SELECT reltablespace FROM pg_class where oid = 'expand_regaoty'::regclass::oid;
 
 INSERT INTO expand_regaoty SELECT * FROM generate_series(1, 100000);
@@ -34,7 +34,7 @@ set allow_system_table_mods TO on;
 
 update gp_distribution_policy set numsegments = 2 where localoid = 'expand_regaocsty'::regclass::oid;
 
-SELECT yezzey_offload_relation('expand_regaocsty');
+SELECT yezzey.offload_relation('expand_regaocsty');
 SELECT reltablespace FROM pg_class where oid = 'expand_regaocsty'::regclass::oid;
 
 INSERT INTO expand_regaocsty SELECT * FROM generate_series(1, 100000);

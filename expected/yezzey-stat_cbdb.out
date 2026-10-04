@@ -3,19 +3,19 @@ SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE regaostat(i INT) WITH (appendonly=true);
 INSERT INTO regaostat SELECT * FROM generate_series(1, 100000);
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
    sum   | sum 
 ---------+-----
  1001640 |   0
 (1 row)
 
-SELECT * FROM yezzey_offload_relation('regaostat');
- yezzey_offload_relation 
--------------------------
+SELECT * FROM yezzey.offload_relation('regaostat');
+ offload_relation 
+------------------
  
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
  sum |   sum   
 -----+---------
    0 | 1001640
@@ -27,7 +27,7 @@ SELECT reltablespace FROM pg_class where oid = 'regaostat'::regclass::oid;
           8555
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
  sum |   sum   
 -----+---------
    0 | 1001640
@@ -35,57 +35,57 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
 
 DELETE FROM regaostat;
 INSERT INTO regaostat SELECT * FROM generate_series(1, 100000);
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
  sum |   sum   
 -----+---------
    0 | 2003280
 (1 row)
 
 VACUUM regaostat;
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
  sum |   sum   
 -----+---------
    0 | 3004920
 (1 row)
 
-SELECT yezzey_load_relation('regaostat');
+SELECT yezzey.load_relation('regaostat');
 INFO:  loaded relation regaostats to local storage
-CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+CONTEXT:  SQL statement "SELECT yezzey.load_relation(
         'public',
         load_relname
     )"
-PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
- yezzey_load_relation 
-----------------------
+PL/pgSQL function yezzey.load_relation(text) line 5 at PERFORM
+ load_relation 
+---------------
  
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
    sum   |   sum   
 ---------+---------
  1001640 | 3004920
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaostat');
    sum   |   sum   |   sum   
 ---------+---------+---------
  1001640 | 3004920 | 3004920
 (1 row)
 
-SELECT * FROM yezzey_offload_relation('regaostat');
- yezzey_offload_relation 
--------------------------
+SELECT * FROM yezzey.offload_relation('regaostat');
+ offload_relation 
+------------------
  
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaostat');
  sum |   sum   |   sum   
 -----+---------+---------
    0 | 4006560 | 3004920
 (1 row)
 
 VACUUM (YEZZEY);
-SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaostat');
  sum |   sum   | sum 
 -----+---------+-----
    0 | 1001640 |   0
@@ -96,14 +96,14 @@ DROP TABLE regaostat;
 CREATE TABLE regaocsstat(i INT, j INT, k INT, r INT) WITH (appendonly=true, orientation=column);
 INSERT INTO regaocsstat SELECT i,i,i,i FROM generate_series(1, 100000) i;
 -- TODO: fix
--- SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
-SELECT * FROM yezzey_offload_relation('regaocsstat');
+-- SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
+SELECT * FROM yezzey.offload_relation('regaocsstat');
                          status                          
 ---------------------------------------------------------
  offloaded relation public.regaostat to external storage
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
  sum |   sum   
 -----+---------
    0 | 1602624
@@ -115,7 +115,7 @@ SELECT reltablespace FROM pg_class where oid = 'regaocsstat'::regclass::oid;
           8555
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
  sum |   sum   
 -----+---------
    0 | 1602624
@@ -123,51 +123,51 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
 
 DELETE FROM regaocsstat;
 INSERT INTO regaocsstat SELECT i,i,i,i FROM generate_series(1, 100000)i;
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
  sum |   sum   
 -----+---------
    0 | 3205248
 (1 row)
 
 VACUUM regaocsstat;
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
  sum |   sum   
 -----+---------
    0 | 4807872
 (1 row)
 
-SELECT yezzey_load_relation('regaocsstat');
-            yezzey_load_relation            
+SELECT yezzey.load_relation('regaocsstat');
+               load_relation                
 --------------------------------------------
  loaded relation regaostat to local storage
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
    sum   |   sum   
 ---------+---------
  1602624 | 4807872
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaocsstat');
    sum   |   sum   |   sum   
 ---------+---------+---------
  1602624 | 4807872 | 4807872
 (1 row)
 
-SELECT * FROM yezzey_offload_relation('regaocsstat');
+SELECT * FROM yezzey.offload_relation('regaocsstat');
                          status                          
 ---------------------------------------------------------
  offloaded relation public.regaostat to external storage
 (1 row)
 
-SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaocsstat');
  sum |   sum   |   sum   
 -----+---------+---------
    0 | 6410496 | 4807872
 (1 row)
 
 VACUUM (YEZZEY);
-SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaocsstat');
  sum |   sum   | sum 
 -----+---------+-----
    0 | 1602624 |   0

@@ -5,21 +5,21 @@ SET client_min_messages TO WARNING;
 
 CREATE TABLE trunc_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
-SELECT yezzey_offload_relation('trunc_regaoty');
+SELECT yezzey.offload_relation('trunc_regaoty');
 
 SELECT reltablespace FROM pg_class where oid = 'trunc_regaoty'::regclass::oid;
 
-SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+SELECT count() FROM yezzey.offload_relation_status('trunc_regaoty');
+SELECT count() FROM yezzey.offload_relation_status_per_filesegment('trunc_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey.relation_describe_external_storage_structure('trunc_regaoty');
 
 SELECT count(1) FROM trunc_regaoty;
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
 SELECT count(1) FROM trunc_regaoty;
 
-SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+SELECT count() FROM yezzey.offload_relation_status('trunc_regaoty');
+SELECT count() FROM yezzey.offload_relation_status_per_filesegment('trunc_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey.relation_describe_external_storage_structure('trunc_regaoty');
 
 DELETE FROM trunc_regaoty;
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
@@ -30,9 +30,9 @@ TRUNCATE trunc_regaoty;
 SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'trunc_regaoty'::regclass::oid;
 SELECT count(1) FROM trunc_regaoty;
 
-SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaoty');
+SELECT count() FROM yezzey.offload_relation_status('trunc_regaoty');
+SELECT count() FROM yezzey.offload_relation_status_per_filesegment('trunc_regaoty');
+SELECT count(), sum(external_bytes) FROM yezzey.relation_describe_external_storage_structure('trunc_regaoty');
 
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
@@ -46,21 +46,21 @@ DROP TABLE trunc_regaoty;
 
 CREATE TABLE trunc_regaocsty(i INT) WITH (appendonly=true, orientation=column);
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT yezzey_offload_relation('trunc_regaocsty');
+SELECT yezzey.offload_relation('trunc_regaocsty');
 
 SELECT reltablespace FROM pg_class where oid = 'trunc_regaocsty'::regclass::oid;
 
-SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+SELECT count() FROM yezzey.offload_relation_status('trunc_regaocsty');
+SELECT count() FROM yezzey.offload_relation_status_per_filesegment('trunc_regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey.relation_describe_external_storage_structure('trunc_regaocsty');
 
 SELECT count(1) FROM trunc_regaocsty;
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
 SELECT count(1) FROM trunc_regaocsty;
 
-SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+SELECT count() FROM yezzey.offload_relation_status('trunc_regaocsty');
+SELECT count() FROM yezzey.offload_relation_status_per_filesegment('trunc_regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey.relation_describe_external_storage_structure('trunc_regaocsty');
 
 DELETE FROM trunc_regaocsty;
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
@@ -71,9 +71,9 @@ TRUNCATE trunc_regaocsty;
 SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'trunc_regaocsty'::regclass::oid;
 SELECT count(1) FROM trunc_regaocsty;
 
-SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
-SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');
-SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('trunc_regaocsty');
+SELECT count() FROM yezzey.offload_relation_status('trunc_regaocsty');
+SELECT count() FROM yezzey.offload_relation_status_per_filesegment('trunc_regaocsty');
+SELECT count(), sum(external_bytes) FROM yezzey.relation_describe_external_storage_structure('trunc_regaocsty');
 
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);

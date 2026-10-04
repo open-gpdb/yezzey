@@ -3,9 +3,9 @@ SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE regaotylol(i INT) WITH (appendonly=true);
 INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
-SELECT yezzey_offload_relation('regaotylol');
- yezzey_offload_relation 
--------------------------
+SELECT yezzey.offload_relation('regaotylol');
+ offload_relation 
+------------------
  
 (1 row)
 
@@ -43,9 +43,9 @@ SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
           8555
 (1 row)
 
-SELECT yezzey_load_relation('regaotylol');
- yezzey_load_relation 
-----------------------
+SELECT yezzey.load_relation('regaotylol');
+ load_relation 
+---------------
  
 (1 row)
 
@@ -68,9 +68,9 @@ SELECT count(1) FROM regaotylol;
  200000
 (1 row)
 
-SELECT yezzey_offload_relation('regaotylol');
- yezzey_offload_relation 
--------------------------
+SELECT yezzey.offload_relation('regaotylol');
+ offload_relation 
+------------------
  
 (1 row)
 
