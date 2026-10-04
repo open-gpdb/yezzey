@@ -96,7 +96,6 @@ char *yproxy_socket = NULL;
 
 PG_MODULE_MAGIC;
 
-PG_FUNCTION_INFO_V1(yezzey_offload_relation);
 PG_FUNCTION_INFO_V1(yezzey_load_relation);
 PG_FUNCTION_INFO_V1(yezzey_force_segment_offload);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_internal);
@@ -324,26 +323,6 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
    * 3) go and load each segment (XXX: enhancement: do loading in parallel)
    */
   yezzey_load_relation_internal(PG_GETARG_OID(0));
-
-  PG_RETURN_VOID();
-}
-
-Datum yezzey_offload_relation(PG_FUNCTION_ARGS) {
-  /*
-   * Force table offloading to external storage
-   * In order:
-   * 1) lock table in IN EXCLUSIVE MODE
-   * 2) check pg_aoseg.pg_aoseg_XXX table for all segments
-   * 3) go and offload each segment (XXX: enhancement: do offloading in
-   * parallel)
-   */
-  Oid reloid;
-  bool remove_locally;
-
-  reloid = PG_GETARG_OID(0);
-  remove_locally = PG_GETARG_BOOL(1);
-
-  yezzey_offload_relation_internal(reloid, remove_locally, NULL);
 
   PG_RETURN_VOID();
 }
