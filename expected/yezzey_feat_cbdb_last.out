@@ -114,7 +114,7 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
 
 -- should be one file in each relation
 SELECT yezzey_vacuum(true, true);
- yezzey_vacuum
+ yezzey_vacuum 
 ---------------
  t
  t
@@ -137,7 +137,7 @@ DROP TABLE vacuum_garbage_aot_187;
 DROP TABLE vacuum_garbage_aot_187_r_187;
 -- should be zero
 SELECT yezzey_vacuum(true, true);
- yezzey_vacuum
+ yezzey_vacuum 
 ---------------
  t
  t

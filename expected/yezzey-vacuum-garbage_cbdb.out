@@ -112,7 +112,7 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
 
 -- should vacuum garbage only in requested tablespace
 SELECT yezzey_vacuum_tablespace((SELECT oid FROM pg_tablespace WHERE spcname = 'vacuum_garbage_tab1'), true, true);
- yezzey_vacuum_tablespace
+ yezzey_vacuum_tablespace 
 --------------------------
  t
  t
@@ -140,7 +140,7 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
 
 -- should be one file in each relation
 SELECT yezzey_vacuum(true, true);
- yezzey_vacuum
+ yezzey_vacuum 
 ---------------
  t
  t
@@ -177,7 +177,7 @@ DROP TABLE vacuum_garbage_ts1;
 DROP TABLE vacuum_garbage_ts2;
 -- should be zero
 SELECT yezzey_vacuum(true, true);
- yezzey_vacuum
+ yezzey_vacuum 
 ---------------
  t
  t
