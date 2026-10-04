@@ -15,7 +15,7 @@ CREATE TABLE yezzey_otm_regaoty_2(i INT, s TEXT) WITH (appendonly=true) TABLESPA
 INSERT INTO yezzey_otm_regaoty_2 SELECT i, 'dssd' FROM generate_series(1, 100000) i;
 ALTER TABLE yezzey_otm_regaoty_2 ALTER COLUMN s SET STORAGE EXTERNAL;
 INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
-SELECT * FROM yezzey_offload_relation('yezzey_otm_regaoty_1');
+SELECT * FROM yezzey.offload_relation('yezzey_otm_regaoty_1');
                                status                               
 --------------------------------------------------------------------
  offloaded relation public.yezzey_otm_regaoty_1 to external storage
@@ -50,12 +50,12 @@ SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_1', true, true);
  
 (1 row)
 
-SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
+SELECT * FROM yezzey.relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
  offload_reloid | segindex | segfileindex | external_storage_filepath | local_bytes | local_commited_bytes | external_bytes 
 ----------------+----------+--------------+---------------------------+-------------+----------------------+----------------
 (0 rows)
 
-SELECT * FROM yezzey_offload_relation('yezzey_otm_regaoty_2');
+SELECT * FROM yezzey.offload_relation('yezzey_otm_regaoty_2');
                                status                               
 --------------------------------------------------------------------
  offloaded relation public.yezzey_otm_regaoty_2 to external storage
@@ -89,13 +89,13 @@ SELECT yezzey_vacuum_garbage_relation('yezzey_otm_regaoty_2', true, true);
  
 (1 row)
 
-SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
+SELECT * FROM yezzey.relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
  offload_reloid | segindex | segfileindex | external_storage_filepath | local_bytes | local_commited_bytes | external_bytes 
 ----------------+----------+--------------+---------------------------+-------------+----------------------+----------------
 (0 rows)
 
-SELECT yezzey_load_relation('yezzey_otm_regaoty_1');
-                 yezzey_load_relation                  
+SELECT yezzey.load_relation('yezzey_otm_regaoty_1');
+                     load_relation                     
 -------------------------------------------------------
  loaded relation yezzey_otm_regaoty_1 to local storage
 (1 row)
@@ -106,8 +106,8 @@ SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_clas
  tab1
 (1 row)
 
-SELECT yezzey_load_relation('yezzey_otm_regaoty_2');
-                 yezzey_load_relation                  
+SELECT yezzey.load_relation('yezzey_otm_regaoty_2');
+                     load_relation                     
 -------------------------------------------------------
  loaded relation yezzey_otm_regaoty_2 to local storage
 (1 row)

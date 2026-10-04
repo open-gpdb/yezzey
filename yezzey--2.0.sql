@@ -9,14 +9,14 @@
 
 CREATE SCHEMA yezzey;
 
-CREATE FUNCTION yezzey_init_metadata()
+CREATE FUNCTION yezzey.init_metadata()
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_init_metadata'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
-CREATE FUNCTION yezzey_init_metadata_seg()
+CREATE FUNCTION yezzey.init_metadata_seg()
 RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME', 'yezzey_init_metadata'
 VOLATILE
@@ -25,14 +25,14 @@ LANGUAGE C STRICT;
 
 -- manually/automatically relocated relations
 -- this creates virtual index relation, etc
-SELECT yezzey_init_metadata();
-SELECT yezzey_init_metadata_seg();
+SELECT yezzey.init_metadata();
+SELECT yezzey.init_metadata_seg();
 
-CREATE FUNCTION yezzey_delete_chunk(
+CREATE FUNCTION yezzey.delete_chunk(
     external_storage_path TEXT
 )
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_delete_chunk'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
@@ -44,7 +44,7 @@ GRANT SELECT ON yezzey.offload_metadata TO PUBLIC;
 
 -- external bytes always commited
 
-CREATE FUNCTION yezzey_offload_relation_status(relation regclass) 
+CREATE FUNCTION yezzey.offload_relation_status(relation regclass)
 RETURNS TABLE (reloid OID, segindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
 AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_modern'
 VOLATILE
@@ -53,7 +53,7 @@ LANGUAGE C STRICT;
 
 
 -- more detailed debug about relations file segments
-CREATE FUNCTION yezzey_offload_relation_status_per_filesegment(relation regclass) 
+CREATE FUNCTION yezzey.offload_relation_status_per_filesegment(relation regclass)
 RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT, external_bloat_bytes BIGINT)
 AS 'MODULE_PATHNAME', 'yezzey_offload_relation_status_per_filesegment_modern'
 VOLATILE
@@ -62,7 +62,7 @@ LANGUAGE C STRICT;
 
 
 -- even more detailed debug about relations file segments
-CREATE FUNCTION yezzey_relation_describe_external_storage_structure(relation regclass) 
+CREATE FUNCTION yezzey.relation_describe_external_storage_structure(relation regclass)
 RETURNS TABLE (reloid OID, segindex INTEGER, segfileindex INTEGER, external_storage_filepath TEXT, local_bytes BIGINT, local_commited_bytes BIGINT, external_bytes BIGINT)
 AS 'MODULE_PATHNAME', 'yezzey_relation_describe_external_storage_structure_internal'
 VOLATILE
@@ -76,22 +76,22 @@ CREATE TABLE yezzey.offload_tablespace_map(
 ) DISTRIBUTED REPLICATED;
 
 
-CREATE FUNCTION yezzey_define_relation_offload_policy_internal(reloid OID)
+CREATE FUNCTION yezzey.define_relation_offload_policy_internal(reloid OID)
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_define_relation_offload_policy_internal'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
-CREATE FUNCTION yezzey_define_relation_offload_policy_internal_seg(reloid OID)
+CREATE FUNCTION yezzey.define_relation_offload_policy_internal_seg(reloid OID)
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_define_relation_offload_policy_internal_seg'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_define_relation_offload_policy_internal_prepare_master(reloid OID)
+CREATE FUNCTION yezzey.define_relation_offload_policy_internal_prepare_master(reloid OID)
 RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME','yezzey_define_relation_offload_policy_internal_prepare'
 VOLATILE
@@ -99,15 +99,15 @@ EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_define_relation_offload_policy_internal_prepare(reloid OID)
+CREATE FUNCTION yezzey.define_relation_offload_policy_internal_prepare(reloid OID)
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_define_relation_offload_policy_internal_prepare'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_offload_relation(relation regclass)
+CREATE FUNCTION yezzey.offload_relation(relation regclass)
 RETURNS VOID
 AS $$
 BEGIN   
@@ -120,19 +120,19 @@ BEGIN
         RETURN;
     END IF;
 
-    PERFORM yezzey_define_relation_offload_policy_internal_prepare(
+    PERFORM yezzey.define_relation_offload_policy_internal_prepare(
         relation
     );
 
-    PERFORM yezzey_define_relation_offload_policy_internal_prepare_master(
+    PERFORM yezzey.define_relation_offload_policy_internal_prepare_master(
         relation
     );
 
     -- non-partitioned relation
-    PERFORM yezzey_define_relation_offload_policy_internal_seg(
+    PERFORM yezzey.define_relation_offload_policy_internal_seg(
         relation
     );
-    PERFORM yezzey_define_relation_offload_policy_internal(
+    PERFORM yezzey.define_relation_offload_policy_internal(
         relation
     );
 END;
@@ -140,42 +140,42 @@ $$
 LANGUAGE PLPGSQL;
 
 
-CREATE FUNCTION yezzey_delete_obsolete(
+CREATE FUNCTION yezzey.delete_obsolete(
     crazyDrop BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_delete_obsolete'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_collect_obsolete()
+CREATE FUNCTION yezzey.collect_obsolete()
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_collect_obsolete'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_vacuum(
+CREATE FUNCTION yezzey.vacuum(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_vacuum'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_vacuum_relation(
+CREATE FUNCTION yezzey.vacuum_relation(
     relation regclass,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_vacuum_relation'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
@@ -183,38 +183,38 @@ LANGUAGE C STRICT;
 
 -- Add tablespace-level garbage vacuum wrapper
 
-CREATE FUNCTION yezzey_vacuum_tablespace(
+CREATE FUNCTION yezzey.vacuum_tablespace(
     tablespace OID,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (status BOOLEAN)
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'yezzey_vacuum_tablespace'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_load_relation_internal(reloid OID)
+CREATE FUNCTION yezzey.load_relation_internal(reloid OID)
 RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME', 'yezzey_load_relation'
 VOLATILE
 EXECUTE ON MASTER
 LANGUAGE C STRICT;
 
-CREATE FUNCTION yezzey_load_relation_internal_seg(reloid OID)
+CREATE FUNCTION yezzey.load_relation_internal_seg(reloid OID)
 RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME', 'yezzey_load_relation'
 VOLATILE
 EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION yezzey_load_relation(relation regclass)
+CREATE OR REPLACE FUNCTION yezzey.load_relation(relation regclass)
 RETURNS VOID
 AS $$
 BEGIN
-    PERFORM yezzey_load_relation_internal_seg(relation);
-    PERFORM yezzey_load_relation_internal(relation);
+    PERFORM yezzey.load_relation_internal_seg(relation);
+    PERFORM yezzey.load_relation_internal(relation);
 END;
 $$
 LANGUAGE PLPGSQL;

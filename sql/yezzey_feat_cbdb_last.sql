@@ -7,13 +7,13 @@ SET client_min_messages TO WARNING;
 CREATE TABLE regaotylol187(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
 INSERT INTO regaotylol187 SELECT * FROM generate_series(1, 100000);
 
-SELECT yezzey_offload_relation('regaotylol187');
+SELECT yezzey.offload_relation('regaotylol187');
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
-SELECT yezzey_load_relation('regaotylol187');
+SELECT yezzey.load_relation('regaotylol187');
 SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
 
-SELECT yezzey_offload_relation('regaotylol187');
+SELECT yezzey.offload_relation('regaotylol187');
 SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
 
 SELECT count(1) FROM regaotylol187;
@@ -25,10 +25,10 @@ DROP TABLE regaotylol187;
 
 
 CREATE TABLE vacuum_garbage_aot_187(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
-SELECT yezzey_offload_relation('vacuum_garbage_aot_187');
+SELECT yezzey.offload_relation('vacuum_garbage_aot_187');
 
 CREATE TABLE vacuum_garbage_aot_187_r_187(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
-SELECT yezzey_offload_relation('vacuum_garbage_aot_187_r_187');
+SELECT yezzey.offload_relation('vacuum_garbage_aot_187_r_187');
 
 -- check how it work with ONLY given relation
 INSERT INTO vacuum_garbage_aot_187_r_187 VALUES(1);
@@ -42,29 +42,29 @@ INSERT INTO vacuum_garbage_aot_187 VALUES(1);
 VACUUM vacuum_garbage_aot_187;
 
 -- should be three files, old and new, and after vacuum
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187_r_187');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot_187_r_187');
 
 -- should be three files, old and new, and after vacuum
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot_187');
 
-SELECT yezzey_vacuum_relation('vacuum_garbage_aot_187_r_187', true, true);
+SELECT yezzey.vacuum_relation('vacuum_garbage_aot_187_r_187', true, true);
 
 -- should single file.
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187_r_187');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot_187_r_187');
 
 -- should not change
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot_187');
 
 -- should be one file in each relation
-SELECT yezzey_vacuum(true, true);
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187');
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_187_r_187');
+SELECT yezzey.vacuum(true, true);
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot_187');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot_187_r_187');
 
 DROP TABLE vacuum_garbage_aot_187;
 DROP TABLE vacuum_garbage_aot_187_r_187;
 
 -- should be zero
-SELECT yezzey_vacuum(true, true);
+SELECT yezzey.vacuum(true, true);
 
 
 DROP EXTENSION yezzey;

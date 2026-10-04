@@ -7,16 +7,16 @@ CREATE TABLESPACE vacuum_garbage_tab1 LOCATION '/tmp/test_spc_vacuum_garbage_tab
 CREATE TABLESPACE vacuum_garbage_tab2 LOCATION '/tmp/test_spc_vacuum_garbage_tab2';
 
 CREATE TABLE vacuum_garbage_aot(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
-SELECT yezzey_offload_relation('vacuum_garbage_aot');
+SELECT yezzey.offload_relation('vacuum_garbage_aot');
 
 CREATE TABLE vacuum_garbage_aot_r(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
-SELECT yezzey_offload_relation('vacuum_garbage_aot_r');
+SELECT yezzey.offload_relation('vacuum_garbage_aot_r');
 
 CREATE TABLE vacuum_garbage_ts1(i INT) WITH (appendonly=true) TABLESPACE vacuum_garbage_tab1 DISTRIBUTED BY (i);
-SELECT yezzey_offload_relation('vacuum_garbage_ts1');
+SELECT yezzey.offload_relation('vacuum_garbage_ts1');
 
 CREATE TABLE vacuum_garbage_ts2(i INT) WITH (appendonly=true) TABLESPACE vacuum_garbage_tab2 DISTRIBUTED BY (i);
-SELECT yezzey_offload_relation('vacuum_garbage_ts2');
+SELECT yezzey.offload_relation('vacuum_garbage_ts2');
 
 -- check how it work with ONLY given relation
 INSERT INTO vacuum_garbage_aot_r VALUES(1);
@@ -40,41 +40,41 @@ INSERT INTO vacuum_garbage_ts2 VALUES(1);
 VACUUM vacuum_garbage_ts2;
 
 -- should be three files, old and new, and after vacuum
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_r');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot_r');
 
 -- should be three files, old and new, and after vacuum
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot');
 
 -- should be three files, old and new, and after vacuum in custom tablespaces
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts1');
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts2');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_ts1');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_ts2');
 
-SELECT yezzey_vacuum_relation('vacuum_garbage_aot_r', true, true);
+SELECT yezzey.vacuum_relation('vacuum_garbage_aot_r', true, true);
 
 -- should single file.
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_r');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot_r');
 
 -- should not change
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot');
 
 -- should not change custom tablespace relations before tablespace vacuum
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts1');
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts2');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_ts1');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_ts2');
 
 -- should vacuum garbage only in requested tablespace
-SELECT yezzey_vacuum_tablespace((SELECT oid FROM pg_tablespace WHERE spcname = 'vacuum_garbage_tab1'), true, true);
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts1');
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts2');
+SELECT yezzey.vacuum_tablespace((SELECT oid FROM pg_tablespace WHERE spcname = 'vacuum_garbage_tab1'), true, true);
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_ts1');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_ts2');
 
 -- default tablespace relation should not change after custom tablespace vacuum
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot');
 
 -- should be one file in each relation
-SELECT yezzey_vacuum(true, true);
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot');
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_r');
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts1');
-SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_ts2');
+SELECT yezzey.vacuum(true, true);
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_aot_r');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_ts1');
+SELECT count(1) FROM yezzey.relation_describe_external_storage_structure('vacuum_garbage_ts2');
 
 DROP TABLE vacuum_garbage_aot;
 DROP TABLE vacuum_garbage_aot_r;
@@ -82,7 +82,7 @@ DROP TABLE vacuum_garbage_ts1;
 DROP TABLE vacuum_garbage_ts2;
 
 -- should be zero
-SELECT yezzey_vacuum(true, true);
+SELECT yezzey.vacuum(true, true);
 
 DROP TABLESPACE vacuum_garbage_tab1;
 DROP TABLESPACE vacuum_garbage_tab2;

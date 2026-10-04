@@ -6,7 +6,7 @@ CREATE TABLESPACE tab1 LOCATION '/tmp/test_spc_tab1';
 
 CREATE TABLE regao_y_ats(i int) WITH (appendonly=true) TABLESPACE tab1 DISTRIBUTED BY (i);
 
-SELECT yezzey_offload_relation('regao_y_ats');
+SELECT yezzey.offload_relation('regao_y_ats');
 
 --should fail
 ALTER TABLE regao_y_ats SET TABLESPACE pg_default;
