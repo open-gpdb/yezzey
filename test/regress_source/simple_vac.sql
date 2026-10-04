@@ -8,7 +8,7 @@ CREATE EXTENSION yezzey;
 
 CREATE TABLE regaoty(i INT) WITH (appendonly=true);
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaoty');
+SELECT * FROM yezzey_offload_relation('regaoty');
 
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
 

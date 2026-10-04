@@ -15,7 +15,7 @@ CREATE TABLE yezzey_otm_regaoty_2(i INT, s TEXT) WITH (appendonly=true) TABLESPA
 INSERT INTO yezzey_otm_regaoty_2 SELECT i, 'dssd' FROM generate_series(1, 100000) i;
 ALTER TABLE yezzey_otm_regaoty_2 ALTER COLUMN s SET STORAGE EXTERNAL;
 INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
-SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
+SELECT * FROM yezzey_offload_relation('yezzey_otm_regaoty_1');
                                status                               
 --------------------------------------------------------------------
  offloaded relation public.yezzey_otm_regaoty_1 to external storage
@@ -55,7 +55,7 @@ SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_re
 ----------------+----------+--------------+---------------------------+-------------+----------------------+----------------
 (0 rows)
 
-SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
+SELECT * FROM yezzey_offload_relation('yezzey_otm_regaoty_2');
                                status                               
 --------------------------------------------------------------------
  offloaded relation public.yezzey_otm_regaoty_2 to external storage

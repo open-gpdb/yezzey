@@ -57,11 +57,11 @@ Time: 5762.468 ms
 
 ### Upload data to S3
 
-Data is uploaded to S3 by calling `yezzey_define_offload_policy(relation regclass)`:
+Data is uploaded to S3 by calling `yezzey_offload_relation(relation regclass)`:
 
 
 ```sql
-postgres=# SELECT yezzey_define_offload_policy('test');
+postgres=# SELECT yezzey_offload_relation('test');
 NOTICE:  yezzey: relation virtual size calculated: 0  (seg0 slice1 127.0.1.1:7002 pid=27159)
 NOTICE:  yezzey: relation virtual size calculated: 0  (seg1 slice1 127.0.1.1:7003 pid=27161)
 NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:7004 pid=27160)
@@ -86,8 +86,8 @@ NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:700
 NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133516976  (seg2 slice1 127.0.1.1:7004 pid=27160)
 NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133498392  (seg1 slice1 127.0.1.1:7003 pid=27161)
 NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133522528  (seg0 slice1 127.0.1.1:7002 pid=27159)
- yezzey_define_offload_policy 
-------------------------------
+ yezzey_offload_relation 
+-------------------------
  
 (1 row)
 

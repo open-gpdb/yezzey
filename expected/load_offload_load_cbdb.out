@@ -3,9 +3,9 @@ SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE regaotylol(i INT) WITH (appendonly=true);
 INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
-SELECT yezzey_define_offload_policy('regaotylol');
- yezzey_define_offload_policy 
-------------------------------
+SELECT yezzey_offload_relation('regaotylol');
+ yezzey_offload_relation 
+-------------------------
  
 (1 row)
 
@@ -68,9 +68,9 @@ SELECT count(1) FROM regaotylol;
  200000
 (1 row)
 
-SELECT yezzey_define_offload_policy('regaotylol');
- yezzey_define_offload_policy 
-------------------------------
+SELECT yezzey_offload_relation('regaotylol');
+ yezzey_offload_relation 
+-------------------------
  
 (1 row)
 

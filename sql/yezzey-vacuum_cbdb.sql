@@ -1,7 +1,7 @@
 
 CREATE EXTENSION yezzey;
 CREATE TABLE vacuum_aot(i INT) WITH (appendonly=true);
-select yezzey_define_offload_policy('vacuum_aot');
+select yezzey_offload_relation('vacuum_aot');
 insert into vacuum_aot select * from generate_series(1, 10000);
 insert into vacuum_aot select * from generate_series(1, 10000);
 delete from vacuum_aot;

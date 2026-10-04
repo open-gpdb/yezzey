@@ -4,9 +4,9 @@ SET client_min_messages TO WARNING;
 CREATE TABLE y_a_toast_t(i int, t text) with (appendonly=true, orientation=column);
 ALTER TABLE y_a_toast_t ALTER COLUMN t SET STORAGE EXTERNAL;
 INSERT INTO y_a_toast_t VALUES(1, repeat('a', 320023));
-SELECT yezzey_define_offload_policy('y_a_toast_t');
- yezzey_define_offload_policy 
-------------------------------
+SELECT yezzey_offload_relation('y_a_toast_t');
+ yezzey_offload_relation 
+-------------------------
  
 (1 row)
 

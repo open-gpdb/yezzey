@@ -48,16 +48,16 @@ vacuum analyze ny_taxi_yezzey;
 -- select 'ny_taxi_yezzey_1_prt_10'::regclass::oid
 
 
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_10');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_11');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_12');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_13');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_2');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_3');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_4');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_5');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_6');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_7');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_8');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_9');
-select yezzey_define_offload_policy('ny_taxi_yezzey_1_prt_other');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_10');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_11');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_12');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_13');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_2');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_3');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_4');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_5');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_6');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_7');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_8');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_9');
+select yezzey_offload_relation('ny_taxi_yezzey_1_prt_other');

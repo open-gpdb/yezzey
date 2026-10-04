@@ -2,10 +2,10 @@ CREATE EXTENSION yezzey VERSION '1.0';
 ALTER EXTENSION yezzey UPDATE TO '1.8.6';
 
 CREATE TABLE vacuum_garbage_aot(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
-SELECT yezzey_define_offload_policy('vacuum_garbage_aot');
+SELECT yezzey_offload_relation('vacuum_garbage_aot');
 
 CREATE TABLE vacuum_garbage_aot_r(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
-SELECT yezzey_define_offload_policy('vacuum_garbage_aot_r');
+SELECT yezzey_offload_relation('vacuum_garbage_aot_r');
 
 -- check how it work with ONLY given relation
 INSERT INTO vacuum_garbage_aot_r VALUES(1);

@@ -145,7 +145,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_define_offload_policy(relation regclass)
+CREATE FUNCTION yezzey_offload_relation(relation regclass)
 RETURNS VOID
 AS $$
 BEGIN   

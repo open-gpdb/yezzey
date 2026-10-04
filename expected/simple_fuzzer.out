@@ -3,9 +3,9 @@ SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE simple_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO simple_regaoty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('simple_regaoty');
- yezzey_define_offload_policy 
-------------------------------
+SELECT * FROM yezzey_offload_relation('simple_regaoty');
+ yezzey_offload_relation 
+-------------------------
  
 (1 row)
 
