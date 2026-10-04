@@ -12,7 +12,7 @@ SELECT * FROM yezzey_define_offload_policy('regaoty');
 
 SELECT count(1) FROM regaoty;
 
-SELECT * FROM yezzey_dump_virtual_index('regaoty');
+SELECT * FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'regaoty'::regclass::oid;
 
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
 

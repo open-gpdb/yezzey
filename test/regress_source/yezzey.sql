@@ -16,7 +16,7 @@ SELECT * FROM yezzey_relation_describe_external_storage_structure('regaoty');
 
 SELECT count(1) FROM regaoty;
 
-SELECT * FROM yezzey_dump_virtual_index('regaoty');
+SELECT * FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'regaoty'::regclass::oid;
 
 SELECT * FROM regaoty LIMIT 5;
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
