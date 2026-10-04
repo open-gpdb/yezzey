@@ -138,15 +138,6 @@ $$ LANGUAGE SQL
 EXECUTE ON ALL SEGMENTS;
 
 
-CREATE FUNCTION 
-yezzey_offload_relation(reloid OID, remove_locally BOOLEAN)
-RETURNS TABLE (status OID)
-AS 'MODULE_PATHNAME'
-VOLATILE
-EXECUTE ON ALL SEGMENTS
-LANGUAGE C STRICT;
-
-
 CREATE FUNCTION yezzey_define_relation_offload_policy_internal(reloid OID)
 RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME'
