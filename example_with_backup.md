@@ -122,7 +122,7 @@ selec   count
 (1 row)
 
 Time: 3637.040 ms
-db2=# select yezzey_define_offload_policy('public', 'local_table_backuped');
+db2=# select yezzey_offload_relation('public', 'local_table_backuped');
 WARNING:  yezzey: relation virtual size calculated: 96129088  (seg2 slice1 2a02:6b8:c25:109d:0:1589:d69f:58c1:6000 pid=1122837)
 WARNING:  yezzey: relation virtual size calculated: 120161392  (seg3 slice1 2a02:6b8:c25:109d:0:1589:d69f:58c1:6001 pid=1122836)
 WARNING:  yezzey: relation virtual size calculated: 128172128  (seg5 slice1 2a02:6b8:c25:124c:0:1589:bf3b:4e51:6001 pid=1097971)
@@ -147,7 +147,7 @@ WARNING:  yezzey: relation virtual size calculated: 128172128  (seg5 slice1 2a02
 WARNING:  yezzey: relation virtual size calculated: 144193680  (seg1 slice1 2a02:6b8:c25:1c55:0:1589:cb6d:a5e8:6001 pid=1145639)
 WARNING:  yezzey: relation virtual size calculated: 168225888  (seg0 slice1 2a02:6b8:c25:1c55:0:1589:cb6d:a5e8:6000 pid=1145638)
 WARNING:  yezzey: relation virtual size calculated: 144193680  (seg4 slice1 2a02:6b8:c25:124c:0:1589:bf3b:4e51:6000 pid=1097970)
- yezzey_define_offload_policy
+ yezzey_offload_relation
 ------------------------------
 
 (1 row)

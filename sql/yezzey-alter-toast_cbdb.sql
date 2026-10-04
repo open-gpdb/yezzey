@@ -8,7 +8,7 @@ ALTER TABLE y_a_toast_t ALTER COLUMN t SET STORAGE EXTERNAL;
 
 INSERT INTO y_a_toast_t VALUES(1, repeat('a', 320023));
 
-SELECT yezzey_define_offload_policy('y_a_toast_t');
+SELECT yezzey_offload_relation('y_a_toast_t');
 
 ALTER TABLE y_a_toast_t ADD COLUMN z text;
 

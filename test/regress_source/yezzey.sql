@@ -8,7 +8,7 @@ CREATE EXTENSION yezzey;
 
 CREATE TABLE regaoty(i INT) WITH (appendonly=true);
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaoty');
+SELECT * FROM yezzey_offload_relation('regaoty');
 
 SELECT * FROM yezzey_offload_relation_status('regaoty');
 SELECT * FROM yezzey_offload_relation_status_per_filesegment('regaoty');
@@ -55,7 +55,7 @@ VACUUM regaoty;
 
 CREATE TABLE regaocsty(i INT) WITH (appendonly=true, orientation=column);
 INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaocsty');
+SELECT * FROM yezzey_offload_relation('regaocsty');
 
 SELECT * FROM yezzey_offload_relation_status('regaocsty');
 SELECT * FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
@@ -103,7 +103,7 @@ SELECT * FROM regaocsty LIMIT 5;
 
 CREATE TABLE regaotcy(i INT) WITH (appendonly=true);
 INSERT INTO regaotcy SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaotcy');
+SELECT * FROM yezzey_offload_relation('regaotcy');
 
 SELECT * FROM yezzey_offload_relation_status('regaotcy');
 SELECT * FROM yezzey_offload_relation_status_per_filesegment('regaotcy');
@@ -152,7 +152,7 @@ SELECT * FROM regaotcy LIMIT 5;
 
 CREATE TABLE regaotylol(i INT) WITH (appendonly=true);
 INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaotylol');
+SELECT * FROM yezzey_offload_relation('regaotylol');
 
 SELECT count(1) FROM regaotylol;
 INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
@@ -168,7 +168,7 @@ SELECT count(1) FROM regaotylol;
 INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
 SELECT count(1) FROM regaotylol;
 
-SELECT * FROM yezzey_define_offload_policy('regaotylol');
+SELECT * FROM yezzey_offload_relation('regaotylol');
 
 SELECT count(1) FROM regaotylol;
 INSERT INTO regaotylol SELECT * FROM generate_series(1, 100000);
@@ -185,7 +185,7 @@ SELECT count(1) FROM regaotylol;
 CREATE SCHEMA sh1;
 CREATE TABLE sh1.regaoty(i INT) WITH (appendonly=true);
 INSERT INTO sh1.regaoty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('sh1', 'regaoty');
+SELECT * FROM yezzey_offload_relation('sh1', 'regaoty');
 
 SELECT * FROM yezzey_offload_relation_status('sh1', 'regaoty');
 SELECT * FROM yezzey_offload_relation_status_per_filesegment('sh1', 'regaoty');
