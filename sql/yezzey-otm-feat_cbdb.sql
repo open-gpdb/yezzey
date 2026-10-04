@@ -25,7 +25,7 @@ INSERT INTO yezzey_otm_regaoty_2 SELECT i, 'dssd' FROM generate_series(1, 100000
 ALTER TABLE yezzey_otm_regaoty_2 ALTER COLUMN s SET STORAGE EXTERNAL;
 INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
 
-SELECT yezzey_define_offload_policy('yezzey_otm_regaoty_1');
+SELECT yezzey_offload_relation('yezzey_otm_regaoty_1');
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
 
@@ -50,7 +50,7 @@ SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('yezzey_
 SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('yezzey_otm_regaoty_1');
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
 
-SELECT yezzey_define_offload_policy('yezzey_otm_regaoty_2');
+SELECT yezzey_offload_relation('yezzey_otm_regaoty_2');
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
 
@@ -89,11 +89,11 @@ CREATE TABLE yezzey_otm_regaoty_1_cs(i INT, j INT, s TEXT) WITH (appendonly=true
 
 INSERT INTO yezzey_otm_regaoty_1_cs SELECT i, i, md5(i::text) FROM generate_series(1, 100000) i;
 
-SELECT yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');
+SELECT yezzey_offload_relation('yezzey_otm_regaoty_1_cs');
 
 SELECT yezzey_load_relation('yezzey_otm_regaoty_1_cs');
 
-SELECT yezzey_define_offload_policy('yezzey_otm_regaoty_1_cs');
+SELECT yezzey_offload_relation('yezzey_otm_regaoty_1_cs');
 
 -- test simple reorgnaze & vacuum 
 ALTER TABLE yezzey_otm_regaoty_1 SET WITH (reorganize=TRUE);

@@ -3,9 +3,9 @@ SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE reorg_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO reorg_regaoty SELECT * FROM generate_series(1, 100000);
-SELECT yezzey_define_offload_policy('reorg_regaoty');
- yezzey_define_offload_policy 
-------------------------------
+SELECT yezzey_offload_relation('reorg_regaoty');
+ yezzey_offload_relation 
+-------------------------
  
 (1 row)
 
@@ -95,9 +95,9 @@ AO simple test OK
 -- AOCS
 CREATE TABLE reorg_regaocsty(i INT) WITH (appendonly=true, orientation=column);
 INSERT INTO reorg_regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT yezzey_define_offload_policy('reorg_regaocsty');
- yezzey_define_offload_policy 
-------------------------------
+SELECT yezzey_offload_relation('reorg_regaocsty');
+ yezzey_offload_relation 
+-------------------------
  
 (1 row)
 

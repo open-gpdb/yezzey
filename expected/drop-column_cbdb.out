@@ -3,9 +3,9 @@ SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE drop_column_regaotya(i INT, j INT) WITH (appendonly=true);
 INSERT INTO drop_column_regaotya SELECT i,i + 1 FROM generate_series(1, 100000) i;
-SELECT yezzey_define_offload_policy('drop_column_regaotya');
- yezzey_define_offload_policy 
-------------------------------
+SELECT yezzey_offload_relation('drop_column_regaotya');
+ yezzey_offload_relation 
+-------------------------
  
 (1 row)
 
@@ -51,9 +51,9 @@ DROP TABLE drop_column_regaotya;
 -- AOCS 
 CREATE TABLE drop_column_regaocstya(i INT, j INT) WITH (appendonly=true, orientation=column);
 INSERT INTO drop_column_regaocstya SELECT i,i + 1 FROM generate_series(1, 100000) i;
-SELECT yezzey_define_offload_policy('drop_column_regaocstya');
- yezzey_define_offload_policy 
-------------------------------
+SELECT yezzey_offload_relation('drop_column_regaocstya');
+ yezzey_offload_relation 
+-------------------------
  
 (1 row)
 

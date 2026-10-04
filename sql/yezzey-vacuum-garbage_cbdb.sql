@@ -7,16 +7,16 @@ CREATE TABLESPACE vacuum_garbage_tab1 LOCATION '/tmp/test_spc_vacuum_garbage_tab
 CREATE TABLESPACE vacuum_garbage_tab2 LOCATION '/tmp/test_spc_vacuum_garbage_tab2';
 
 CREATE TABLE vacuum_garbage_aot(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
-SELECT yezzey_define_offload_policy('vacuum_garbage_aot');
+SELECT yezzey_offload_relation('vacuum_garbage_aot');
 
 CREATE TABLE vacuum_garbage_aot_r(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
-SELECT yezzey_define_offload_policy('vacuum_garbage_aot_r');
+SELECT yezzey_offload_relation('vacuum_garbage_aot_r');
 
 CREATE TABLE vacuum_garbage_ts1(i INT) WITH (appendonly=true) TABLESPACE vacuum_garbage_tab1 DISTRIBUTED BY (i);
-SELECT yezzey_define_offload_policy('vacuum_garbage_ts1');
+SELECT yezzey_offload_relation('vacuum_garbage_ts1');
 
 CREATE TABLE vacuum_garbage_ts2(i INT) WITH (appendonly=true) TABLESPACE vacuum_garbage_tab2 DISTRIBUTED BY (i);
-SELECT yezzey_define_offload_policy('vacuum_garbage_ts2');
+SELECT yezzey_offload_relation('vacuum_garbage_ts2');
 
 -- check how it work with ONLY given relation
 INSERT INTO vacuum_garbage_aot_r VALUES(1);

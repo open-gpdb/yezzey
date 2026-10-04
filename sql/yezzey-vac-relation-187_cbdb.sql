@@ -7,7 +7,7 @@ SET client_min_messages TO WARNING;
 CREATE TABLE vac_relation_regaotyvi(i INT) WITH (appendonly=true);
 INSERT INTO vac_relation_regaotyvi SELECT * FROM generate_series(1, 100000);
 
-SELECT yezzey_define_offload_policy('vac_relation_regaotyvi');
+SELECT yezzey_offload_relation('vac_relation_regaotyvi');
 
 SELECT reltablespace FROM pg_class where oid = 'vac_relation_regaotyvi'::regclass::oid;
 

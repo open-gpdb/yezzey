@@ -9,7 +9,7 @@ SET client_min_messages TO NOTICE;
 -- 1) Offloading a relation that does not exist must raise a clear error.
 DO $$
 BEGIN
-    PERFORM yezzey_define_offload_policy('no_such_relation_xyz');
+    PERFORM yezzey_offload_relation('no_such_relation_xyz');
     RAISE NOTICE 'unexpected: no error raised';
 EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE 'caught: %', SQLERRM;
@@ -19,7 +19,7 @@ $$;
 -- 2) Offloading in a non-existent schema must also fail.
 DO $$
 BEGIN
-    PERFORM yezzey_define_offload_policy('no_such_schema.no_such_relation_xyz');
+    PERFORM yezzey_offload_relation('no_such_schema.no_such_relation_xyz');
     RAISE NOTICE 'unexpected: no error raised';
 EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE 'caught: %', SQLERRM;
@@ -34,7 +34,7 @@ INSERT INTO offload_err_regaoty SELECT * FROM generate_series(1, 10000);
 -- depend on how rows land across AO segments, so raise the message threshold to
 -- keep the expected output stable.
 SET client_min_messages TO WARNING;
-SELECT yezzey_define_offload_policy('offload_err_regaoty');
+SELECT yezzey_offload_relation('offload_err_regaoty');
 RESET client_min_messages;
 
 -- The relation must now be recorded as offloaded in the metadata catalog.
@@ -47,7 +47,7 @@ WHERE reloid = 'offload_err_regaoty'::regclass AND relpolicy = 1;
 --    (pid, socket) info, so keep the message threshold high. The call must
 --    neither error nor duplicate the metadata entries.
 SET client_min_messages TO WARNING;
-SELECT yezzey_define_offload_policy('offload_err_regaoty');
+SELECT yezzey_offload_relation('offload_err_regaoty');
 RESET client_min_messages;
 
 -- Still exactly one metadata row after the repeated call.
