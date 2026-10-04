@@ -1,6 +1,6 @@
 -- Add tablespace-level garbage vacuum wrapper
 
-CREATE FUNCTION yezzey_vacuum_garbage_tablespace(
+CREATE FUNCTION yezzey_vacuum_tablespace(
     tablespace OID,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE

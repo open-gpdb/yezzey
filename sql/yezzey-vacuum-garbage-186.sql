@@ -33,7 +33,7 @@ SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot');
 
 -- should be one file in each relation
-SELECT yezzey_vacuum_garbage(true, true);
+SELECT yezzey_vacuum(true, true);
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot');
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_r');
 
@@ -41,7 +41,7 @@ DROP TABLE vacuum_garbage_aot;
 DROP TABLE vacuum_garbage_aot_r;
 
 -- should be zero
-SELECT yezzey_vacuum_garbage(true, true);
+SELECT yezzey_vacuum(true, true);
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot');
 SELECT count(1) FROM yezzey_relation_describe_external_storage_structure('vacuum_garbage_aot_r');
 
