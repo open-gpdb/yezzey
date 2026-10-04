@@ -5,7 +5,7 @@ SET client_min_messages TO WARNING;
 
 CREATE TABLE trunc_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('trunc_regaoty');
+SELECT yezzey_define_offload_policy('trunc_regaoty');
 
 SELECT reltablespace FROM pg_class where oid = 'trunc_regaoty'::regclass::oid;
 
@@ -46,7 +46,7 @@ DROP TABLE trunc_regaoty;
 
 CREATE TABLE trunc_regaocsty(i INT) WITH (appendonly=true, orientation=column);
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('trunc_regaocsty');
+SELECT yezzey_define_offload_policy('trunc_regaocsty');
 
 SELECT reltablespace FROM pg_class where oid = 'trunc_regaocsty'::regclass::oid;
 

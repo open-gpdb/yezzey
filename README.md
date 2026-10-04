@@ -86,9 +86,9 @@ NOTICE:  yezzey: relation virtual size calculated: 0  (seg2 slice1 127.0.1.1:700
 NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133516976  (seg2 slice1 127.0.1.1:7004 pid=27160)
 NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133498392  (seg1 slice1 127.0.1.1:7003 pid=27161)
 NOTICE:  yezzey: relation segment reached external storage (blkno=385), up to logical eof 133522528  (seg0 slice1 127.0.1.1:7002 pid=27159)
-      yezzey_define_offload_policy      
-----------------------------------------
- offloaded relation to external storage
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 Time: 63464.499 ms
@@ -131,13 +131,13 @@ The message `yezzey: relation segment reached external storage (blkno=385), up t
 
 Data is downloaded from S3 by calling `yezzey_load_relation(relation regclass)`.
 
-The time the download takes depends on the table size and the number of segment files. After the download is completed, you will get a message:
+The time the download takes depends on the table size and the number of segment files.
 
 ```sql
 postgres=# select yezzey_load_relation('test');
-       yezzey_load_relation       
-----------------------------------
- relation loaded to local storage
+ yezzey_load_relation 
+----------------------
+ 
 (1 row)
 ```
 

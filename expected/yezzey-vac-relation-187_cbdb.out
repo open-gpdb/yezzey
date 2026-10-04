@@ -3,10 +3,10 @@ SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE vac_relation_regaotyvi(i INT) WITH (appendonly=true);
 INSERT INTO vac_relation_regaotyvi SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('vac_relation_regaotyvi');
-                 status                 
-----------------------------------------
- offloaded relation to external storage
+SELECT yezzey_define_offload_policy('vac_relation_regaotyvi');
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'vac_relation_regaotyvi'::regclass::oid;

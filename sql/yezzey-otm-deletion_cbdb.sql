@@ -22,7 +22,7 @@ INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
 
 
 
-SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
+SELECT yezzey_define_offload_policy('yezzey_otm_regaoty_1');
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
 
@@ -40,7 +40,7 @@ SELECT * FROM yezzey_relation_describe_external_storage_structure('yezzey_otm_re
 
 
 
-SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
+SELECT yezzey_define_offload_policy('yezzey_otm_regaoty_2');
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
 

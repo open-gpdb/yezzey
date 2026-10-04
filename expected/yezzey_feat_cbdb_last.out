@@ -3,10 +3,10 @@ SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE regaotylol187(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
 INSERT INTO regaotylol187 SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaotylol187');
-                 status                 
-----------------------------------------
- offloaded relation to external storage
+SELECT yezzey_define_offload_policy('regaotylol187');
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
@@ -16,9 +16,9 @@ SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
 (1 row)
 
 SELECT yezzey_load_relation('regaotylol187');
-       yezzey_load_relation       
-----------------------------------
- relation loaded to local storage
+ yezzey_load_relation 
+----------------------
+ 
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
@@ -27,10 +27,10 @@ SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
           1663
 (1 row)
 
-SELECT * FROM yezzey_define_offload_policy('regaotylol187');
-                 status                 
-----------------------------------------
- offloaded relation to external storage
+SELECT yezzey_define_offload_policy('regaotylol187');
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
@@ -55,16 +55,16 @@ SELECT count(1) FROM regaotylol187;
 DROP TABLE regaotylol187;
 CREATE TABLE vacuum_garbage_aot_187(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
 SELECT yezzey_define_offload_policy('vacuum_garbage_aot_187');
-      yezzey_define_offload_policy      
-----------------------------------------
- offloaded relation to external storage
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 CREATE TABLE vacuum_garbage_aot_187_r_187(i INT) WITH (appendonly=true) DISTRIBUTED BY (i);
 SELECT yezzey_define_offload_policy('vacuum_garbage_aot_187_r_187');
-      yezzey_define_offload_policy      
-----------------------------------------
- offloaded relation to external storage
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 -- check how it work with ONLY given relation
