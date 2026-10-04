@@ -181,18 +181,12 @@ LANGUAGE C STRICT;
 CREATE FUNCTION yezzey_define_offload_policy(relation regclass)
 RETURNS VOID
 AS $$
-DECLARE
-    v_tmprow OID;
 BEGIN   
-    SELECT 
-        reloid
-    FROM
-        yezzey.offload_metadata
-    INTO v_tmprow 
-    WHERE 
-        reloid = relation::oid AND relpolicy = 1;
-
-    IF FOUND THEN
+    IF EXISTS (
+        SELECT
+        FROM yezzey.offload_metadata
+        WHERE reloid = relation::oid AND relpolicy = 1
+    ) THEN
         RAISE WARNING 'The relation has already been offloaded';
         RETURN;
     END IF;
