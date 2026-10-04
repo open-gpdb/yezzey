@@ -66,8 +66,7 @@ REGRESS = \
   #        yezzey-vi-eh-unique_cbdb \
    #       yezzey-stat_cbdb \
     #      yezzey-alter-ts_cbdb \
-     #     yezzey-create-offloaded_cbdb \
-      #    yezzey-offload-errors_cbdb
+     #     yezzey-create-offloaded_cbdb
           
 endif
 
