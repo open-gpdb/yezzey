@@ -15,7 +15,7 @@ SELECT reltablespace FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
           8555
 (1 row)
 
-SELECT count(1) FROM yezzey_dump_virtual_index('simple_regaoty');
+SELECT count(1) FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = 'simple_regaoty'::regclass::oid;
  count 
 -------
      3

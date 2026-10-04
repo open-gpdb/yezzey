@@ -70,30 +70,6 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_dump_virtual_index(i_relname text) 
-RETURNS 
-    TABLE(
-        reloid OID,
-        relfilenode OID,
-        blkno integer,
-        offset_start bigint,
-        offset_finish bigint,
-        encrypted int,
-        reused int,
-        modcount bigint,
-        lsn pg_lsn,
-        x_path TEXT)
-AS $$
-DECLARE
-    v_reloid OID;
-BEGIN
-    select oid from pg_class p INTO v_reloid where relname = i_relname;
-    RETURN QUERY SELECT * FROM gp_dist_random('yezzey.yezzey_virtual_index') WHERE relation = v_reloid;
-END;
-$$
-EXECUTE ON ALL SEGMENTS
-LANGUAGE plpgsql;
-
 CREATE TABLE yezzey.offload_tablespace_map(
     reloid                 OID PRIMARY KEY,
     origin_tablespace_name NAME
