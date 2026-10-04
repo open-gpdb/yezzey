@@ -267,20 +267,20 @@ In `yezzey_expire_index`, for each file in S3, `expire_lsn` is specified. `expir
 Yezzey provides several SQL helpers to remove obsolete objects from external storage. All of them run on every segment and send delete requests through YProxy.
 
 ```sql
-SELECT yezzey_vacuum_garbage(confirm := false, crazyDrop := false);
+SELECT yezzey_vacuum(confirm := false, crazyDrop := false);
 ```
 
-`yezzey_vacuum_garbage` scans all tablespaces from `pg_tablespace` and removes garbage under the corresponding Yezzey storage paths.
+`yezzey_vacuum` scans all tablespaces from `pg_tablespace` and removes garbage under the corresponding Yezzey storage paths.
 
 ```sql
-SELECT yezzey_vacuum_garbage_tablespace(
+SELECT yezzey_vacuum_tablespace(
   tablespace := '<tablespace_oid>'::oid,
   confirm := false,
   crazyDrop := false
 );
 ```
 
-`yezzey_vacuum_garbage_tablespace` limits cleanup to a single tablespace. This is useful when only one tablespace has to be compacted or when relations are offloaded to custom tablespaces and the default tablespace must be left untouched.
+`yezzey_vacuum_tablespace` limits cleanup to a single tablespace. This is useful when only one tablespace has to be compacted or when relations are offloaded to custom tablespaces and the default tablespace must be left untouched.
 
 ```sql
 SELECT yezzey_vacuum_relation(
@@ -298,7 +298,7 @@ A typical cleanup flow is:
 
 1. Run regular `VACUUM` on the AO/AOCO relation so obsolete Yezzey files become garbage.
 2. Inspect the relation storage with `yezzey_relation_describe_external_storage_structure('<table_name>')`.
-3. Use `yezzey_vacuum_relation`, `yezzey_vacuum_garbage_tablespace`, or `yezzey_vacuum_garbage` depending on the desired cleanup scope.
+3. Use `yezzey_vacuum_relation`, `yezzey_vacuum_tablespace`, or `yezzey_vacuum` depending on the desired cleanup scope.
 4. Re-check `yezzey_relation_describe_external_storage_structure('<table_name>')` to verify that obsolete files were removed.
 
 ## Performance tests

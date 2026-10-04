@@ -114,8 +114,8 @@ PG_FUNCTION_INFO_V1(yezzey_set_relation_expirity_seg);
 PG_FUNCTION_INFO_V1(yezzey_check_part_exr);
 
 PG_FUNCTION_INFO_V1(yezzey_delete_chunk);
-PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage);
-PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage_tablespace);
+PG_FUNCTION_INFO_V1(yezzey_vacuum);
+PG_FUNCTION_INFO_V1(yezzey_vacuum_tablespace);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 
 PG_FUNCTION_INFO_V1(yezzey_delete_obsolete);
@@ -367,7 +367,7 @@ Datum yezzey_delete_chunk(PG_FUNCTION_ARGS) {
 }
 
 /* Given external yezzey chunk path, remove it from external storage */
-Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
+Datum yezzey_vacuum(PG_FUNCTION_ARGS) {
   bool confirm;
   bool crazyDrop;
 
@@ -392,7 +392,7 @@ Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
   PG_RETURN_BOOL(true);
 }
 
-Datum yezzey_vacuum_garbage_tablespace(PG_FUNCTION_ARGS) {
+Datum yezzey_vacuum_tablespace(PG_FUNCTION_ARGS) {
   Oid tablespace;
   bool confirm;
   bool crazyDrop;

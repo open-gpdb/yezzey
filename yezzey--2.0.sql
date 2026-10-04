@@ -196,7 +196,7 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE FUNCTION yezzey_vacuum_garbage(
+CREATE FUNCTION yezzey_vacuum(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )
@@ -221,7 +221,7 @@ LANGUAGE C STRICT;
 
 -- Add tablespace-level garbage vacuum wrapper
 
-CREATE FUNCTION yezzey_vacuum_garbage_tablespace(
+CREATE FUNCTION yezzey_vacuum_tablespace(
     tablespace OID,
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
