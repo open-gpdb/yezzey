@@ -235,8 +235,7 @@ void YezzeyDefineOffloadPolicyPrepare(Oid reloid) {
  *   3.1) Do main offloading job on segments
  *   3.2) On dispather, clear pre-assigned oids.
  * 4) change relation tablespace to virtual tablespace
- * 5) record entry in offload metadata to track and process
- * in bgworker routines
+ * 5) record entry in offload metadata
  * 6) add the dependency in pg_depend
  */
 void YezzeyDefineOffloadPolicy(Oid reloid) {
