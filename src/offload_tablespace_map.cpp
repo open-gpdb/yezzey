@@ -50,11 +50,7 @@ static Oid YezzeyResolveTablespaceMapOid() {
     return InvalidOid;
   }
 
-#if PG_VERSION_NUM >= 120000
   Oid yezzey_tablespace_map_oid = ((Form_pg_class)GETSTRUCT(oldtuple))->oid;
-#else
-  Oid yezzey_tablespace_map_oid = HeapTupleGetOid(oldtuple);
-#endif
 
   yezzey_systable_endscan(scan);
   UnregisterSnapshot(snap);

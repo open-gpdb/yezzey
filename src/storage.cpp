@@ -86,22 +86,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   auto progress = virtual_size;
   const auto offset_start = progress;
 
-#if PG_VERSION_NUM < 120000
-  const auto fLen = FileSeek(vfd, 0L, SEEK_END);
-
-  if (fLen < logicalEof) {
-    const std::string error =
-        std::string("failed to offload corrupt relation, partial data file ") +
-        localPath + ": " + std::to_string(fLen) + " < " +
-        std::to_string(logicalEof);
-    FileClose(vfd);
-    pfree(localPath);
-    throw std::runtime_error(error);
-  }
-
-  FileSeek(vfd, progress, SEEK_SET);
-
-#else
   const auto fLen = FileSize(vfd);
 
   if (fLen < logicalEof) {
@@ -113,7 +97,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
     pfree(localPath);
     throw std::runtime_error(error);
   }
-#endif
 
   ioadv->multipart_upload = fLen > multipart_threshold;
 
@@ -354,11 +337,7 @@ Oid resolveTablespaceOidByName(const std::string &tablespacename) {
                            tablespacename.c_str())));
   }
 
-#if PG_VERSION_NUM >= 120000
   resOid = ((Form_pg_class)GETSTRUCT(tuple))->oid;
-#else
-  resOid = HeapTupleGetOid(tuple);
-#endif
 
   yezzey_systable_endscan(scan);
   UnregisterSnapshot(snap);
@@ -454,11 +433,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path);
 
-#if PG_VERSION_NUM < 120000
-    *local_bytes = FileSeek(f, 0L, SEEK_END);
-#else
     *local_bytes = FileSize(f);
-#endif
 
     FileClose(f);
   }
@@ -521,11 +496,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path);
 
-#if PG_VERSION_NUM < 120000
-    *local_bytes = FileSeek(f, 0L, SEEK_END);
-#else
     *local_bytes = FileSize(f);
-#endif
 
     FileClose(f);
   }
