@@ -6,7 +6,6 @@
 #include "pg.h"
 
 #include "binary_upgrade.h"
-#include "expire_hint.h"
 #include "offload_policy.h"
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
@@ -107,6 +106,4 @@ void YezzeyInitMetadata(void) {
   (void)YezzeyCreateVirtualIndex();
 
   (void)YezzeyCreateVirtualIndexIdx();
-  (void)YezzeyCreateExpireHint();
-  (void)YezzeyCreateExpireHintIdx();
 }

@@ -9,6 +9,14 @@
 
 CREATE SCHEMA yezzey;
 
+-- yezzey_expire_hint is used by yproxy
+CREATE TABLE yezzey.yezzey_expire_hint(
+    lsn PG_LSN,
+    x_path TEXT UNIQUE
+)
+DISTRIBUTED BY (x_path);
+
+
 CREATE FUNCTION yezzey.init_metadata()
 RETURNS TABLE (status BOOLEAN)
 AS 'MODULE_PATHNAME', 'yezzey_init_metadata'
