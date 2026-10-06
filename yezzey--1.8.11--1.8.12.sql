@@ -41,20 +41,15 @@ CREATE OR REPLACE FUNCTION yezzey_define_offload_policy(
 RETURNS TABLE (status TEXT)
 AS $$
 DECLARE
-    v_tmprow OID;
     v_reloid OID;
 BEGIN
     v_reloid := format('%I.%I', i_offload_nspname, i_offload_relname)::regclass::oid;
 
-    SELECT
-        reloid
-    FROM
-        yezzey.offload_metadata
-    INTO v_tmprow
-    WHERE
-        reloid = v_reloid AND relpolicy = 1;
-
-    IF FOUND THEN
+    IF EXISTS (
+        SELECT
+        FROM yezzey.offload_metadata
+        WHERE reloid = v_reloid AND relpolicy = 1
+    ) THEN
         RETURN QUERY SELECT 'relation ' || i_offload_relname || ' already offloaded';
     END IF;
 
