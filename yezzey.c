@@ -111,7 +111,6 @@ PG_FUNCTION_INFO_V1(yezzey_offload_relation_to_external_path);
 PG_FUNCTION_INFO_V1(yezzey_show_relation_external_path);
 PG_FUNCTION_INFO_V1(yezzey_init_metadata);
 PG_FUNCTION_INFO_V1(yezzey_set_relation_expirity_seg);
-PG_FUNCTION_INFO_V1(yezzey_check_part_exr);
 
 PG_FUNCTION_INFO_V1(yezzey_delete_chunk);
 PG_FUNCTION_INFO_V1(yezzey_vacuum);
@@ -1132,16 +1131,6 @@ Datum yezzey_set_relation_expirity_seg(PG_FUNCTION_ARGS) {
       i_reloid, i_relpolicy /* always external */, i_relexp);
 
   PG_RETURN_VOID();
-}
-
-/* partition - related worker routines */
-
-/*
- * yezzey_check_part_exr
- */
-Datum yezzey_check_part_exr(PG_FUNCTION_ARGS) {
-  /* TODO: drop */
-  PG_RETURN_NULL();
 }
 
 /* Plugin provides a hook function matching this signature. */
