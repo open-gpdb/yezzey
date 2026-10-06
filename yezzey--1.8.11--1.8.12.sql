@@ -53,20 +53,11 @@ BEGIN
         RETURN QUERY SELECT 'relation ' || i_offload_relname || ' already offloaded';
     END IF;
 
-    PERFORM yezzey_define_relation_offload_policy_internal_prepare(
-        v_reloid
-    );
+    PERFORM yezzey_define_relation_offload_policy_internal_prepare(v_reloid);
+    PERFORM yezzey_define_relation_offload_policy_internal_prepare_master(v_reloid);
 
-    PERFORM yezzey_define_relation_offload_policy_internal_prepare_master(
-        v_reloid
-    );
-
-    PERFORM yezzey_define_relation_offload_policy_internal_seg(
-        v_reloid
-    );
-    PERFORM yezzey_define_relation_offload_policy_internal(
-        v_reloid
-    );
+    PERFORM yezzey_define_relation_offload_policy_internal_seg(v_reloid);
+    PERFORM yezzey_define_relation_offload_policy_internal(v_reloid);
 
     RETURN QUERY SELECT ('offloaded relation ' || i_offload_nspname ||'.'|| i_offload_relname || ' to external storage' )::TEXT;
 END;
