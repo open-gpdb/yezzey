@@ -46,10 +46,6 @@
 #include "utils/guc.h"
 #include "utils/syscache.h"
 
-#if PG_VERSION_NUM < 10000
-#include "utils/tqual.h"
-#endif
-
 #include "fmgr.h"
 #include "funcapi.h"
 #include "pgstat.h"

@@ -80,12 +80,8 @@ void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
     scan = yezzey_systable_beginscan(rel, InvalidOid, false, NULL, 0, NULL);
 
     while ((tablespace_tuple = yezzey_systable_getnext(scan)) != NULL) {
-#if PG_VERSION_NUM >= 120000
       const Oid tablespace =
           ((Form_pg_tablespace)GETSTRUCT(tablespace_tuple))->oid;
-#else
-      const Oid tablespace = HeapTupleGetOid(tablespace_tuple);
-#endif
 
       yezzey_vacuum_garbage_tablespace_internal(tablespace, segindx, confirm,
                                                 crazyDrop);
