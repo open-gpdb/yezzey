@@ -222,9 +222,8 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
 
   auto nspname = get_namespace_name(aorel->rd_rel->relnamespace);
 
-  auto rv = yezzey_AORelOpenSegFile_internal(reloid, nspname,
-                                             RelationGetRelationName(aorel),
-                                             fileName, fileFlags, 1);
+  auto rv = yezzey_AORelOpenSegFile_internal(
+      reloid, nspname, RelationGetRelationName(aorel), fileName, fileFlags, 1);
 
   relation_close(aorel, NoLock);
 
