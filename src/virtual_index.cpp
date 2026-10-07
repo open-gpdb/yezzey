@@ -1,6 +1,5 @@
 
 #include "virtual_index.h"
-#include "relfilelocator.h"
 #include <algorithm>
 
 #include "yezzey_meta.h"
@@ -291,7 +290,7 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
   ScanKeyInit(
       &skey[0], Anum_yezzey_virtual_index_filenode, BTEqualStrategyNumber,
       F_OIDEQ,
-      ObjectIdGetDatum(YezzeyGetRelNode(YezzeyGetRelFileLocator(relation))));
+      ObjectIdGetDatum(relation->rd_node.relNode));
 
   auto desc = table_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
 

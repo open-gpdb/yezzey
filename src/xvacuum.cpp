@@ -6,7 +6,6 @@
 #include "gucs.h"
 #include "offload_tablespace_map.h"
 #include "pg.h"
-#include "relfilelocator.h"
 #include "storage.h"
 #include "yproxy.h"
 #include <string>
@@ -104,7 +103,7 @@ void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
 void yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
                                              bool confirm, bool crazyDrop) {
   try {
-    auto rnode = YezzeyGetRelFileLocator(aorel);
+    auto rnode = aorel->rd_node;
 
     auto tp = SearchSysCache1(NAMESPACEOID,
                               ObjectIdGetDatum(RelationGetNamespace(aorel)));
@@ -120,10 +119,10 @@ void yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     auto spcNode = resolveTablespaceOidByName(
         YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
 
-    relnodeCoord coords{spcNode, YezzeyGetRelDbOid(rnode),
-                        YezzeyGetRelNode(rnode), segindx};
-    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, YezzeyGetRelDbOid(rnode),
-                            YezzeyGetRelNode(rnode), segindx};
+    relnodeCoord coords{spcNode, rnode.dbNode,
+                        rnode.relNode, segindx};
+    relnodeCoord coords_old{DEFAULTTABLESPACE_OID, rnode.dbNode,
+                            rnode.relNode, segindx};
     ReleaseSysCache(tp);
 
     std::string relname = RelationGetRelationName(aorel);

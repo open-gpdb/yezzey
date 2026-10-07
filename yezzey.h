@@ -18,8 +18,6 @@
 #include "gucs.h"
 #include "ystat.h"
 
-#include "relfilelocator.h"
-
 void yezzey_prepare(void);
 void yezzey_finish(void);
 
@@ -27,7 +25,7 @@ void yezzey_offload_relation_internal(Oid reloid, bool remove_locally,
                                       const char *external_path);
 void yezzey_load_relation_internal(Oid reloid);
 
-int loadFileFromExternalStorage(YezzeyLocator rnode, BackendId backend,
+int loadFileFromExternalStorage(RelFileNode rnode, BackendId backend,
                                 ForkNumber forkNum, BlockNumber blkno);
 
 void yezzey_init(void);
@@ -40,14 +38,14 @@ void yezzey_open(SMgrRelation reln);
 void yezzey_close(SMgrRelation reln, ForkNumber forkNum);
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo);
 
-void yezzey_create_ao(YezzeyLocatorBackend rnode, int32 segmentFileNum,
+void yezzey_create_ao(RelFileNodeBackend rnode, int32 segmentFileNum,
                       bool isRedo);
 
 bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum);
 
-void yezzey_unlink(YezzeyLocatorBackend rnode, ForkNumber forkNum, bool isRedo);
+void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo);
 
-void yezzey_unlink_ao(YezzeyLocatorBackend rnode, ForkNumber forkNum,
+void yezzey_unlink_ao(RelFileNodeBackend rnode, ForkNumber forkNum,
                       bool isRedo);
 
 void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
