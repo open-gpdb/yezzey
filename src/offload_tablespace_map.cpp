@@ -117,16 +117,7 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
     table_endscan(scanoff);
     UnregisterSnapshot(snap);
 
-    /* should be OK */
-    if (Gp_role == GP_ROLE_UTILITY || Gp_role == GP_ROLE_DISPATCH) {
-      return "pg_default";
-    }
-
-    /* XXX: todo - fix OTM */
     return "pg_default";
-
-    elog(ERROR, "failed to map relation %d (%s.%s) to its origin tablespace",
-         i_reloid, nspname, relname);
   }
 
   bool shouldFree;
