@@ -278,7 +278,7 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
   if (!HeapTupleIsValid(tp)) {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 
@@ -373,7 +373,7 @@ int statExternalTotal(Relation aorel, int segindx) {
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
   if (!HeapTupleIsValid(tp)) {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 
@@ -397,7 +397,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
   if (!HeapTupleIsValid(tp)) {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 
@@ -452,7 +452,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
   if (!HeapTupleIsValid(tp)) {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 

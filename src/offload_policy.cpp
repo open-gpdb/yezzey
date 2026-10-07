@@ -178,7 +178,7 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     auto meta = (Form_yezzey_offload_metadata)GETSTRUCT(oldtuple);
 
     if (meta->relpolicy == i_relpolicy) {
-      elog(NOTICE, "relation policy is already same as requested");
+      elog(NOTICE, "relation policy is already the same as requested");
 
       table_close(offrel, RowExclusiveLock);
 

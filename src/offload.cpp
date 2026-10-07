@@ -49,8 +49,8 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
       auto logicalEof = segfile_array[i]->eof;
 
       elog(yezzey_log_level,
-           "offloading segment no %d, modcount %ld up to logial eof %ld", segno,
-           modcount, logicalEof);
+           "offloading segment no %d, modcount %ld up to logical eof %ld",
+           segno, modcount, logicalEof);
 
       offloadRelationSegment(aorel, segno, modcount, logicalEof,
                              external_storage_path);

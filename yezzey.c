@@ -466,7 +466,7 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
     nspname = pstrdup(NameStr(nsptup->nspname));
     ReleaseSysCache(tp);
   } else {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 
@@ -639,7 +639,7 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
     logicalEof = segfile_array[i]->eof;
 
     elog(yezzey_log_level,
-         "stat segment no %d, modcount %ld with to logial eof %ld", segno,
+         "stat segment no %d, modcount %ld up to logical eof %ld", segno,
          modcount, logicalEof);
     size_t curr_local_bytes = 0;
     size_t curr_external_used_bytes = 0;
@@ -673,7 +673,7 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
     logicalEof = segfile_array_cs[i]->vpinfo.entry[inat].eof;
 
     elog(yezzey_log_level,
-         "stat segment no %d, modcount %ld with to logial eof %ld", segno,
+         "stat segment no %d, modcount %ld up to logical eof %ld", segno,
          modcount, logicalEof);
     size_t curr_local_bytes = 0;
     size_t curr_external_used_bytes = 0;
@@ -981,7 +981,7 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
       logicalEof = segfile_array[i]->eof;
 
       elog(yezzey_log_level,
-           "yezzey: stat segment no %d, modcount %ld with to logial eof %ld",
+           "yezzey: stat segment no %d, modcount %ld up to logical eof %ld",
            segno, modcount, logicalEof);
       size_t curr_local_bytes = 0;
       size_t curr_external_bytes = 0;
@@ -1018,7 +1018,7 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
 
         elog(yezzey_log_level,
              "yezzey: stat segment no %d, pseudosegno %d, modcount %ld with to "
-             "logial eof %ld",
+             "logical eof %ld",
              segno, pseudosegno, modcount, logicalEof);
         size_t curr_local_bytes = 0;
         size_t curr_external_used_bytes = 0;
