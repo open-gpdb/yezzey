@@ -15,6 +15,7 @@ ALTER TABLE y_a_toast_t ADD COLUMN z text;
 ALTER TABLE y_a_toast_t ADD COLUMN z2 text, add column z3 text;
 -- test multiple columns
 ALTER TABLE y_a_toast_t ADD COLUMN z5 text, DROP column z2, add column z4 TEXT, ALTER COLUMN z3 SET STORAGE EXTERNAL;
+WARNING:  failed to map relation 33329 (public.y_a_toast_t) to its origin tablespace
 INSERT INTO y_a_toast_t (z3) VALUES (repeat('a', 2323323));
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='y_a_toast_t');
  spcname 
