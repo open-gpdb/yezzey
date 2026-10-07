@@ -1263,9 +1263,6 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
   }
 }
 
-/* GUC variables. */
-static bool yezzey_autooffload = false; /* start yezzey worker? */
-
 static void yezzey_define_gucs() {
 
   DefineCustomStringVariable(
@@ -1289,10 +1286,6 @@ static void yezzey_define_gucs() {
   DefineCustomBoolVariable("yezzey.use_otm_feature", "use OTM feature", NULL,
                            &use_otm_feature, false, PGC_BACKEND, 0, NULL, NULL,
                            NULL);
-
-  DefineCustomBoolVariable(
-      "yezzey.autooffload", "enable auto-offloading worker", NULL,
-      &yezzey_autooffload, false, PGC_USERSET, 0, NULL, NULL, NULL);
 
   DefineCustomEnumVariable("yezzey.log_level",
                            "Log level for yezzey functions.", NULL,
