@@ -19,8 +19,6 @@
 
 #include "relpath_parse.h"
 
-#define DEFAULTTABLESPACE_OID 1663 /* FIXME */
-
 const char *baseYezzeyPath = "/basebackups_005/yezzey/";
 
 std::string storage_url_add_options(const std::string &s3path,

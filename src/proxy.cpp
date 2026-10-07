@@ -58,11 +58,8 @@ typedef struct YVirtFD {
   }
 } YVirtFD;
 
-#define YEZZEY_VANANT_VFD 0 /* not used */
 #define YEZZEY_OFFLOADED_FD -2
 #define YEZZEY_NOT_OPENED 1
-#define YEZZEY_OPENED 2
-#define YEZZEY_MIN_VFD 3
 
 std::unordered_map<SMGRFile, YVirtFD> YVirtFD_cache;
 
@@ -273,8 +270,6 @@ void yezzey_FileClose(SMGRFile file) {
 
   YVirtFD_cache.erase(file);
 }
-
-#define ALLOW_MODIFY_EXTERNAL_TABLE
 
 #if PG_VERSION_NUM >= 160000
 int yezzey_FileWrite(SMGRFile file, const void *buffer, size_t amount,
