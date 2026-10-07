@@ -20,7 +20,6 @@
 #include "relfilelocator.h"
 #include "url.h"
 #include "virtual_index.h"
-#include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
 #include "yproxy.h"
 
@@ -321,15 +320,15 @@ Oid resolveTablespaceOidByName(const std::string &tablespacename) {
   /*
    * Find the target tuple
    */
-  rel = yezzey_relation_open(TableSpaceRelationId, RowExclusiveLock);
+  rel = table_open(TableSpaceRelationId, RowExclusiveLock);
 
   const auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
   ScanKeyInit(&entry[0], Anum_pg_tablespace_spcname, BTEqualStrategyNumber,
               F_NAMEEQ, CStringGetDatum(tablespacename.c_str()));
-  scan = yezzey_systable_beginscan(rel, InvalidOid, false, snap, 1, entry);
+  scan = systable_beginscan(rel, InvalidOid, false, snap, 1, entry);
 
-  tuple = yezzey_systable_getnext(scan);
+  tuple = systable_getnext(scan);
 
   if (!HeapTupleIsValid(tuple)) {
     ereport(ERROR, (errcode(ERRCODE_UNDEFINED_OBJECT),
@@ -339,9 +338,9 @@ Oid resolveTablespaceOidByName(const std::string &tablespacename) {
 
   resOid = ((Form_pg_class)GETSTRUCT(tuple))->oid;
 
-  yezzey_systable_endscan(scan);
+  systable_endscan(scan);
   UnregisterSnapshot(snap);
-  yezzey_relation_close(rel, RowExclusiveLock);
+  table_close(rel, RowExclusiveLock);
 
   return resOid;
 }

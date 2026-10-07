@@ -8,7 +8,6 @@
 #include "pg.h"
 #include "relfilelocator.h"
 #include "storage.h"
-#include "yezzey_heap_api.h"
 #include "yproxy.h"
 #include <string>
 #include <url.h>
@@ -76,10 +75,10 @@ void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
   HeapTuple tablespace_tuple;
 
   try {
-    rel = yezzey_relation_open(TableSpaceRelationId, AccessShareLock);
-    scan = yezzey_systable_beginscan(rel, InvalidOid, false, NULL, 0, NULL);
+    rel = table_open(TableSpaceRelationId, AccessShareLock);
+    scan = systable_beginscan(rel, InvalidOid, false, NULL, 0, NULL);
 
-    while ((tablespace_tuple = yezzey_systable_getnext(scan)) != NULL) {
+    while ((tablespace_tuple = systable_getnext(scan)) != NULL) {
       const Oid tablespace =
           ((Form_pg_tablespace)GETSTRUCT(tablespace_tuple))->oid;
 
@@ -87,16 +86,16 @@ void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
                                                 crazyDrop);
     }
 
-    yezzey_systable_endscan(scan);
+    systable_endscan(scan);
     scan = NULL;
-    yezzey_relation_close(rel, AccessShareLock);
+    table_close(rel, AccessShareLock);
     rel = NULL;
   } catch (...) {
     if (scan != NULL) {
-      yezzey_systable_endscan(scan);
+      systable_endscan(scan);
     }
     if (rel != NULL) {
-      yezzey_relation_close(rel, AccessShareLock);
+      table_close(rel, AccessShareLock);
     }
     elog(ERROR, "failed to vacuum garbage in all tablespaces");
   }

@@ -5,7 +5,6 @@
 #include "offload.h"
 #include "offload_policy.h"
 #include "pg.h"
-#include "yezzey_heap_api.h"
 
 #include "gucs.h"
 
@@ -29,7 +28,7 @@ static Oid YezzeyResolveTablespaceMapOid() {
   /**/
   ScanKeyData skey[2];
 
-  auto classrel = yezzey_relation_open(RelationRelationId, RowExclusiveLock);
+  auto classrel = table_open(RelationRelationId, RowExclusiveLock);
 
   ScanKeyInit(&skey[0], Anum_pg_class_relname, BTEqualStrategyNumber, F_NAMEEQ,
               CStringGetDatum(offload_tablespace_map_relname.c_str()));
@@ -37,24 +36,24 @@ static Oid YezzeyResolveTablespaceMapOid() {
   ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(get_namespace_oid("yezzey", false)));
 
-  auto scan = yezzey_systable_beginscan(classrel, ClassNameNspIndexId, true,
+  auto scan = systable_beginscan(classrel, ClassNameNspIndexId, true,
                                         snap, 2, skey);
 
-  auto oldtuple = yezzey_systable_getnext(scan);
+  auto oldtuple = systable_getnext(scan);
 
   /* No map relation created. return invalid oid */
   if (!HeapTupleIsValid(oldtuple)) {
-    yezzey_systable_endscan(scan);
+    systable_endscan(scan);
     UnregisterSnapshot(snap);
-    yezzey_relation_close(classrel, RowExclusiveLock);
+    table_close(classrel, RowExclusiveLock);
     return InvalidOid;
   }
 
   Oid yezzey_tablespace_map_oid = ((Form_pg_class)GETSTRUCT(oldtuple))->oid;
 
-  yezzey_systable_endscan(scan);
+  systable_endscan(scan);
   UnregisterSnapshot(snap);
-  yezzey_relation_close(classrel, RowExclusiveLock);
+  table_close(classrel, RowExclusiveLock);
 
   return yezzey_tablespace_map_oid;
 }
@@ -100,14 +99,14 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
 
   /* SELECT FROM yezzey.offload_tablespace_map WHERE reloid = i_reloid; */
   auto offload_tablespace_map_rel =
-      yezzey_relation_open(yezzey_tablespace_map_oid, RowExclusiveLock);
+      table_open(yezzey_tablespace_map_oid, RowExclusiveLock);
 
   ScanKeyData offskey[1];
 
   ScanKeyInit(&offskey[0], Anum_offload_tablespace_map_reloid,
               BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
-  auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
+  auto scanoff = table_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
   auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
   /* No map tuple created. Assume 'pg_default' by default */
   if (!table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
@@ -115,7 +114,7 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
 
     heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
-    yezzey_endscan(scanoff);
+    table_endscan(scanoff);
     UnregisterSnapshot(snap);
 
     /* should be OK */
@@ -147,7 +146,7 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
 
   heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
-  yezzey_endscan(scanoff);
+  table_endscan(scanoff);
   UnregisterSnapshot(snap);
 
   ExecDropSingleTupleTableSlot(slot);
@@ -173,14 +172,14 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
 
   /* SELECT FROM yezzey.offload_tablespace_map WHERE reloid = i_reloid; */
   auto offload_tablespace_map_rel =
-      yezzey_relation_open(yezzey_tablespace_map_oid, RowExclusiveLock);
+      table_open(yezzey_tablespace_map_oid, RowExclusiveLock);
 
   ScanKeyData offskey[1];
 
   ScanKeyInit(&offskey[0], Anum_offload_tablespace_map_reloid,
               BTEqualStrategyNumber, F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
-  auto scanoff = yezzey_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
+  auto scanoff = table_beginscan(offload_tablespace_map_rel, snap, 1, offskey);
 
   auto slot = table_slot_create(offload_tablespace_map_rel, NULL);
 
@@ -190,11 +189,11 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
 
     heap_close(offload_tablespace_map_rel, RowExclusiveLock);
 
-    yezzey_endscan(scanoff);
+    table_endscan(scanoff);
     UnregisterSnapshot(snap);
     return;
   }
-  yezzey_endscan(scanoff);
+  table_endscan(scanoff);
 
   values[Anum_offload_tablespace_map_reloid - 1] = ObjectIdGetDatum(i_reloid);
   values[Anum_offload_tablespace_map_origin_tablespace_name - 1] =

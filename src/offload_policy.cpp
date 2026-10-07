@@ -4,7 +4,6 @@
 
 #include "offload_policy.h"
 #include "offload.h"
-#include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
 
 #include "offload_tablespace_map.h"
@@ -31,14 +30,14 @@ bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
   auto offrel =
-      yezzey_relation_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
+      table_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
 
   /* SELECT FROM yezzey.offload_metadata WHERE reloid = i_reloid; */
 
   ScanKeyInit(&skey[0], Anum_offload_metadata_reloid, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
-  auto scan = yezzey_beginscan(offrel, snap, 1, skey);
+  auto scan = table_beginscan(offrel, snap, 1, skey);
 
   auto oldtuple = heap_getnext(scan, ForwardScanDirection);
 
@@ -46,7 +45,7 @@ bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
 
   heap_close(offrel, RowExclusiveLock);
 
-  yezzey_endscan(scan);
+  table_endscan(scan);
   UnregisterSnapshot(snap);
 
   return found;
@@ -160,14 +159,14 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
   auto offrel =
-      yezzey_relation_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
+      table_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
 
   /* INSERT INTO yezzey.offload_metadata VALUES(v_reloid, 1, NULL, NOW()); */
 
   ScanKeyInit(&skey[0], Anum_offload_metadata_reloid, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
-  auto scan = yezzey_beginscan(offrel, snap, 1, skey);
+  auto scan = table_beginscan(offrel, snap, 1, skey);
 
   auto oldtuple = heap_getnext(scan, ForwardScanDirection);
 
@@ -183,9 +182,9 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     if (meta->relpolicy == i_relpolicy) {
       elog(NOTICE, "relation policy is already same as requested");
 
-      yezzey_relation_close(offrel, RowExclusiveLock);
+      table_close(offrel, RowExclusiveLock);
 
-      yezzey_endscan(scan);
+      table_endscan(scan);
       UnregisterSnapshot(snap);
       return false;
     }
@@ -207,9 +206,9 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     heap_freetuple(offtuple);
   }
 
-  yezzey_relation_close(offrel, RowExclusiveLock);
+  table_close(offrel, RowExclusiveLock);
 
-  yezzey_endscan(scan);
+  table_endscan(scan);
   UnregisterSnapshot(snap);
 
   /* make changes visible */
@@ -333,7 +332,7 @@ void YezzeyLoadRelation(Oid i_reloid) {
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
-  auto desc = yezzey_beginscan(rel, snap, 1, skey);
+  auto desc = table_beginscan(rel, snap, 1, skey);
 
   /* XXX: check that only one tuple mathed query */
   auto oldtuple = heap_getnext(desc, ForwardScanDirection);
@@ -357,7 +356,7 @@ void YezzeyLoadRelation(Oid i_reloid) {
     elog(WARNING, "yezzey metadata relation corrupted for %d", i_reloid);
   }
 
-  yezzey_endscan(desc);
+  table_endscan(desc);
   heap_close(rel, RowExclusiveLock);
 
   UnregisterSnapshot(snap);
@@ -379,7 +378,7 @@ void FixupOffloadMetadata(Oid i_reloid) {
   ScanKeyInit(&skey[0], Anum_offload_metadata_reloid, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(i_reloid));
 
-  auto scan = yezzey_beginscan(offrel, snap, 1, skey);
+  auto scan = table_beginscan(offrel, snap, 1, skey);
 
   auto oldtuple = heap_getnext(scan, ForwardScanDirection);
 
@@ -394,7 +393,7 @@ void FixupOffloadMetadata(Oid i_reloid) {
 
   heap_close(offrel, RowExclusiveLock);
 
-  yezzey_endscan(scan);
+  table_endscan(scan);
   UnregisterSnapshot(snap);
 
   /* make changes visible */
