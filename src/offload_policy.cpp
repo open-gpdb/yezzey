@@ -259,7 +259,7 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
 
   /* record entry in offload metadata */
   /* Bump rellast archive, or insert proper metadata tuple */
-  if (!YezzeySetRelationExpiritySeg(reloid, 1 /* always external */,
+  if (!YezzeySetRelationExpiritySeg(reloid, Offload_policy_always_remote,
                                     GetCurrentTimestamp())) {
     /* nothing to do */
     return;
