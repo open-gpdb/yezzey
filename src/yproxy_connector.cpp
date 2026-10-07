@@ -1,5 +1,7 @@
 #include "yproxy_connector.h"
 
+#include "msgproto.h"
+
 YProxyConnector::YProxyConnector(std::shared_ptr<IOadv> adv, ssize_t segindx)
     : adv_(adv), segindx_(segindx), client_fd_(-1) {}
 

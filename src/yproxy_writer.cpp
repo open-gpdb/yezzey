@@ -1,4 +1,6 @@
 #include "yproxy_writer.h"
+
+#include "msgproto.h"
 #include "url.h"
 
 std::string YProxyWriter::createXPath() {
