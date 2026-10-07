@@ -225,7 +225,7 @@ void YezzeyRegisterRelationOriginTablespace(Oid i_reloid, Oid i_reltablespace) {
   if (!use_otm_feature && i_reltablespace != DEFAULTTABLESPACE_OID)
     ereport(ERROR,
             (errcode(ERRCODE_UNDEFINED_OBJECT),
-             errmsg("tablespace with OID %u is non-default, offload rejrected",
+             errmsg("tablespace with OID %u is non-default, offload rejected",
                     i_reltablespace),
              errdetail("turn yezzey.use_otm_feature GUC on")));
 

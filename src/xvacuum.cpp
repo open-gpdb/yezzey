@@ -35,7 +35,7 @@ void yezzey_delete_chunk_internal(const char *external_chunk_path) {
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    elog(ERROR, "failed to prepare x-storage deleter for chunk");
   }
 }
 
@@ -59,7 +59,7 @@ void yezzey_vacuum_garbage_tablespace_internal(Oid tablespaceOid, int segindx,
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    elog(ERROR, "failed to prepare x-storage deleter for chunk");
   }
 }
 
@@ -110,7 +110,7 @@ void yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
                               ObjectIdGetDatum(RelationGetNamespace(aorel)));
 
     if (!HeapTupleIsValid(tp)) {
-      elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+      elog(ERROR, "yezzey: failed to get namespace name of relation %s",
            RelationGetRelationName(aorel));
     }
 
@@ -154,7 +154,7 @@ void yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    elog(ERROR, "failed to prepare x-storage deleter for chunk");
   }
 }
 
@@ -185,7 +185,7 @@ void yezzey_delele_obsolete_internal(int segindx, bool crazy_drop,
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage delete");
+    elog(ERROR, "failed to prepare x-storage deleter");
   }
 }
 
@@ -208,6 +208,6 @@ void yezzey_collect_obsolete_internal(int segindx, const char *dbname,
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage obsolete");
+    elog(ERROR, "failed to prepare x-storage deleter");
   }
 }

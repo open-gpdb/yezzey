@@ -312,10 +312,10 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount, off_t offset,
     }
     elog(yezzey_ao_log_level,
 #if PG_VERSION_NUM >= 160000
-         "yezzey_FileWrite: write %ld bytes, %ld transfered, yezzey fd %d",
+         "yezzey_FileWrite: write %ld bytes, %ld transferred, yezzey fd %d",
          (long)amount, (long)rc, file);
 #else
-         "yezzey_FileWrite: write %d bytes, %ld transfered, yezzey fd %d",
+         "yezzey_FileWrite: write %d bytes, %ld transferred, yezzey fd %d",
          amount, rc, file);
 #endif
     yfd.offset += rc;
