@@ -432,7 +432,6 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
     }
   }
 
-  /* TBD: Read index */
   auto desc = systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
                                  use_y_index, snap, 2, skey);
 

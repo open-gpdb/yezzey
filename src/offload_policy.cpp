@@ -24,7 +24,6 @@ const std::string offload_metadata_relname = "offload_metadata";
 const std::string offload_metadata_relname_indx = "offload_metadata_indx";
 
 bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
-  /**/
   ScanKeyData skey[1];
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
@@ -146,7 +145,6 @@ void YezzeyCreateOffloadPolicyRelation() {
 
 bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
                                   Timestamp i_relexp) {
-  /**/
   ScanKeyData skey[1];
 
   bool nulls[Natts_offload_metadata];
@@ -312,7 +310,6 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
  * 3) success
  */
 void YezzeyLoadRelation(Oid i_reloid) {
-  /**/
   ScanKeyData skey[1];
 
   bool nulls[Natts_offload_metadata];
@@ -364,7 +361,6 @@ void YezzeyLoadRelation(Oid i_reloid) {
 }
 
 void FixupOffloadMetadata(Oid i_reloid) {
-  /**/
   ScanKeyData skey[1];
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());

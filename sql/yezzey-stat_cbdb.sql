@@ -42,9 +42,6 @@ DROP TABLE regaostat;
 CREATE TABLE regaocsstat(i INT, j INT, k INT, r INT) WITH (appendonly=true, orientation=column);
 INSERT INTO regaocsstat SELECT i,i,i,i FROM generate_series(1, 100000) i;
 
--- TODO: fix
--- SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
-
 SELECT yezzey.offload_relation('regaocsstat');
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
 
@@ -77,4 +74,3 @@ DROP TABLE regaocsstat;
 
 DROP EXTENSION yezzey;
 CHECKPOINT;
-
