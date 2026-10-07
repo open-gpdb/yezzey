@@ -5,7 +5,6 @@
 -- in can fail to remove some AO/AOCS relation files locally
 -- in cases when table write happened after folloading
 -- see ao_foreach_extent_file
--- 
 
 CREATE SCHEMA yezzey;
 

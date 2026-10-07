@@ -25,7 +25,6 @@ static Oid YezzeyResolveTablespaceMapOid() {
    * and relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'yezzey');
    */
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
-  /**/
   ScanKeyData skey[2];
 
   auto classrel = table_open(RelationRelationId, RowExclusiveLock);

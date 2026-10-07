@@ -32,7 +32,6 @@ bool YProxyWriter::close() {
   if (readPutCompleteResponce(client_fd_) != 0) {
     ::close(client_fd_);
     client_fd_ = -1;
-    // TODO: handle
     return false;
   }
 
@@ -40,7 +39,6 @@ bool YProxyWriter::close() {
   if (commonReadRFQResponce(client_fd_) != 0) {
     ::close(client_fd_);
     client_fd_ = -1;
-    // some error, handle
     return false;
   }
   ::close(client_fd_);
@@ -51,7 +49,6 @@ bool YProxyWriter::close() {
 bool YProxyWriter::write(const char *buffer, size_t *amount) {
   if (client_fd_ == -1) {
     if (prepareYproxyConnection() == -1) {
-      // Throw here?
       return false;
     }
   }
@@ -97,7 +94,6 @@ int YProxyWriter::readPutCompleteResponce(int client_fd_) {
   // if failed, give up
   const auto rc = commonReadFull(client_fd_, buffer.data(), len);
   if (rc != 0) {
-    // handle
     return -1;
   }
 
