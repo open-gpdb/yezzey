@@ -36,8 +36,8 @@ static Oid YezzeyResolveTablespaceMapOid() {
   ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
               F_OIDEQ, ObjectIdGetDatum(get_namespace_oid("yezzey", false)));
 
-  auto scan = systable_beginscan(classrel, ClassNameNspIndexId, true,
-                                        snap, 2, skey);
+  auto scan =
+      systable_beginscan(classrel, ClassNameNspIndexId, true, snap, 2, skey);
 
   auto oldtuple = systable_getnext(scan);
 

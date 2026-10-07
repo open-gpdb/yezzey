@@ -434,7 +434,7 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
 
   /* TBD: Read index */
   auto desc = systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
-                                        use_y_index, snap, 2, skey);
+                                 use_y_index, snap, 2, skey);
 
   while (HeapTupleIsValid(tuple = systable_getnext(desc))) {
     auto ytup = ((FormData_yezzey_virtual_index *)GETSTRUCT(tuple));

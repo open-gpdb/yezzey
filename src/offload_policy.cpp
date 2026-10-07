@@ -29,8 +29,7 @@ bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
-  auto offrel =
-      table_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
+  auto offrel = table_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
 
   /* SELECT FROM yezzey.offload_metadata WHERE reloid = i_reloid; */
 
@@ -158,8 +157,7 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
-  auto offrel =
-      table_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
+  auto offrel = table_open(YEZZEY_OFFLOAD_POLICY_RELATION, RowExclusiveLock);
 
   /* INSERT INTO yezzey.offload_metadata VALUES(v_reloid, 1, NULL, NOW()); */
 
