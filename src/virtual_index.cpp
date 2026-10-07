@@ -1,7 +1,6 @@
 
 #include "virtual_index.h"
 #include "relfilelocator.h"
-#include "yezzey_heap_api.h"
 #include <algorithm>
 
 #include "yezzey_meta.h"
@@ -221,13 +220,13 @@ void emptyYezzeyIndex(Oid yezzey_index_oid, Oid relfilenode) {
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
-  auto desc = yezzey_beginscan(rel, snap, 1, skey);
+  auto desc = table_beginscan(rel, snap, 1, skey);
 
   while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
     simple_heap_delete(rel, &tuple->t_self);
   }
 
-  yezzey_endscan(desc);
+  table_endscan(desc);
   heap_close(rel, RowExclusiveLock);
 
   UnregisterSnapshot(snap);
@@ -260,13 +259,13 @@ void emptyYezzeyIndexBlkno(Oid yezzey_index_oid, Oid reloid /* not used */,
   ScanKeyInit(&skey[1], Anum_yezzey_virtual_index_blkno, BTEqualStrategyNumber,
               F_INT4EQ, Int32GetDatum(blkno));
 
-  auto desc = yezzey_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
+  auto desc = table_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
 
   while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
     simple_heap_delete(rel, &tuple->t_self);
   }
 
-  yezzey_endscan(desc);
+  table_endscan(desc);
   heap_close(rel, RowExclusiveLock);
 
   UnregisterSnapshot(snap);
@@ -294,7 +293,7 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
       F_OIDEQ,
       ObjectIdGetDatum(YezzeyGetRelNode(YezzeyGetRelFileLocator(relation))));
 
-  auto desc = yezzey_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
+  auto desc = table_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
 
   while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
     // update
@@ -314,7 +313,7 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
     CatalogTupleUpdate(relation, &tuple->t_self, yandxtuple);
   }
 
-  yezzey_endscan(desc);
+  table_endscan(desc);
   heap_close(rel, RowExclusiveLock);
 
   UnregisterSnapshot(snap);
@@ -434,10 +433,10 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
   }
 
   /* TBD: Read index */
-  auto desc = yezzey_systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
-                                        use_y_index, snap, 2, skey);
+  auto desc = systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
+                                 use_y_index, snap, 2, skey);
 
-  while (HeapTupleIsValid(tuple = yezzey_systable_getnext(desc))) {
+  while (HeapTupleIsValid(tuple = systable_getnext(desc))) {
     auto ytup = ((FormData_yezzey_virtual_index *)GETSTRUCT(tuple));
     // unpack text to str
     auto flags = ytup->encrypted;
@@ -449,7 +448,7 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
                             ytup->start_offset, encrypted, kek));
   }
 
-  yezzey_systable_endscan(desc);
+  systable_endscan(desc);
   heap_close(rel, RowExclusiveLock);
 
   UnregisterSnapshot(snap);
