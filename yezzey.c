@@ -117,7 +117,6 @@ PG_FUNCTION_INFO_V1(yezzey_delete_obsolete);
 PG_FUNCTION_INFO_V1(yezzey_collect_obsolete);
 
 static ExecutorStart_hook_type prev_ExecutorStart_hook = NULL;
-static ExecutorEnd_hook_type prev_ExecutorEnd_hook = NULL;
 static object_access_hook_type prev_object_access_hook = NULL;
 static ProcessUtility_hook_type prev_ProcessUtility_hook = NULL;
 
@@ -1226,12 +1225,6 @@ yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
   }
 }
 
-static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
-  (void)prev_ExecutorEnd_hook(queryDesc);
-
-  YezzeyTruncateOTMHint();
-}
-
 static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
   (void)prev_ExecutorStart_hook(queryDesc, eflags);
 
@@ -1325,8 +1318,6 @@ void _PG_init(void) {
       ProcessUtility_hook ? ProcessUtility_hook : standard_ProcessUtility;
   prev_ExecutorStart_hook =
       ExecutorStart_hook ? ExecutorStart_hook : standard_ExecutorStart;
-  prev_ExecutorEnd_hook =
-      ExecutorEnd_hook ? ExecutorEnd_hook : standard_ExecutorEnd;
   prev_object_access_hook = object_access_hook;
 
   /* set drop hook  */
@@ -1334,7 +1325,6 @@ void _PG_init(void) {
   object_access_hook = yezzey_object_access_hook;
 
   ExecutorStart_hook = yezzey_ExecuterStartHook;
-  ExecutorEnd_hook = yezzey_ExecuterEndHook;
 }
 
 Datum yezzey_delete_obsolete(PG_FUNCTION_ARGS) {

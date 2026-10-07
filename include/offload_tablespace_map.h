@@ -44,7 +44,6 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname);
 
 EXTERNC void YezzeyCopyOTM(const RangeVar *rv, Oid sourceRelationOid);
 EXTERNC void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid);
-EXTERNC void YezzeyTruncateOTMHint(void);
 EXTERNC Oid YezzeyGetRelationOriginTablespaceOid(const char *nspname,
                                                  const char *relname,
                                                  Oid i_reloid);
