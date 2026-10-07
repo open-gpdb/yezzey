@@ -28,8 +28,6 @@ typedef struct YVirtFD {
 
   std::unique_ptr<YIO> handler;
 
-  /* gpg-related params */
-
   /* open args */
   int fileFlags;
   int fileMode;
@@ -39,9 +37,6 @@ typedef struct YVirtFD {
   int64 offset;
 
   int64 op_start_offset;
-  /* unneede, because this offset is equal to total offset and moment of
-   * FileClose */
-  // int64 op_end_offset;
 
   int64 virtualSize;
   int64 modcount;
@@ -69,14 +64,10 @@ typedef struct YVirtFD {
 #define YEZZEY_OPENED 2
 #define YEZZEY_MIN_VFD 3
 
-// be unordered map
 std::unordered_map<SMGRFile, YVirtFD> YVirtFD_cache;
 
 /* lazy allocate external storage connections */
 int readprepare(std::shared_ptr<IOadv> ioadv, SMGRFile yezzey_fd) {
-#ifdef CACHE_LOCAL_WRITES_FEATURE
-/* CACHE_LOCAL_WRITES_FEATURE to do*/
-#endif
   try {
     YVirtFD_cache[yezzey_fd].handler =
         make_unique<YIO>(ioadv, GpIdentity.segindex);
@@ -84,9 +75,6 @@ int readprepare(std::shared_ptr<IOadv> ioadv, SMGRFile yezzey_fd) {
     return -1;
   }
 
-#ifdef CACHE_LOCAL_WRITES_FEATURE
-/* CACHE_LOCAL_WRITES_FEATURE to do*/
-#endif
   return 0;
 }
 
@@ -102,20 +90,12 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
   elog(yezzey_ao_log_level, "prepared writer handle for modcount %ld",
        modcount);
 
-  //   Assert(YVirtFD_cache[file].handler.writer_ != NULL);
-
-#ifdef CACHE_LOCAL_WRITES_FEATURE
-/* CACHE_LOCAL_WRITES_FEATURE to do*/
-#endif
-
   return 0;
 }
 
 EXTERNC int yezzey_FileSync(SMGRFile file, uint32 wait_event_info) {
   File actual_fd = YVirtFD_cache[file].y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
-    /* s3 always sync ? */
-    /* sync tmp buf file here */
     return 0;
   }
   elog(yezzey_ao_log_level, "file sync with fd %d actual %d", file, actual_fd);
@@ -161,8 +141,6 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
           yfd.relname = resolve_temp_relname(relname);
           yfd.nspname = std::string(nspname);
         }
-      } else {
-        /* nothing*/
       }
 
       yfd.fileFlags = fileFlags;
@@ -290,14 +268,9 @@ void yezzey_FileClose(SMGRFile file) {
             yfd.handler->writer_->getExternalStoragePath().c_str() /* path ? */,
             yezzey_fqrelname_md5(yfd.nspname, yfd.relname).c_str());
       }
-    } else {
-      /* not need to do anything */
     }
   }
 
-#ifdef DISKCACHE
-/* CACHE_LOCAL_WRITES_FEATURE to do*/
-#endif
   YVirtFD_cache.erase(file);
 }
 
@@ -329,14 +302,9 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount, off_t offset,
      * persisted in external storage
      */
     if (RecoveryInProgress()) {
-      /* Should we return $amount or min (virtualSize - currentLogicalEof,
-       * amount) ? */
       return amount;
     }
 
-#ifdef CACHE_LOCAL_WRITES_FEATURE
-/* CACHE_LOCAL_WRITES_FEATURE to do*/
-#endif
     size_t rc = amount;
     if (!yfd.handler->io_write((char *)buffer, &rc)) {
       elog(WARNING, "failed to write to external storage");
@@ -383,9 +351,6 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount, off_t offset,
       if (yfd.localTmpVfd <= 0) {
         return 0;
       }
-#ifdef DISKCACHE
-/* CACHE_LOCAL_WRITES_FEATURE to do*/
-#endif
     } else {
       if (!yfd.handler->io_read((char *)buffer, &curr)) {
         elog(yezzey_ao_log_level,
@@ -394,9 +359,6 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount, off_t offset,
              file, curr);
         return -1;
       }
-#ifdef DISKCACHE
-/* CACHE_LOCAL_WRITES_FEATURE to do*/
-#endif
     }
 
     yfd.offset += curr;
@@ -453,8 +415,6 @@ EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset,
 EXTERNC off_t yezzey_FileDiskSize(File file) {
   auto actual_fd = YVirtFD_cache[file].y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
-    /* s3 always sync ? */
-    /* sync tmp buf file here */
     return 0;
   }
 
@@ -464,9 +424,6 @@ EXTERNC off_t yezzey_FileDiskSize(File file) {
 EXTERNC off_t yezzey_FileSize(File file) {
   auto actual_fd = YVirtFD_cache[file].y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
-    /* s3 always sync ? */
-    /* sync tmp buf file here */
-
     return YVirtFD_cache[file].handler->total_size();
   }
 
