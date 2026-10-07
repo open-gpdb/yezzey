@@ -99,6 +99,15 @@ void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 }
 
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
+  if (mdexists(reln, forkNum)) {
+    mdclose(reln, forkNum);
+    ereport(WARNING,
+            (errmsg("yezzey: previous DROP EXTENSION is still cleaning up "
+                    "its files on the segments."),
+             errhint("Wait for the next checkpoint (see checkpoint_timeout in "
+                     "postgresql.conf) or run CHECKPOINT manually, then retry "
+                     "CREATE EXTENSION yezzey.")));
+  }
   if (IsYezzeyOperateSpc(reln->smgr_rnode.node.spcNode)) {
 
     yezzeyCheatRelfilenode(&(reln->smgr_rnode));
