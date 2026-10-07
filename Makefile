@@ -47,27 +47,27 @@ REGRESS = \
           simple_cbdb_3
 else
 REGRESS = \
-          simple_cbdb \
-          drop-column_cbdb \
-          yezzey-alter_cbdb\
-          yezzey-alter-toast_cbdb\
-          yezzey-vacuum_cbdb \
-          yezzey-vacuum-garbage_cbdb \
-          yezzey-trunc_cbdb \
-          yezzey-expand_cbdb \
-          load_offload_load_cbdb \
-          yezzey_feat_cbdb_last \
-          yezzey-reorg_cbdb \
-          yezzey-vac-relation_cbdb \
-          yezzey-vac-relation-187_cbdb \
-          yezzey-offload-errors_cbdb
-#          yezzey-otm-feat_cbdb \
- #         yezzey-otm-deletion_cbdb \
-  #        yezzey-vi-eh-unique_cbdb \
-   #       yezzey-stat_cbdb \
-    #      yezzey-alter-ts_cbdb \
-     #     yezzey-create-offloaded_cbdb \
-      #    yezzey-offload-errors_cbdb
+          simple \
+          drop-column \
+          yezzey-alter\
+          yezzey-alter-toast\
+          yezzey-vacuum \
+          yezzey-vacuum-garbage \
+          yezzey-trunc \
+          yezzey-expand \
+          load_offload_load \
+          yezzey_feat_last \
+          yezzey-reorg \
+          yezzey-vac-relation \
+          yezzey-vac-relation-187 \
+          yezzey-offload-errors
+#          yezzey-otm-feat \
+ #         yezzey-otm-deletion \
+  #        yezzey-vi-eh-unique \
+   #       yezzey-stat \
+    #      yezzey-alter-ts \
+     #     yezzey-create-offloaded \
+      #    yezzey-offload-errors
           
 endif
 
