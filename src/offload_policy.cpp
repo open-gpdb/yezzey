@@ -7,6 +7,7 @@
 #include "yezzey_meta.h"
 
 #include "offload_tablespace_map.h"
+#include "relfilelocator.h"
 
 /*
 
@@ -217,7 +218,7 @@ void YezzeyDefineOffloadPolicyPrepare(Oid reloid) {
   auto aorel = relation_open(reloid, AccessExclusiveLock);
 
   YezzeyRegisterRelationOriginTablespace(
-      reloid, aorel->rd_node.spcNode);
+      reloid, YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(aorel)));
 
   relation_close(aorel, NoLock);
 }

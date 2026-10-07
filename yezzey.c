@@ -57,6 +57,7 @@
 #include "offload.h"
 #include "offload_policy.h"
 #include "offload_tablespace_map.h"
+#include "relfilelocator.h"
 #include "storage.h"
 #include "util.h"
 #include "virtual_index.h"
@@ -194,7 +195,7 @@ void yezzey_load_relation_internal(Oid reloid) {
    */
 
   elog(yezzey_log_level, "loading relnode %u",
-       aorel->rd_node.relNode);
+       YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
   /* for now, we locked relation */
 
   /* GetAllFileSegInfo_pg_aoseg_rel */
@@ -202,7 +203,7 @@ void yezzey_load_relation_internal(Oid reloid) {
   /* acquire snapshot for aoseg table lookup */
   appendOnlyMetaDataSnapshot = SnapshotSelf;
   /*sanity check */
-  if (!IsYezzeyOperateSpc(aorel->rd_node.spcNode)) {
+  if (!IsYezzeyOperateSpc(YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(aorel)))) {
     /* shoulde never happen*/
     elog(ERROR, "attempted to load non-offloaded relation");
   }
@@ -443,7 +444,7 @@ Datum yezzey_vacuum_relation(PG_FUNCTION_ARGS) {
 Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   Oid reloid;
   Relation aorel;
-  RelFileNode rnode;
+  YezzeyLocator rnode;
   int32 segno;
   char *ptr;
   HeapTuple tp;
@@ -455,7 +456,7 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
 
   aorel = relation_open(reloid, AccessShareLock);
 
-  rnode = aorel->rd_node;
+  rnode = YezzeyGetRelFileLocator(aorel);
 
   tp = SearchSysCache1(NAMESPACEOID,
                        ObjectIdGetDatum(aorel->rd_rel->relnamespace));
@@ -470,8 +471,8 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
   }
 
   (void)getYezzeyExternalStoragePathByCoords(
-      nspname, RelationGetRelationName(aorel), rnode.spcNode,
-      rnode.dbNode, rnode.relNode, segno,
+      nspname, RelationGetRelationName(aorel), YezzeyGetRelSpcOid(rnode),
+      YezzeyGetRelDbOid(rnode), YezzeyGetRelNode(rnode), segno,
       GpIdentity.segindex, &ptr);
 
   pfree(nspname);
@@ -1150,13 +1151,13 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
   if (access == OAT_DROP && subId == 0) {
     offRel = relation_open(objectId, AccessShareLock);
     if (!IsYezzeyOperateSpc(
-            offRel->rd_node.spcNode)) {
+            YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(offRel)))) {
       relation_close(offRel, AccessShareLock);
       return;
     }
 
     (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(offRel)),
-                           offRel->rd_node.relNode);
+                           YezzeyGetRelNode(YezzeyGetRelFileLocator(offRel)));
     (void)FixupOffloadMetadata(RelationGetRelid(offRel));
 
     relation_close(offRel, AccessShareLock);

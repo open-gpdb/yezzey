@@ -6,6 +6,8 @@
 #include "gucs.h"
 #include "storage.h"
 
+#include "relfilelocator.h"
+
 #ifdef __cplusplus
 #define EXTERNC extern "C"
 #else
@@ -22,7 +24,7 @@ EXTERNC int yezzey_FileSync(SMGRFile file, uint32 wait_event_info);
 
 EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
                                      int fileFlags);
-EXTERNC File yezzey_AORelOpenSegFileXlog(RelFileNode node,
+EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
                                          int32 segmentFileNum, int fileFlags);
 
 #if PG_VERSION_NUM >= 160000
