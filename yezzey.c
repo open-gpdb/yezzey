@@ -1296,8 +1296,6 @@ static void yezzey_define_gucs() {
 }
 
 void _PG_init(void) {
-  /* Allocate shared memory for yezzey workers */
-
   if (!process_shared_preload_libraries_in_progress)
     ereport(ERROR,
             (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
@@ -1305,7 +1303,6 @@ void _PG_init(void) {
 
   allow_in_place_tablespaces = true;
 
-  /* Yezzey GUCS define */
   (void)yezzey_define_gucs();
 
   elog(yezzey_log_level, "[YEZZEY_SMGR] set hook");
