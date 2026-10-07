@@ -42,9 +42,8 @@ bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
 
   bool found = HeapTupleIsValid(oldtuple);
 
-  heap_close(offrel, RowExclusiveLock);
-
   table_endscan(scan);
+  heap_close(offrel, RowExclusiveLock);
   UnregisterSnapshot(snap);
 
   return found;
@@ -180,9 +179,8 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     if (meta->relpolicy == i_relpolicy) {
       elog(NOTICE, "relation policy is already same as requested");
 
-      table_close(offrel, RowExclusiveLock);
-
       table_endscan(scan);
+      table_close(offrel, RowExclusiveLock);
       UnregisterSnapshot(snap);
       return false;
     }
@@ -204,9 +202,8 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     heap_freetuple(offtuple);
   }
 
-  table_close(offrel, RowExclusiveLock);
-
   table_endscan(scan);
+  table_close(offrel, RowExclusiveLock);
   UnregisterSnapshot(snap);
 
   /* make changes visible */
@@ -389,9 +386,8 @@ void FixupOffloadMetadata(Oid i_reloid) {
     simple_heap_delete(offrel, &oldtuple->t_self);
   }
 
-  heap_close(offrel, RowExclusiveLock);
-
   table_endscan(scan);
+  heap_close(offrel, RowExclusiveLock);
   UnregisterSnapshot(snap);
 
   /* make changes visible */
