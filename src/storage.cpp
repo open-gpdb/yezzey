@@ -258,13 +258,6 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   pfree(nspname);
 }
 
-int removeLocalFile(const char *localPath) {
-  const auto res = std::remove(localPath);
-  elog(yezzey_ao_log_level,
-       "[YEZZEY_SMGR_BG] remove local file \"%s\", result: %d", localPath, res);
-  return res;
-}
-
 void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                             int64 logicalEof,
                             const char *external_storage_path) {
