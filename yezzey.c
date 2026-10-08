@@ -93,7 +93,6 @@ char *yproxy_socket = NULL;
 PG_MODULE_MAGIC;
 
 PG_FUNCTION_INFO_V1(yezzey_load_relation);
-PG_FUNCTION_INFO_V1(yezzey_force_segment_offload);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_internal);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_modern);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_per_filesegment);
@@ -320,8 +319,6 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
 
   PG_RETURN_VOID();
 }
-
-Datum yezzey_force_segment_offload(PG_FUNCTION_ARGS) { PG_RETURN_VOID(); }
 
 Datum yezzey_offload_relation_to_external_path(PG_FUNCTION_ARGS) {
   /*
