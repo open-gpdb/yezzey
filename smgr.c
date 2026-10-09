@@ -40,6 +40,8 @@
 #include "yezzey.h"
 #include "yezzey_meta.h"
 
+#include "gucs.h"
+
 /*
  * Construct external storage filepath.
  *
@@ -99,8 +101,19 @@ void yezzey_init(void) {
 
 #define IsYezzeyOperateSpc(spc) ((spc) == YEZZEYTABLESPACE_OID)
 
+/* with yezzey.skip_processing set, every yezzey smgr
+ * hook does nothing for yezzey virtual tablespace relations */
+#define SkipYezzeyOperateSpc(spc)                                               \
+  ((spc) == YEZZEYTABLESPACE_OID && skip_processing)
+
 #if IsModernYezzey
 void yezzey_open(SMgrRelation reln) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return;
+  }
+
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
@@ -123,6 +136,11 @@ void yezzey_open(SMgrRelation reln) {
 #endif
 
 void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return;
+  }
 
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
@@ -145,6 +163,12 @@ void yezzey_close(SMgrRelation reln, ForkNumber forkNum) {
 }
 
 void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return;
+  }
+
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
@@ -167,6 +191,11 @@ void yezzey_create(SMgrRelation reln, ForkNumber forkNum, bool isRedo) {
 
 void yezzey_create_ao(YezzeyLocatorBackend rnode, int32 segmentFileNum,
                       bool isRedo) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(
+          YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltor(rnode)))) {
+    return;
+  }
 
   if (IsYezzeyOperateSpc(
           YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltor(rnode)))) {
@@ -189,6 +218,12 @@ void yezzey_create_ao(YezzeyLocatorBackend rnode, int32 segmentFileNum,
 }
 
 bool yezzey_exists(SMgrRelation reln, ForkNumber forkNum) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return false;
+  }
+
 
   bool ret;
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
@@ -254,6 +289,11 @@ void yezzey_unlink(RelFileNodeBackend rnode, ForkNumber forkNum, bool isRedo,
 #if IsModernYezzey
 void yezzey_unlink_ao(YezzeyLocatorBackend rnode, ForkNumber forkNum,
                       bool isRedo) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(
+          YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltor(rnode)))) {
+    return;
+  }
 
   if (IsYezzeyOperateSpc(
           YezzeyGetRelSpcOid(YezzeyLocatorBackendGetLocaltor(rnode)))) {
@@ -282,6 +322,11 @@ void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 #else
                    char *buffer, bool skipFsync) {
 #endif
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return;
+  }
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
@@ -313,6 +358,15 @@ yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum)
 #if IsModernYezzey
   bool ret;
 #endif
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+#if PG_VERSION_NUM >= 130000
+    return false;
+#else
+    return;
+#endif
+  }
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
     yezzeyCheatRelfilenode(&(YezzeySMGRLocator(reln)));
@@ -351,6 +405,11 @@ void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 #else
                  char *buffer) {
 #endif
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return;
+  }
 
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
@@ -377,6 +436,11 @@ void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 #else
                   char *buffer, bool skipFsync) {
 #endif
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return;
+  }
 
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
@@ -400,6 +464,12 @@ void yezzey_write(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 
 void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
                       BlockNumber blockNum, BlockNumber nBlocks) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return;
+  }
+
 #if IsGreenplum6
   /*do nothing */
 #else
@@ -425,6 +495,12 @@ void yezzey_writeback(SMgrRelation reln, ForkNumber forkNum,
 }
 
 BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return 0;
+  }
+
   BlockNumber n;
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
@@ -449,6 +525,12 @@ BlockNumber yezzey_nblocks(SMgrRelation reln, ForkNumber forkNum) {
 }
 
 BlockNumber yezzey_mdnblocks(SMgrRelation reln, ForkNumber forknum) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return 0;
+  }
+
   BlockNumber n;
 
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
@@ -480,6 +562,11 @@ void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
 #else
                      BlockNumber nBlocks) {
 #endif
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return;
+  }
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
 
@@ -510,6 +597,11 @@ void yezzey_truncate(SMgrRelation reln, ForkNumber forkNum,
 }
 
 void yezzey_immedsync(SMgrRelation reln, ForkNumber forkNum) {
+  /* yezzey.skip_processing: do nothing at all for yezzey tablespace */
+  if (SkipYezzeyOperateSpc(YezzeyGetRelSpcOid(
+          YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {
+    return;
+  }
 
   if (IsYezzeyOperateSpc(YezzeyGetRelSpcOid(
           YezzeyLocatorBackendGetLocaltor(YezzeySMGRLocator(reln))))) {

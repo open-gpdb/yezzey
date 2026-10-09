@@ -91,6 +91,8 @@ bool use_gpg_crypto = false;
 
 bool use_otm_feature = false;
 
+bool skip_processing = false;
+
 /* YPROXY */
 
 char *yproxy_socket = NULL;
@@ -1541,6 +1543,11 @@ static void yezzey_define_gucs() {
   DefineCustomBoolVariable(
       "yezzey.autooffload", "enable auto-offloading worker", NULL,
       &yezzey_autooffload, false, PGC_USERSET, 0, NULL, NULL, NULL);
+
+  DefineCustomBoolVariable(
+      "yezzey.skip_processing",
+      "skip all yezzey io interaction for yezzey virtual tablespace", NULL,
+      &skip_processing, false, PGC_USERSET, 0, NULL, NULL, NULL);
 
   DefineCustomEnumVariable("yezzey.log_level",
                            "Log level for yezzey functions.", NULL,

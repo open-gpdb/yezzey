@@ -18,6 +18,8 @@
 #include "url.h"
 #include "yezzey_meta.h"
 
+#include "gucs.h"
+
 typedef struct YVirtFD {
   int y_vfd; /* Either YEZZEY_* preserved fd or pg internal fd >= 9 */
 
@@ -225,7 +227,9 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
 
       if (offloaded) {
         yfd.y_vfd = YEZZEY_OFFLOADED_FD;
-        if (!RecoveryInProgress()) {
+        /* with yezzey.skip_processing all external storage
+         * interaction is noop */
+        if (!skip_processing && !RecoveryInProgress()) {
           auto spcNode = YezzeyGetRelationOriginTablespaceOid(
               yfd.nspname.c_str(), yfd.relname.c_str(), reloid);
 
@@ -335,7 +339,7 @@ void yezzey_FileClose(SMGRFile file) {
   }
 
   if (yfd.y_vfd == YEZZEY_OFFLOADED_FD) {
-    if (!RecoveryInProgress()) {
+    if (!RecoveryInProgress() && yfd.handler) {
       assert(yfd.handler);
       if (!yfd.handler->io_close()) {
         // very bad
@@ -408,6 +412,11 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount)
       return amount;
     }
 
+    /* skip_processing: pretend write succeeded without io */
+    if (!yfd.handler) {
+      return amount;
+    }
+
 #ifdef CACHE_LOCAL_WRITES_FEATURE
 /* CACHE_LOCAL_WRITES_FEATURE to do*/
 #endif
@@ -463,6 +472,10 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
 
   File actual_fd = yfd.y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
+    /* skip_processing: pretend read hit eof without io */
+    if (!yfd.handler) {
+      return 0;
+    }
     if (yfd.handler->reader_empty()) {
       if (yfd.localTmpVfd <= 0) {
         return 0;
@@ -521,7 +534,7 @@ EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset)
      * segments.
      */
 
-    if (!RecoveryInProgress()) {
+    if (!RecoveryInProgress() && yfd.handler) {
       assert(yfd.handler);
 
       /* if truncatetoeof, do nothing */
@@ -565,6 +578,9 @@ EXTERNC off_t yezzey_FileSize(File file) {
     /* s3 always sync ? */
     /* sync tmp buf file here */
 
+    if (!YVirtFD_cache[file].handler) {
+      return 0;
+    }
     return YVirtFD_cache[file].handler->total_size();
   }
 
