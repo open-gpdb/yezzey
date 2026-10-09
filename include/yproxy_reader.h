@@ -2,7 +2,6 @@
 
 #include "chunkinfo.h"
 #include "io_adv.h"
-#include "msgproto.h"
 #include "yproxy_connector.h"
 #include <memory>
 #include <vector>

@@ -1,4 +1,6 @@
 #include "yproxy_lister.h"
+
+#include "msgproto.h"
 #include "scope_guard.h"
 #include "url.h"
 

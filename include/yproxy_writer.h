@@ -1,6 +1,5 @@
 #pragma once
 
-#include "msgproto.h"
 #include "yproxy_connector.h"
 // Write into external storage using yproxy
 class YProxyWriter : YProxyConnector {

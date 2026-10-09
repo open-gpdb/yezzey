@@ -1,4 +1,6 @@
 #include "yproxy_deleter_v2.h"
+
+#include "msgproto.h"
 #include "scope_guard.h"
 
 YProxyDeleterV2::YProxyDeleterV2(std::shared_ptr<IOadv> adv, ssize_t segindx,
