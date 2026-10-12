@@ -174,8 +174,6 @@ void yezzey_load_relation_internal(Oid reloid) {
   AOCSFileSegInfo **segfile_array_cs;
   Snapshot appendOnlyMetaDataSnapshot;
   Oid origrelfilenode;
-  /* yezzey aux index oid */
-  Oid yandexoid;
 
   /*  XXX: maybe fix lock here to take more granular lock
    */
@@ -262,13 +260,11 @@ void yezzey_load_relation_internal(Oid reloid) {
    * State that relation is local, but used to be offloaded
    */
 
-  /* yezzey aux index oid */
-  yandexoid = YEZZEY_VIRTUAL_INDEX_RELATION;
-
   /* firstly, delete dependency from pg_depend
    * This is needed for next deletion operation to work
    */
-  deleteDependencyRecordsForClass(RelationRelationId, yandexoid,
+  deleteDependencyRecordsForClass(RelationRelationId,
+                                  YEZZEY_VIRTUAL_INDEX_RELATION,
                                   RelationRelationId, DEPENDENCY_INTERNAL);
 
   deleteDependencyRecordsForClass(RelationRelationId, reloid,
@@ -276,15 +272,6 @@ void yezzey_load_relation_internal(Oid reloid) {
 
   /* make changes visible */
   CommandCounterIncrement();
-
-  /* Check if relation hash dedicated vitr index and drop */
-  if (yandexoid != YEZZEY_VIRTUAL_INDEX_RELATION) {
-    ObjectAddress object;
-    object.classId = RelationRelationId;
-    object.objectId = yandexoid;
-    object.objectSubId = 0;
-    performDeletion(&object, DROP_CASCADE, PERFORM_DELETION_INTERNAL);
-  }
 
   /* update metadata relations */
   YezzeyLoadRelation(reloid);
@@ -296,7 +283,7 @@ void yezzey_load_relation_internal(Oid reloid) {
    * empty all track info
    */
 
-  (void)emptyYezzeyIndex(yandexoid, origrelfilenode);
+  (void)emptyYezzeyIndex(origrelfilenode);
   /* cleanup */
 
   relation_close(aorel, NoLock);
@@ -1135,8 +1122,7 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
     /* open the relation, we already hold a lock on it */
     offRel = relation_open(objectId, AccessShareLock);
 
-    emptyYezzeyIndex(YEZZEY_VIRTUAL_INDEX_RELATION,
-                     offRel->rd_rel->relfilenode);
+    emptyYezzeyIndex(offRel->rd_rel->relfilenode);
 
     relation_close(offRel, AccessShareLock);
   }
@@ -1149,8 +1135,7 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
       return;
     }
 
-    (void)emptyYezzeyIndex(YEZZEY_VIRTUAL_INDEX_RELATION,
-                           YezzeyGetRelNode(YezzeyGetRelFileLocator(offRel)));
+    (void)emptyYezzeyIndex(YezzeyGetRelNode(YezzeyGetRelFileLocator(offRel)));
     (void)FixupOffloadMetadata(RelationGetRelid(offRel));
 
     relation_close(offRel, AccessShareLock);

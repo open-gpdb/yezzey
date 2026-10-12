@@ -17,8 +17,7 @@
 YIO::YIO(std::shared_ptr<IOadv> adv, ssize_t segindx, ssize_t modcount,
          const std::string &storage_path)
     : adv_(adv), segindx_(segindx), modcount_(modcount),
-      order_(YezzeyVirtualGetOrder(YEZZEY_VIRTUAL_INDEX_RELATION, adv->reloid,
-                                   adv->coords_.filenode, adv->coords_.blkno)) {
+      order_(YezzeyVirtualGetOrder(adv->coords_.filenode, adv->coords_.blkno)) {
   reader_ = std::make_shared<YProxyReader>(adv_, segindx_, order_);
   writer_ =
       std::make_shared<YProxyWriter>(adv_, segindx_, modcount, storage_path);
@@ -26,8 +25,7 @@ YIO::YIO(std::shared_ptr<IOadv> adv, ssize_t segindx, ssize_t modcount,
 
 YIO::YIO(std::shared_ptr<IOadv> adv, ssize_t segindx)
     : adv_(adv), segindx_(segindx),
-      order_(YezzeyVirtualGetOrder(YEZZEY_VIRTUAL_INDEX_RELATION, adv->reloid,
-                                   adv->coords_.filenode, adv->coords_.blkno)) {
+      order_(YezzeyVirtualGetOrder(adv->coords_.filenode, adv->coords_.blkno)) {
   reader_ = std::make_shared<YProxyReader>(adv_, segindx_, order_);
 }
 
