@@ -103,8 +103,7 @@ EXTERNC int yezzey_FileSync(SMGRFile file, uint32 wait_event_info) {
 static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
                                              const char *relname,
                                              const char *fileName,
-                                             int fileFlags, int fileMode,
-                                             int64 modcount) {
+                                             int fileFlags, int64 modcount) {
   if (modcount != -1) {
     /* advance modcount to the value it will be after commit */
     ++modcount;
@@ -208,7 +207,7 @@ EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
              segmentFileNum);
 
   auto rt = yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, path,
-                                             fileFlags, 0, -1);
+                                             fileFlags, -1);
   pfree(dbPath);
   return rt;
 }
@@ -220,9 +219,8 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
 
   auto nspname = get_namespace_name(aorel->rd_rel->relnamespace);
 
-  auto rv = yezzey_AORelOpenSegFile_internal(reloid, nspname,
-                                             RelationGetRelationName(aorel),
-                                             fileName, fileFlags, 0, 1);
+  auto rv = yezzey_AORelOpenSegFile_internal(
+      reloid, nspname, RelationGetRelationName(aorel), fileName, fileFlags, 1);
 
   relation_close(aorel, NoLock);
 

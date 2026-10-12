@@ -6,8 +6,7 @@
 #include "yezzey_meta.h"
 
 static inline Oid yezzey_create_virtual_index_relation_internal(
-    Oid relid, const std::string &relname, Oid relowner, char relpersistence,
-    bool shared_relation, bool mapped_relation) {
+    Oid relid, const std::string &relname, Oid relowner) {
   auto tupdesc = CreateTemplateTupleDesc(Natts_yezzey_virtual_index);
 
   TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_virtual_index_reloid,
@@ -55,8 +54,8 @@ static inline Oid yezzey_create_virtual_index_relation_internal(
 }
 
 static inline void
-yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
-                                         Oid relowner, char relpersistence) {
+yezzey_create_virtual_index_idx_internal(Oid relid,
+                                         const std::string &relname) {
   /* ShareLock is not really needed here, but take it anyway */
   auto yezzey_rel = heap_open(YEZZEY_VIRTUAL_INDEX_RELATION, ShareLock);
   const char *colname_fn = "filenode";
@@ -116,8 +115,7 @@ void YezzeyCreateVirtualIndexIdx() {
   auto yezzey_ao_auxiliary_idxname = std::string("yezzey_virtual_index_idx");
 
   (void)yezzey_create_virtual_index_idx_internal(
-      YEZZEY_VIRTUAL_INDEX_IDX_RELATION, yezzey_ao_auxiliary_idxname,
-      GetUserId(), RELPERSISTENCE_PERMANENT);
+      YEZZEY_VIRTUAL_INDEX_IDX_RELATION, yezzey_ao_auxiliary_idxname);
 
   ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
@@ -142,8 +140,7 @@ void YezzeyCreateVirtualIndex() {
   auto yezzey_ao_auxiliary_relname = std::string("yezzey_virtual_index");
 
   (void)yezzey_create_virtual_index_relation_internal(
-      YEZZEY_VIRTUAL_INDEX_RELATION, yezzey_ao_auxiliary_relname, GetUserId(),
-      RELPERSISTENCE_PERMANENT, false, false);
+      YEZZEY_VIRTUAL_INDEX_RELATION, yezzey_ao_auxiliary_relname, GetUserId());
 
   ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
