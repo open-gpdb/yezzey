@@ -1135,7 +1135,8 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
     /* open the relation, we already hold a lock on it */
     offRel = relation_open(objectId, AccessShareLock);
 
-    emptyYezzeyIndex(YezzeyFindAuxIndex(objectId), offRel->rd_rel->relfilenode);
+    emptyYezzeyIndex(YEZZEY_VIRTUAL_INDEX_RELATION,
+                     offRel->rd_rel->relfilenode);
 
     relation_close(offRel, AccessShareLock);
   }
@@ -1148,7 +1149,7 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
       return;
     }
 
-    (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(offRel)),
+    (void)emptyYezzeyIndex(YEZZEY_VIRTUAL_INDEX_RELATION,
                            YezzeyGetRelNode(YezzeyGetRelFileLocator(offRel)));
     (void)FixupOffloadMetadata(RelationGetRelid(offRel));
 
