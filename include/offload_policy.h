@@ -42,7 +42,6 @@ typedef struct {
 typedef FormData_yezzey_offload_metadata *Form_yezzey_offload_metadata;
 
 #define Offload_policy_always_remote 1
-#define Offload_policy_cache_writes 2
 /* Status for loaded relation  */
 #define Offload_policy_local 3
 

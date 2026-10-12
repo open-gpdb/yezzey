@@ -24,7 +24,6 @@ const std::string offload_metadata_relname = "offload_metadata";
 const std::string offload_metadata_relname_indx = "offload_metadata_indx";
 
 bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
-  /**/
   ScanKeyData skey[1];
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
@@ -42,9 +41,8 @@ bool YezzeyCheckRelationOffloaded(Oid i_reloid) {
 
   bool found = HeapTupleIsValid(oldtuple);
 
-  heap_close(offrel, RowExclusiveLock);
-
   table_endscan(scan);
+  heap_close(offrel, RowExclusiveLock);
   UnregisterSnapshot(snap);
 
   return found;
@@ -146,7 +144,6 @@ void YezzeyCreateOffloadPolicyRelation() {
 
 bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
                                   Timestamp i_relexp) {
-  /**/
   ScanKeyData skey[1];
 
   bool nulls[Natts_offload_metadata];
@@ -180,9 +177,8 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     if (meta->relpolicy == i_relpolicy) {
       elog(NOTICE, "relation policy is already same as requested");
 
-      table_close(offrel, RowExclusiveLock);
-
       table_endscan(scan);
+      table_close(offrel, RowExclusiveLock);
       UnregisterSnapshot(snap);
       return false;
     }
@@ -204,9 +200,8 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
     heap_freetuple(offtuple);
   }
 
-  table_close(offrel, RowExclusiveLock);
-
   table_endscan(scan);
+  table_close(offrel, RowExclusiveLock);
   UnregisterSnapshot(snap);
 
   /* make changes visible */
@@ -312,7 +307,6 @@ void YezzeyDefineOffloadPolicy(Oid reloid) {
  * 3) success
  */
 void YezzeyLoadRelation(Oid i_reloid) {
-  /**/
   ScanKeyData skey[1];
 
   bool nulls[Natts_offload_metadata];
@@ -364,7 +358,6 @@ void YezzeyLoadRelation(Oid i_reloid) {
 }
 
 void FixupOffloadMetadata(Oid i_reloid) {
-  /**/
   ScanKeyData skey[1];
 
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
@@ -389,9 +382,8 @@ void FixupOffloadMetadata(Oid i_reloid) {
     simple_heap_delete(offrel, &oldtuple->t_self);
   }
 
-  heap_close(offrel, RowExclusiveLock);
-
   table_endscan(scan);
+  heap_close(offrel, RowExclusiveLock);
   UnregisterSnapshot(snap);
 
   /* make changes visible */

@@ -93,7 +93,6 @@ char *yproxy_socket = NULL;
 PG_MODULE_MAGIC;
 
 PG_FUNCTION_INFO_V1(yezzey_load_relation);
-PG_FUNCTION_INFO_V1(yezzey_force_segment_offload);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_internal);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_modern);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_per_filesegment);
@@ -162,11 +161,6 @@ Datum yezzey_define_relation_offload_policy_internal_prepare(PG_FUNCTION_ARGS) {
 Datum yezzey_define_relation_offload_policy_internal_seg(PG_FUNCTION_ARGS) {
   return yezzey_define_relation_offload_policy_internal(fcinfo);
 }
-
-/*
- * yezzey_load_relation_internal:
- * TBD: doc the logic
- */
 
 void yezzey_load_relation_internal(Oid reloid) {
   Relation aorel;
@@ -320,8 +314,6 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
 
   PG_RETURN_VOID();
 }
-
-Datum yezzey_force_segment_offload(PG_FUNCTION_ARGS) { PG_RETURN_VOID(); }
 
 Datum yezzey_offload_relation_to_external_path(PG_FUNCTION_ARGS) {
   /*
@@ -1172,15 +1164,6 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
  * Hook ProcessUtility to do external storage vacuum
  */
 
-/*
-* For Modern yezzey
-* (PlannedStmt *pstmt, const char *queryString,
-                                                                        bool
-readOnlyTree, ProcessUtilityContext context, ParamListInfo params,
-                                                                        QueryEnvironment
-*queryEnv, DestReceiver *dest, QueryCompletion *qc);
-*/
-
 #define YEZZEYTABLESPACE_NAME "yezzey(cloud-storage)"
 
 static void
@@ -1194,7 +1177,6 @@ yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
   if (pstmt->utilityStmt) {
     parsetree = pstmt->utilityStmt;
   } else {
-    /*  when?  */
     return prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context,
                                     params, queryEnv, dest, qc);
   }

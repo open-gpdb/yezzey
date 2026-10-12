@@ -25,7 +25,6 @@ static Oid YezzeyResolveTablespaceMapOid() {
    * and relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'yezzey');
    */
   auto snap = RegisterSnapshot(GetTransactionSnapshot());
-  /**/
   ScanKeyData skey[2];
 
   auto classrel = table_open(RelationRelationId, RowExclusiveLock);
@@ -112,9 +111,8 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
   if (!table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
     ExecDropSingleTupleTableSlot(slot);
 
-    heap_close(offload_tablespace_map_rel, RowExclusiveLock);
-
     table_endscan(scanoff);
+    heap_close(offload_tablespace_map_rel, RowExclusiveLock);
     UnregisterSnapshot(snap);
 
     /* should be OK */
@@ -144,9 +142,8 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
 
   auto tablespace_val = std::string(tablespaceName);
 
-  heap_close(offload_tablespace_map_rel, RowExclusiveLock);
-
   table_endscan(scanoff);
+  heap_close(offload_tablespace_map_rel, RowExclusiveLock);
   UnregisterSnapshot(snap);
 
   ExecDropSingleTupleTableSlot(slot);
@@ -187,9 +184,8 @@ void YezzeyRegisterRelationOriginTablespaceName(Oid i_reloid, Name i_spcname) {
   if (table_scan_getnextslot(scanoff, ForwardScanDirection, slot)) {
     ExecDropSingleTupleTableSlot(slot);
 
-    heap_close(offload_tablespace_map_rel, RowExclusiveLock);
-
     table_endscan(scanoff);
+    heap_close(offload_tablespace_map_rel, RowExclusiveLock);
     UnregisterSnapshot(snap);
     return;
   }

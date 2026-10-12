@@ -5,11 +5,8 @@
 
 #include "yezzey_meta.h"
 
-Oid YezzeyFindAuxIndex_internal(Oid reloid);
-
 static inline Oid yezzey_create_virtual_index_relation_internal(
-    Oid relid, const std::string &relname, Oid relowner, char relpersistence,
-    bool shared_relation, bool mapped_relation) {
+    Oid relid, const std::string &relname, Oid relowner) {
   auto tupdesc = CreateTemplateTupleDesc(Natts_yezzey_virtual_index);
 
   TupleDescInitEntry(tupdesc, (AttrNumber)Anum_yezzey_virtual_index_reloid,
@@ -57,8 +54,8 @@ static inline Oid yezzey_create_virtual_index_relation_internal(
 }
 
 static inline void
-yezzey_create_virtual_index_idx_internal(Oid relid, const std::string &relname,
-                                         Oid relowner, char relpersistence) {
+yezzey_create_virtual_index_idx_internal(Oid relid,
+                                         const std::string &relname) {
   /* ShareLock is not really needed here, but take it anyway */
   auto yezzey_rel = table_open(YEZZEY_VIRTUAL_INDEX_RELATION, ShareLock);
   const char *colname_fn = "filenode";
@@ -118,8 +115,7 @@ void YezzeyCreateVirtualIndexIdx() {
   auto yezzey_ao_auxiliary_idxname = std::string("yezzey_virtual_index_idx");
 
   (void)yezzey_create_virtual_index_idx_internal(
-      YEZZEY_VIRTUAL_INDEX_IDX_RELATION, yezzey_ao_auxiliary_idxname,
-      GetUserId(), RELPERSISTENCE_PERMANENT);
+      YEZZEY_VIRTUAL_INDEX_IDX_RELATION, yezzey_ao_auxiliary_idxname);
 
   ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
@@ -144,8 +140,7 @@ void YezzeyCreateVirtualIndex() {
   auto yezzey_ao_auxiliary_relname = std::string("yezzey_virtual_index");
 
   (void)yezzey_create_virtual_index_relation_internal(
-      YEZZEY_VIRTUAL_INDEX_RELATION, yezzey_ao_auxiliary_relname, GetUserId(),
-      RELPERSISTENCE_PERMANENT, false, false);
+      YEZZEY_VIRTUAL_INDEX_RELATION, yezzey_ao_auxiliary_relname, GetUserId());
 
   ObjectAddress baseobject;
   ObjectAddress yezzey_ao_auxiliaryobject;
@@ -164,46 +159,6 @@ void YezzeyCreateVirtualIndex() {
    * Make changes visible
    */
   CommandCounterIncrement();
-}
-
-Oid YezzeyFindAuxIndex_internal(Oid reloid) {
-  HeapTuple tup;
-  ScanKeyData skey[2];
-
-  auto yezzey_virtual_index_oid = InvalidOid;
-
-  auto yezzey_ao_auxiliary_relname =
-      std::string("yezzey_virtual_index") + std::to_string(reloid);
-
-  /*
-   * Check the pg_appendonly relation to be certain the ao table
-   * is there.
-   */
-  auto pg_class = table_open(RelationRelationId, AccessShareLock);
-
-  ScanKeyInit(&skey[0], Anum_pg_class_relname, BTEqualStrategyNumber, F_NAMEEQ,
-              CStringGetDatum(yezzey_ao_auxiliary_relname.c_str()));
-
-  ScanKeyInit(&skey[1], Anum_pg_class_relnamespace, BTEqualStrategyNumber,
-              F_OIDEQ, ObjectIdGetDatum(get_namespace_oid("yezzey", false)));
-
-  auto scan =
-      systable_beginscan(pg_class, ClassNameNspIndexId, true, NULL, 2, skey);
-
-  if (HeapTupleIsValid(tup = systable_getnext(scan))) {
-
-    auto ytup = ((Form_pg_class)GETSTRUCT(tup));
-    yezzey_virtual_index_oid = ytup->oid;
-  } else {
-    // use separate index for relations, offloaded without yezzey api
-    // this may happen during expand process and maybe some other cases
-    yezzey_virtual_index_oid = YEZZEY_VIRTUAL_INDEX_RELATION;
-  }
-
-  systable_endscan(scan);
-  table_close(pg_class, AccessShareLock);
-
-  return yezzey_virtual_index_oid;
 }
 
 Oid YezzeyFindAuxIndex(Oid reloid) { return YEZZEY_VIRTUAL_INDEX_RELATION; }
@@ -432,7 +387,6 @@ YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/,
     }
   }
 
-  /* TBD: Read index */
   auto desc = systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
                                  use_y_index, snap, 2, skey);
 
