@@ -1,5 +1,7 @@
 #include "yproxy_reader.h"
 
+#include "msgproto.h"
+
 const int kDefaultRetryLimit = 100;
 
 YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
