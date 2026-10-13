@@ -103,13 +103,8 @@ EXTERNC int yezzey_FileSync(File file, uint32 wait_event_info) {
 static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
                                              const char *relname,
                                              const char *fileName,
-                                             int fileFlags, int64 modcount) {
-  if (modcount != -1) {
-    /* advance modcount to the value it will be after commit */
-    ++modcount;
-  }
-
-  /* lookup for virtual file desc entry */
+                                             int fileFlags) {
+  const int64 modCountIfReloidValid = 2;
   for (File yezzey_fd = YEZZEY_NOT_OPENED + 1;; ++yezzey_fd) {
     if (!YVirtFD_cache.count(yezzey_fd)) {
       YVirtFD_cache[yezzey_fd] = YVirtFD();
@@ -138,7 +133,7 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
 
       yfd.fileFlags = fileFlags;
       yfd.op_start_offset = -1;
-      yfd.modcount = modcount;
+      yfd.modcount = OidIsValid(reloid) ? modCountIfReloidValid : -1;
       yfd.reloid = reloid;
       yfd.offloaded = offloaded;
 
@@ -158,23 +153,20 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
 
           yfd.coord = ioadv->coords_;
 
-          /*
-           * Ignore fileFlags here
-           * yezzey is able to write only if modcount is correctly set
-           */
-          if (modcount == -1) {
+          /* Ignore fileFlags here */
+          if (OidIsValid(reloid)) {
+            /* allocate handle struct */
+            if (writeprepare(ioadv, modCountIfReloidValid, yezzey_fd) == -1) {
+              YVirtFD_cache.erase(yezzey_fd);
+              return -1;
+            }
+            auto writer = yfd.handler->writer_;
+          } else {
             /* allocate handle struct */
             if (readprepare(ioadv, yezzey_fd) == -1) {
               YVirtFD_cache.erase(yezzey_fd);
               return -1;
             }
-          } else {
-            /* allocate handle struct */
-            if (writeprepare(ioadv, modcount, yezzey_fd) == -1) {
-              YVirtFD_cache.erase(yezzey_fd);
-              return -1;
-            }
-            auto writer = yfd.handler->writer_;
           }
         }
       } else {
@@ -203,8 +195,8 @@ EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
     snprintf(path, MAXPGPATH, "%s/%u.%u", dbPath, YezzeyGetRelNode(node),
              segmentFileNum);
 
-  auto rt = yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, path,
-                                             fileFlags, -1);
+  auto rt =
+      yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, path, fileFlags);
   pfree(dbPath);
   return rt;
 }
@@ -217,7 +209,7 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
   auto nspname = get_namespace_name(aorel->rd_rel->relnamespace);
 
   auto rv = yezzey_AORelOpenSegFile_internal(
-      reloid, nspname, RelationGetRelationName(aorel), fileName, fileFlags, 1);
+      reloid, nspname, RelationGetRelationName(aorel), fileName, fileFlags);
 
   relation_close(aorel, NoLock);
 
