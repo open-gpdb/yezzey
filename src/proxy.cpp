@@ -195,8 +195,8 @@ EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
     snprintf(path, MAXPGPATH, "%s/%u.%u", dbPath, YezzeyGetRelNode(node),
              segmentFileNum);
 
-  auto rt = yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, path,
-                                             fileFlags);
+  auto rt =
+      yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, path, fileFlags);
   pfree(dbPath);
   return rt;
 }
