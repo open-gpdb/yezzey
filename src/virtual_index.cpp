@@ -355,7 +355,7 @@ std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno) {
 
   std::vector<ChunkInfo> modcnt_uniqres;
 
-  /* 
+  /*
    * Remove duplicated data chunks while read.
    * Report correuption in case of offset mismatch.
    */
