@@ -82,7 +82,6 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
 
       // close previous read socket, if any
       if (!this->close()) {
-        // wtf?
         return false;
       }
       auto rc = this->prepareYproxyConnection(order_[order_ptr_], 0);
