@@ -156,7 +156,6 @@ void YezzeyCreateVirtualIndex() {
 }
 
 void emptyYezzeyIndex(Oid relfilenode) {
-  /* Delete all virtual-index entries for this relation file node. */
   HeapTuple tuple;
   ScanKeyData skey[1];
 
@@ -186,7 +185,6 @@ void emptyYezzeyIndex(Oid relfilenode) {
 #define YezzeyVirtualIndexScanCols 2
 
 void emptyYezzeyIndexBlkno(Oid relfilenode, int blkno) {
-  /* Delete virtual-index entries for this file node and block number. */
   HeapTuple tuple;
   ScanKeyData skey[YezzeyVirtualIndexScanCols];
 
@@ -216,7 +214,6 @@ void emptyYezzeyIndexBlkno(Oid relfilenode, int blkno) {
 }
 
 void YezzeyFixupVirtualIndex(Relation relation) {
-
   HeapTuple tuple;
   ScanKeyData skey[1];
   bool nulls[Natts_yezzey_virtual_index];
@@ -267,7 +264,6 @@ void YezzeyVirtualIndexInsert(Oid reloid, Oid relfilenodeOid, int64_t blkno,
                               int32_t encrypted, int32_t reused,
                               int64_t modcount, XLogRecPtr lsn,
                               const char *x_path /* external path */) {
-  /* Insert a virtual-index entry for an offloaded chunk. */
   bool nulls[Natts_yezzey_virtual_index];
   Datum values[Natts_yezzey_virtual_index];
 
@@ -305,8 +301,6 @@ void YezzeyVirtualIndexInsert(Oid reloid, Oid relfilenodeOid, int64_t blkno,
 }
 
 std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno) {
-  /* Return chunk metadata for a file node and block number, ordered by
-   * modcount. */
   HeapTuple tuple;
 
   ScanKeyData skey[YezzeyVirtualIndexScanCols];
