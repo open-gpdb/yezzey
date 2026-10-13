@@ -60,14 +60,13 @@ REGRESS = \
           yezzey-reorg \
           yezzey-vac-relation \
           yezzey-vac-relation-187 \
+          yezzey-otm-feat \
+          yezzey-otm-deletion \
+          yezzey-vi-eh-unique \
+          yezzey-stat \
+          yezzey-alter-ts \
+          yezzey-create-offloaded \
           yezzey-offload-errors
-#          yezzey-otm-feat \
- #         yezzey-otm-deletion \
-  #        yezzey-vi-eh-unique \
-   #       yezzey-stat \
-    #      yezzey-alter-ts \
-     #     yezzey-create-offloaded \
-      #    yezzey-offload-errors
           
 endif
 
