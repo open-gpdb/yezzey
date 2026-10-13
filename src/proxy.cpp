@@ -240,7 +240,6 @@ void yezzey_FileClose(File file) {
     if (!RecoveryInProgress()) {
       assert(yfd.handler);
       if (!yfd.handler->io_close()) {
-        // very bad
         elog(ERROR, "failed to complete external storage interaction: fd %d",
              file);
       } else {
@@ -388,7 +387,6 @@ EXTERNC int yezzey_FileTruncate(File yezzey_fd, int64 offset,
         return 0;
       }
 
-      /* Do it only on QE? */
       if (Gp_role == GP_ROLE_EXECUTE) {
         (void)emptyYezzeyIndexBlkno(yfd.handler->adv_->coords_.filenode,
                                     yfd.handler->adv_->coords_.blkno);

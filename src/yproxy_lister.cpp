@@ -113,9 +113,9 @@ YProxyLister::message YProxyLister::readMessage() {
     msgLen += uint8_t(buffer[i]);
   }
 
-  // substract header
+  // Substract header
   if (msgLen < len) {
-    // protocol violation. XXX: maybe separate errcode/return code?
+    // Protocol violation.
     res.retCode = -1;
     return res;
   }
