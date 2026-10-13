@@ -104,7 +104,7 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
                                              const char *relname,
                                              const char *fileName,
                                              int fileFlags) {
-  /* lookup for virtual file desc entry */
+  const int64 modCountIfReloidPassed = 2;
   for (File yezzey_fd = YEZZEY_NOT_OPENED + 1;; ++yezzey_fd) {
     if (!YVirtFD_cache.count(yezzey_fd)) {
       YVirtFD_cache[yezzey_fd] = YVirtFD();
@@ -133,7 +133,7 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
 
       yfd.fileFlags = fileFlags;
       yfd.op_start_offset = -1;
-      yfd.modcount = OidIsValid(reloid) ? 2 : -1;
+      yfd.modcount = OidIsValid(reloid) ? modCountIfReloidPassed : -1;
       yfd.reloid = reloid;
       yfd.offloaded = offloaded;
 
@@ -156,7 +156,7 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
           /* Ignore fileFlags here */
           if (OidIsValid(reloid)) {
             /* allocate handle struct */
-            if (writeprepare(ioadv, 2, yezzey_fd) == -1) {
+            if (writeprepare(ioadv, modCountIfReloidPassed, yezzey_fd) == -1) {
               YVirtFD_cache.erase(yezzey_fd);
               return -1;
             }
