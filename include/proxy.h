@@ -31,10 +31,10 @@ EXTERNC int yezzey_FileWrite(File file, const void *buffer, size_t amount,
 EXTERNC int yezzey_FileRead(File file, void *buffer, size_t amount,
                             off_t offset, uint32 wait_event_info);
 #else
-EXTERNC int yezzey_FileWrite(File file, char *buffer, int amount,
-                             off_t offset, uint32 wait_event_info);
-EXTERNC int yezzey_FileRead(File file, char *buffer, int amount,
-                            off_t offset, uint32 wait_event_info);
+EXTERNC int yezzey_FileWrite(File file, char *buffer, int amount, off_t offset,
+                             uint32 wait_event_info);
+EXTERNC int yezzey_FileRead(File file, char *buffer, int amount, off_t offset,
+                            uint32 wait_event_info);
 #endif
 
 EXTERNC int yezzey_FileTruncate(File file, int64 offset,

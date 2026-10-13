@@ -270,8 +270,8 @@ void yezzey_FileClose(File file) {
 }
 
 #if PG_VERSION_NUM >= 160000
-int yezzey_FileWrite(File file, const void *buffer, size_t amount,
-                     off_t offset, uint32 wait_event_info)
+int yezzey_FileWrite(File file, const void *buffer, size_t amount, off_t offset,
+                     uint32 wait_event_info)
 #else
 int yezzey_FileWrite(File file, char *buffer, int amount, off_t offset,
                      uint32 wait_event_info)
