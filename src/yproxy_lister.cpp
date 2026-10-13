@@ -113,7 +113,7 @@ YProxyLister::message YProxyLister::readMessage() {
     msgLen += uint8_t(buffer[i]);
   }
 
-  // Decode the message length.
+  // Substract header
   if (msgLen < len) {
     // Protocol violation.
     res.retCode = -1;
