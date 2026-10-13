@@ -345,6 +345,9 @@ std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno) {
 
   UnregisterSnapshot(snap);
 
+  /* Make changes visible */
+  CommandCounterIncrement();
+
   /* Sort by modcount - they are unic */
   std::sort(res.begin(), res.end(),
             [](const ChunkInfo &lhs, const ChunkInfo &rhs) {
