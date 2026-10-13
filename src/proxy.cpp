@@ -251,9 +251,8 @@ void yezzey_FileClose(File file) {
       if (yfd.op_write) {
         /* insert entry in yezzey index */
         YezzeyUpdateMetadataRelations(
-            YEZZEY_VIRTUAL_INDEX_RELATION, yfd.reloid, yfd.coord.filenode,
-            yfd.coord.blkno /* blkno*/, yfd.op_start_offset,
-            yfd.offset /* io operation finish offset */,
+            yfd.reloid, yfd.coord.filenode, yfd.coord.blkno /* blkno*/,
+            yfd.op_start_offset, yfd.offset /* io operation finish offset */,
             yfd.handler->adv_->use_gpg_crypto /* encrypted */,
             yfd.handler->use_kek(), 0 /* reused */, yfd.modcount,
             yfd.handler->writer_->getInsertionStorageLsn(),
@@ -391,8 +390,7 @@ EXTERNC int yezzey_FileTruncate(File yezzey_fd, int64 offset,
 
       /* Do it only on QE? */
       if (Gp_role == GP_ROLE_EXECUTE) {
-        (void)emptyYezzeyIndexBlkno(YEZZEY_VIRTUAL_INDEX_RELATION, yfd.reloid,
-                                    yfd.handler->adv_->coords_.filenode,
+        (void)emptyYezzeyIndexBlkno(yfd.handler->adv_->coords_.filenode,
                                     yfd.handler->adv_->coords_.blkno);
       }
     }

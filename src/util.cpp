@@ -119,8 +119,7 @@ int64_t yezzey_virtual_relation_size(std::shared_ptr<IOadv> adv,
 }
 
 int64_t yezzey_relation_metadata_size(std::shared_ptr<IOadv> adv) {
-  auto order = YezzeyVirtualGetOrder(YEZZEY_VIRTUAL_INDEX_RELATION, adv->reloid,
-                                     adv->coords_.filenode, adv->coords_.blkno);
+  auto order = YezzeyVirtualGetOrder(adv->coords_.filenode, adv->coords_.blkno);
 
   int64_t sz = 0;
 
