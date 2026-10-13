@@ -47,7 +47,7 @@ yezzey_create_virtual_index_relation_internal(const std::string &relname,
       ONCOMMIT_NOOP, NULL /* GP Policy */, (Datum)0, false /* use_user_acl */,
       true, true, InvalidOid /*relrewrite*/, NULL, false /* valid_opts */);
 
-  /* Make changes visible */
+  /* Make this table visible, else yezzey virtual index creation will fail */
   CommandCounterIncrement();
 
   return yezzey_ao_auxiliary_relid;
