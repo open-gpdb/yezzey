@@ -48,7 +48,7 @@ yezzey_create_virtual_index_relation_internal(const std::string &relname,
       ONCOMMIT_NOOP, NULL /* GP Policy */, (Datum)0, false /* use_user_acl */,
       true, true, InvalidOid /*relrewrite*/, NULL, false /* valid_opts */);
 
-  /* Make this table visible before creating its virtual index. */
+  /* Make changes visible */
   CommandCounterIncrement();
 
   return yezzey_ao_auxiliary_relid;
@@ -105,7 +105,7 @@ yezzey_create_virtual_index_idx_internal(Oid relid,
 
   table_close(yezzey_rel, ShareLock);
 
-  /* Make the new index visible to subsequent commands. */
+  /* Make changes visible */
   CommandCounterIncrement();
 }
 
@@ -128,7 +128,7 @@ void YezzeyCreateVirtualIndexIdx() {
   recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
                      DEPENDENCY_INTERNAL);
 
-  /* Make the dependency visible to subsequent commands. */
+  /* Make changes visible */
   CommandCounterIncrement();
 }
 
@@ -151,7 +151,7 @@ void YezzeyCreateVirtualIndex() {
   recordDependencyOn(&yezzey_ao_auxiliaryobject, &baseobject,
                      DEPENDENCY_INTERNAL);
 
-  /* Make the dependency visible to subsequent commands. */
+  /* Make changes visible */
   CommandCounterIncrement();
 }
 
@@ -178,7 +178,7 @@ void emptyYezzeyIndex(Oid relfilenode) {
 
   UnregisterSnapshot(snap);
 
-  /* Make the deletions visible to subsequent commands. */
+  /* Make changes visible */
   CommandCounterIncrement();
 }
 
@@ -211,7 +211,7 @@ void emptyYezzeyIndexBlkno(Oid relfilenode, int blkno) {
 
   UnregisterSnapshot(snap);
 
-  /* Make the deletions visible to subsequent commands. */
+  /* Make changes visible */
   CommandCounterIncrement();
 }
 
@@ -237,6 +237,7 @@ static void YezzeyFixupVirtualIndex_internal(Relation relation) {
   auto desc = table_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
 
   while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
+    // Update
     auto meta = (Form_yezzey_virtual_index)GETSTRUCT(tuple);
 
     if (meta->reloid == RelationGetRelid(relation)) {
@@ -257,7 +258,7 @@ static void YezzeyFixupVirtualIndex_internal(Relation relation) {
 
   UnregisterSnapshot(snap);
 
-  /* Make the updates visible to subsequent commands. */
+  /* Make changes visible */
   CommandCounterIncrement();
 }
 
@@ -303,7 +304,7 @@ void YezzeyVirtualIndexInsert(Oid reloid, Oid relfilenodeOid, int64_t blkno,
   heap_freetuple(yandxtuple);
   table_close(yandxrel, RowExclusiveLock);
 
-  /* Make the inserted tuple visible to subsequent commands. */
+  /* Make changes visible */
   CommandCounterIncrement();
 }
 
@@ -357,6 +358,7 @@ std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno) {
 
   UnregisterSnapshot(snap);
 
+  /* Sort by modcount - they are unic */
   std::sort(res.begin(), res.end(),
             [](const ChunkInfo &lhs, const ChunkInfo &rhs) {
               return lhs.modcount == rhs.modcount ? lhs.lsn < rhs.lsn
@@ -365,6 +367,10 @@ std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno) {
 
   std::vector<ChunkInfo> modcnt_uniqres;
 
+  /* 
+   * Remove duplicated data chunks while read.
+   * Report correuption in case of offset mismatch.
+   */
   for (uint i = 0; i < res.size(); ++i) {
     if (res[i].size == 0) {
       continue;
