@@ -215,7 +215,7 @@ void emptyYezzeyIndexBlkno(Oid relfilenode, int blkno) {
   CommandCounterIncrement();
 }
 
-static void YezzeyFixupVirtualIndex_internal(Relation relation) {
+void YezzeyFixupVirtualIndex(Relation relation) {
 
   HeapTuple tuple;
   ScanKeyData skey[1];
@@ -261,10 +261,6 @@ static void YezzeyFixupVirtualIndex_internal(Relation relation) {
   /* Make changes visible */
   CommandCounterIncrement();
 }
-
-void YezzeyFixupVirtualIndex(Relation relation) {
-  (void)YezzeyFixupVirtualIndex_internal(relation);
-} /* end YezzeyFixupVirtualIndex */
 
 void YezzeyVirtualIndexInsert(Oid reloid, Oid relfilenodeOid, int64_t blkno,
                               int64_t offset_start, int64_t offset_finish,
