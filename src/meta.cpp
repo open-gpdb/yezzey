@@ -14,5 +14,4 @@ void YezzeyUpdateMetadataRelations(Oid reloid, Oid relfilenodeOid,
     flags |= YEZZEY_ENC_KEK;
   YezzeyVirtualIndexInsert(reloid, relfilenodeOid, blkno, offset_start,
                            offset_finish, flags, reused, modcount, lsn, x_path);
-  /* TODO: update yezzey relfilemap */
 }
