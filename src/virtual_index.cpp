@@ -1,4 +1,3 @@
-
 #include "virtual_index.h"
 #include "relfilelocator.h"
 #include <algorithm>
