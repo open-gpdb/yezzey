@@ -319,14 +319,12 @@ std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno) {
 
   auto use_y_index = false;
 
-  {
-    auto tmprel = try_relation_open(YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
-                                    AccessShareLock, false);
+  auto tmprel = try_relation_open(YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
+                                  AccessShareLock, false);
 
-    if (tmprel != NULL) {
-      use_y_index = true;
-      relation_close(tmprel, AccessShareLock);
-    }
+  if (tmprel != NULL) {
+    use_y_index = true;
+    relation_close(tmprel, AccessShareLock);
   }
 
   auto desc = systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
