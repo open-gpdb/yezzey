@@ -80,6 +80,7 @@ void YezzeyCreateOffloadPolicyRelation() {
   /* Make this table visible, else yezzey virtual index creation will fail */
   CommandCounterIncrement();
 
+  /* ShareLock is not really needed here, but take it anyway */
   auto yezzey_rel = heap_open(YEZZEY_OFFLOAD_POLICY_RELATION, ShareLock);
   const char *colname = "reloid";
   auto indexColNames = list_make1((void *)colname);
