@@ -61,10 +61,10 @@ typedef struct YVirtFD {
 #define YEZZEY_OFFLOADED_FD -2
 #define YEZZEY_NOT_OPENED 1
 
-std::unordered_map<SMGRFile, YVirtFD> YVirtFD_cache;
+std::unordered_map<File, YVirtFD> YVirtFD_cache;
 
 /* lazy allocate external storage connections */
-int readprepare(std::shared_ptr<IOadv> ioadv, SMGRFile yezzey_fd) {
+int readprepare(std::shared_ptr<IOadv> ioadv, File yezzey_fd) {
   try {
     YVirtFD_cache[yezzey_fd].handler =
         make_unique<YIO>(ioadv, GpIdentity.segindex);
@@ -76,7 +76,7 @@ int readprepare(std::shared_ptr<IOadv> ioadv, SMGRFile yezzey_fd) {
 }
 
 int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
-                 SMGRFile yezzey_fd) {
+                 File yezzey_fd) {
   try {
     YVirtFD_cache[yezzey_fd].handler =
         make_unique<YIO>(ioadv, GpIdentity.segindex, modcount, "");
@@ -90,7 +90,7 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
   return 0;
 }
 
-EXTERNC int yezzey_FileSync(SMGRFile file, uint32 wait_event_info) {
+EXTERNC int yezzey_FileSync(File file, uint32 wait_event_info) {
   File actual_fd = YVirtFD_cache[file].y_vfd;
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
     return 0;
@@ -110,7 +110,7 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
   }
 
   /* lookup for virtual file desc entry */
-  for (SMGRFile yezzey_fd = YEZZEY_NOT_OPENED + 1;; ++yezzey_fd) {
+  for (File yezzey_fd = YEZZEY_NOT_OPENED + 1;; ++yezzey_fd) {
     if (!YVirtFD_cache.count(yezzey_fd)) {
       YVirtFD_cache[yezzey_fd] = YVirtFD();
 
@@ -227,7 +227,7 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
   return rv;
 }
 
-void yezzey_FileClose(SMGRFile file) {
+void yezzey_FileClose(File file) {
   if (!YVirtFD_cache.count(file)) {
     return;
   }
@@ -270,10 +270,10 @@ void yezzey_FileClose(SMGRFile file) {
 }
 
 #if PG_VERSION_NUM >= 160000
-int yezzey_FileWrite(SMGRFile file, const void *buffer, size_t amount,
+int yezzey_FileWrite(File file, const void *buffer, size_t amount,
                      off_t offset, uint32 wait_event_info)
 #else
-int yezzey_FileWrite(SMGRFile file, char *buffer, int amount, off_t offset,
+int yezzey_FileWrite(File file, char *buffer, int amount, off_t offset,
                      uint32 wait_event_info)
 #endif
 {
@@ -325,10 +325,10 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount, off_t offset,
 }
 
 #if PG_VERSION_NUM >= 160000
-int yezzey_FileRead(SMGRFile file, void *buffer, size_t amount, off_t offset,
+int yezzey_FileRead(File file, void *buffer, size_t amount, off_t offset,
                     uint32 wait_event_info) {
 #else
-int yezzey_FileRead(SMGRFile file, char *buffer, int amount, off_t offset,
+int yezzey_FileRead(File file, char *buffer, int amount, off_t offset,
                     uint32 wait_event_info) {
 #endif
 
@@ -370,7 +370,7 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount, off_t offset,
   return FileRead(actual_fd, buffer, amount, offset, wait_event_info);
 }
 
-EXTERNC int yezzey_FileTruncate(SMGRFile yezzey_fd, int64 offset,
+EXTERNC int yezzey_FileTruncate(File yezzey_fd, int64 offset,
                                 uint32 wait_event_info) {
   YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
   File actual_fd = yfd.y_vfd;
