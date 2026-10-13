@@ -119,11 +119,8 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
       yfd.filepath = std::string(fileName);
       bool offloaded = false;
 
-#define GPDB6YEZZEYPREF "yezzey"
-#define GPDB7YEZZEYPREF "pg_tblspc/8555/"
-
-      if (strncmp(GPDB6YEZZEYPREF, fileName, strlen(GPDB6YEZZEYPREF)) == 0 ||
-          strncmp(GPDB7YEZZEYPREF, fileName, strlen(GPDB7YEZZEYPREF)) == 0) {
+      const char *const GPDB7YezzeyPref = "pg_tblspc/8555/";
+      if (strncmp(GPDB7YezzeyPref, fileName, strlen(GPDB7YezzeyPref)) == 0) {
         offloaded = true;
         if (relname == NULL || nspname == NULL) {
           /* Should be possible only in recovery */
