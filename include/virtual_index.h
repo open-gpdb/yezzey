@@ -56,8 +56,6 @@ typedef FormData_yezzey_virtual_index *Form_yezzey_virtual_index;
 /* variable-len params should go last */
 #define Anum_yezzey_virtual_x_path 10
 
-EXTERNC Oid YezzeyFindAuxIndex(Oid reloid);
-
 EXTERNC void emptyYezzeyIndex(Oid yezzey_index_oid, Oid relfilenode);
 
 EXTERNC void emptyYezzeyIndexBlkno(Oid yezzey_index_oid, Oid relation,

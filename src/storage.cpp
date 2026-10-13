@@ -141,7 +141,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   /* data persisted in external storage, we can update out metadata relations */
   /* insert chunk metadata in virtual index  */
   YezzeyUpdateMetadataRelations(
-      YezzeyFindAuxIndex(aorel->rd_id), ioadv->reloid, ioadv->coords_.filenode,
+      YEZZEY_VIRTUAL_INDEX_RELATION, ioadv->reloid, ioadv->coords_.filenode,
       ioadv->coords_.blkno /* blkno*/, offset_start, offset_finish,
       iohandler.adv_->use_gpg_crypto /* encrypted */, iohandler.use_kek(),
       0 /* reused */, modcount, iohandler.writer_->getInsertionStorageLsn(),

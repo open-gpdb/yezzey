@@ -161,8 +161,6 @@ void YezzeyCreateVirtualIndex() {
   CommandCounterIncrement();
 }
 
-Oid YezzeyFindAuxIndex(Oid reloid) { return YEZZEY_VIRTUAL_INDEX_RELATION; }
-
 void emptyYezzeyIndex(Oid yezzey_index_oid, Oid relfilenode) {
   HeapTuple tuple;
   ScanKeyData skey[1];
@@ -278,8 +276,8 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
 }
 
 void YezzeyFixupVirtualIndex(Relation relation) {
-  (void)YezzeyFixupVirtualIndex_internal(
-      YezzeyFindAuxIndex(RelationGetRelid(relation)), relation);
+  (void)YezzeyFixupVirtualIndex_internal(YEZZEY_VIRTUAL_INDEX_RELATION,
+                                         relation);
 } /* end YezzeyFixupVirtualIndex */
 
 void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,
