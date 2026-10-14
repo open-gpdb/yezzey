@@ -105,82 +105,83 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
                                              const char *fileName,
                                              int fileFlags) {
   const int64 modCountIfReloidValid = 2;
-  for (File yezzey_fd = YEZZEY_NOT_OPENED + 1;; ++yezzey_fd) {
-    if (!YVirtFD_cache.count(yezzey_fd)) {
-      YVirtFD_cache[yezzey_fd] = YVirtFD();
 
-      YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
+  File yezzey_fd = YEZZEY_NOT_OPENED + 1;
+  while (YVirtFD_cache.count(yezzey_fd))
+    yezzey_fd++;
 
-      yfd.filepath = std::string(fileName);
-      bool offloaded = false;
+  YVirtFD_cache[yezzey_fd] = YVirtFD();
 
-      const char *const GPDB7YezzeyPref = "pg_tblspc/8555/";
-      if (strncmp(GPDB7YezzeyPref, fileName, strlen(GPDB7YezzeyPref)) == 0) {
-        offloaded = true;
-        if (relname == NULL || nspname == NULL) {
-          /* Should be possible only in recovery */
-          /* or changing tablespace */
-          /* but we forbit change tablespace to yezzey not using yezzey sql api
-           */
-          if (!RecoveryInProgress())
-            elog(ERROR,
-                 "smgr ao relation open utility did not receive relation name");
-        } else {
-          yfd.relname = resolve_temp_relname(relname);
-          yfd.nspname = std::string(nspname);
+  YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
+
+  yfd.filepath = std::string(fileName);
+  bool offloaded = false;
+
+  const char *const GPDB7YezzeyPref = "pg_tblspc/8555/";
+  if (strncmp(GPDB7YezzeyPref, fileName, strlen(GPDB7YezzeyPref)) == 0) {
+    offloaded = true;
+    if (relname == NULL || nspname == NULL) {
+      /* Should be possible only in recovery */
+      /* or changing tablespace */
+      /* but we forbit change tablespace to yezzey not using yezzey sql api
+       */
+      if (!RecoveryInProgress())
+        elog(ERROR,
+             "smgr ao relation open utility did not receive relation name");
+    } else {
+      yfd.relname = resolve_temp_relname(relname);
+      yfd.nspname = std::string(nspname);
+    }
+  }
+
+  yfd.fileFlags = fileFlags;
+  yfd.op_start_offset = -1;
+  yfd.modcount = OidIsValid(reloid) ? modCountIfReloidValid : -1;
+  yfd.reloid = reloid;
+  yfd.offloaded = offloaded;
+
+  /* we dont need to interact with s3 while in recovery*/
+
+  if (offloaded) {
+    yfd.y_vfd = YEZZEY_OFFLOADED_FD;
+    if (!RecoveryInProgress()) {
+      auto spcNode = YezzeyGetRelationOriginTablespaceOid(
+          yfd.nspname.c_str(), yfd.relname.c_str(), reloid);
+
+      auto ioadv = std::make_shared<IOadv>(
+          yfd.nspname, yfd.relname,
+          std::string(storage_class /* storage_class */), multipart_chunksize,
+          spcNode, yfd.filepath /* coords */, reloid /* reloid */,
+          use_gpg_crypto, yproxy_socket);
+
+      yfd.coord = ioadv->coords_;
+
+      /* Ignore fileFlags here */
+      if (OidIsValid(reloid)) {
+        /* allocate handle struct */
+        if (writeprepare(ioadv, modCountIfReloidValid, yezzey_fd) == -1) {
+          YVirtFD_cache.erase(yezzey_fd);
+          return -1;
         }
-      }
-
-      yfd.fileFlags = fileFlags;
-      yfd.op_start_offset = -1;
-      yfd.modcount = OidIsValid(reloid) ? modCountIfReloidValid : -1;
-      yfd.reloid = reloid;
-      yfd.offloaded = offloaded;
-
-      /* we dont need to interact with s3 while in recovery*/
-
-      if (offloaded) {
-        yfd.y_vfd = YEZZEY_OFFLOADED_FD;
-        if (!RecoveryInProgress()) {
-          auto spcNode = YezzeyGetRelationOriginTablespaceOid(
-              yfd.nspname.c_str(), yfd.relname.c_str(), reloid);
-
-          auto ioadv = std::make_shared<IOadv>(
-              yfd.nspname, yfd.relname,
-              std::string(storage_class /* storage_class */),
-              multipart_chunksize, spcNode, yfd.filepath /* coords */,
-              reloid /* reloid */, use_gpg_crypto, yproxy_socket);
-
-          yfd.coord = ioadv->coords_;
-
-          /* Ignore fileFlags here */
-          if (OidIsValid(reloid)) {
-            /* allocate handle struct */
-            if (writeprepare(ioadv, modCountIfReloidValid, yezzey_fd) == -1) {
-              YVirtFD_cache.erase(yezzey_fd);
-              return -1;
-            }
-            auto writer = yfd.handler->writer_;
-          } else {
-            /* allocate handle struct */
-            if (readprepare(ioadv, yezzey_fd) == -1) {
-              YVirtFD_cache.erase(yezzey_fd);
-              return -1;
-            }
-          }
-        }
+        auto writer = yfd.handler->writer_;
       } else {
-        /* not offloaded */
-        yfd.y_vfd = PathNameOpenFile(yfd.filepath.c_str(), yfd.fileFlags);
-        if (yfd.y_vfd == -1) {
+        /* allocate handle struct */
+        if (readprepare(ioadv, yezzey_fd) == -1) {
           YVirtFD_cache.erase(yezzey_fd);
           return -1;
         }
       }
-
-      return yezzey_fd;
+    }
+  } else {
+    /* not offloaded */
+    yfd.y_vfd = PathNameOpenFile(yfd.filepath.c_str(), yfd.fileFlags);
+    if (yfd.y_vfd == -1) {
+      YVirtFD_cache.erase(yezzey_fd);
+      return -1;
     }
   }
+
+  return yezzey_fd;
 }
 
 EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
