@@ -599,7 +599,7 @@ LANGUAGE C STRICT;
 
 
 -- New utilities & functions
-CREATE FUNCTION yezzey_vacuum_garbage(
+CREATE FUNCTION yezzey_vacuum(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )

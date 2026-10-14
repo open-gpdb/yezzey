@@ -273,7 +273,7 @@ LANGUAGE C STRICT;
 DROP FUNCTION yezzey_vacuum_garbage(BOOLEAN, BOOLEAN);
 
 -- New utilities & functions
-CREATE FUNCTION yezzey_vacuum_garbage(
+CREATE FUNCTION yezzey_vacuum(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 )

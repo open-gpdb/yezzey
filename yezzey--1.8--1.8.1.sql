@@ -1,7 +1,7 @@
 reindex index yezzey.offload_metadata_indx;
 
 -- New utilities & functions
-CREATE FUNCTION yezzey_vacuum_garbage(
+CREATE FUNCTION yezzey_vacuum(
     confirm BOOLEAN DEFAULT FALSE,
     crazyDrop BOOLEAN DEFAULT FALSE
 ) RETURNS VOID
