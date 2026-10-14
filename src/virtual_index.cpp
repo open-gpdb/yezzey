@@ -217,7 +217,7 @@ void emptyYezzeyIndexBlkno(Oid relfilenode, int blkno) {
 
   /* Make changes visible */
   CommandCounterIncrement();
-  elog(LOG,
+  elog(yezzey_ao_log_level,
        "[YEZZEY_VIRTUAL_INDEX] delete complete: xid %u, filenode %u, "
        "blkno %d, deleted %lu",
        GetTopTransactionIdIfAny(), relfilenode, blkno, (unsigned long)deleted);
@@ -303,7 +303,7 @@ void YezzeyVirtualIndexInsert(Oid reloid, Oid relfilenodeOid, int64_t blkno,
 
   CatalogTupleInsert(yandxrel, yandxtuple);
 
-  elog(LOG,
+  elog(yezzey_ao_log_level,
        "[YEZZEY_VIRTUAL_INDEX] inserted (not committed yet): xid %u, "
        "reloid %u, filenode %u, blkno %ld, offsets [" INT64_FORMAT
        ", " INT64_FORMAT "), modcount " INT64_FORMAT ", lsn %X/%X, path %s",
