@@ -100,9 +100,7 @@ EXTERNC int yezzey_FileSync(File file, uint32 wait_event_info) {
   return FileSync(actual_fd, wait_event_info);
 }
 
-static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
-                                             const char *relname,
-                                             const char *fileName,
+static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *fileName,
                                              int fileFlags) {
   const int64 modCountIfReloidValid = 2;
 
@@ -115,23 +113,35 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
   YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
 
   yfd.filepath = std::string(fileName);
+
+  Relation aorel;
+  char *nspname;
+  char *relname;
+  if (OidIsValid(reloid)) {
+    aorel = relation_open(reloid, NoLock);
+    relname = RelationGetRelationName(aorel);
+    nspname = get_namespace_name(aorel->rd_rel->relnamespace);
+    if (nspname == NULL)
+      elog(ERROR, "cannot get namespace name for relation with oid = %u",
+           reloid);
+  }
+
   bool offloaded = false;
 
   const char *const GPDB7YezzeyPref = "pg_tblspc/8555/";
   if (strncmp(GPDB7YezzeyPref, fileName, strlen(GPDB7YezzeyPref)) == 0) {
     offloaded = true;
-    if (relname == NULL || nspname == NULL) {
-      /* Should be possible only in recovery */
-      /* or changing tablespace */
-      /* but we forbit change tablespace to yezzey not using yezzey sql api
-       */
-      if (!RecoveryInProgress())
-        elog(ERROR,
-             "smgr ao relation open utility did not receive relation name");
-    } else {
+    if (OidIsValid(reloid)) {
       yfd.relname = resolve_temp_relname(relname);
       yfd.nspname = std::string(nspname);
     }
+  }
+
+  if (OidIsValid(reloid)) {
+    if (nspname != NULL)
+      pfree(nspname);
+
+    relation_close(aorel, NoLock);
   }
 
   yfd.fileFlags = fileFlags;
@@ -196,8 +206,7 @@ EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
     snprintf(path, MAXPGPATH, "%s/%u.%u", dbPath, YezzeyGetRelNode(node),
              segmentFileNum);
 
-  auto rt =
-      yezzey_AORelOpenSegFile_internal(InvalidOid, NULL, NULL, path, fileFlags);
+  auto rt = yezzey_AORelOpenSegFile_internal(InvalidOid, path, fileFlags);
   pfree(dbPath);
   return rt;
 }
@@ -205,16 +214,8 @@ EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
 EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
                                      int fileFlags) {
   Assert(reloid != InvalidOid);
-  auto aorel = relation_open(reloid, NoLock);
 
-  auto nspname = get_namespace_name(aorel->rd_rel->relnamespace);
-
-  auto rv = yezzey_AORelOpenSegFile_internal(
-      reloid, nspname, RelationGetRelationName(aorel), fileName, fileFlags);
-
-  relation_close(aorel, NoLock);
-
-  return rv;
+  return yezzey_AORelOpenSegFile_internal(reloid, fileName, fileFlags);
 }
 
 void yezzey_FileClose(File file) {
