@@ -87,7 +87,7 @@ bool use_otm_feature = false;
 
 bool skip_unreadable_ao_segments = false;
 
-int remote_read_retry_count = 100;
+int remote_read_retry_count;
 
 /* YPROXY */
 
