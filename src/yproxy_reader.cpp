@@ -1,12 +1,10 @@
 #include "yproxy_reader.h"
 
-const int kDefaultRetryLimit = 100;
-
 YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
-                           const std::vector<ChunkInfo> order)
+                           const std::vector<ChunkInfo> order, int retry_limit)
     : YProxyConnector(adv, segindx), order_ptr_(0), order_(order),
       current_chunk_remaining_bytes_(0), current_retry(0),
-      retry_limit(kDefaultRetryLimit) {}
+      retry_limit(retry_limit) {}
 
 YProxyReader::~YProxyReader() { close(); }
 
@@ -59,9 +57,6 @@ int YProxyReader::prepareYproxyConnection(const ChunkInfo &ci,
     return -1;
   }
 
-  /* reset retry count */
-  this->current_retry = 0;
-
   // now we are ready to read our request data
   return client_fd_;
 }
@@ -85,6 +80,12 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
       }
       auto rc = this->prepareYproxyConnection(order_[order_ptr_], 0);
       if (rc < 0) {
+        if (current_retry >= retry_limit) {
+          *amount = rc;
+          return false;
+        }
+        ++current_retry;
+        sleep(1);
         continue;
       }
       current_chunk_offset_ = 0;
@@ -93,13 +94,13 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
 
     const auto rc = ::read(client_fd_, buffer, *amount);
     if (rc <= 0) {
-      elog(WARNING, "reacquiring connection on offset %lu",
-           current_chunk_offset_);
-
       ::close(client_fd_);
       client_fd_ = -1;
 
-      if (++this->current_retry < this->retry_limit) {
+      if (current_retry < retry_limit) {
+        ++current_retry;
+        elog(WARNING, "reacquiring connection on offset %lu (retry %d of %d)",
+             current_chunk_offset_, current_retry, retry_limit);
         const auto rrc = this->prepareYproxyConnection(order_[order_ptr_],
                                                        current_chunk_offset_);
         if (rrc < 0) {
@@ -121,6 +122,7 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
     }
     current_chunk_remaining_bytes_ -= rc;
     current_chunk_offset_ += rc;
+    current_retry = 0;
     if (current_chunk_remaining_bytes_ == 0) {
       ++order_ptr_;
     }

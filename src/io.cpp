@@ -1,6 +1,7 @@
 
 #include "io.h"
 
+#include "gucs.h"
 #include "io_adv.h"
 #include "util.h"
 
@@ -33,7 +34,8 @@ YIO::YIO(std::shared_ptr<IOadv> adv, ssize_t segindx, ssize_t modcount,
       order_(YezzeyVirtualGetOrder(YezzeyFindAuxIndex(adv->reloid), adv->reloid,
                                    adv->coords_.filenode, adv->coords_.blkno)) {
 #if USE_YPX_READER
-  reader_ = std::make_shared<YProxyReader>(adv_, segindx_, order_);
+  reader_ = std::make_shared<YProxyReader>(adv_, segindx_, order_,
+                                           remote_read_retry_count);
 
 #else
 #error "Unsupported storage read configuration"
@@ -53,7 +55,8 @@ YIO::YIO(std::shared_ptr<IOadv> adv, ssize_t segindx)
       order_(YezzeyVirtualGetOrder(YezzeyFindAuxIndex(adv->reloid), adv->reloid,
                                    adv->coords_.filenode, adv->coords_.blkno)) {
 #if USE_YPX_READER
-  reader_ = std::make_shared<YProxyReader>(adv_, segindx_, order_);
+  reader_ = std::make_shared<YProxyReader>(adv_, segindx_, order_,
+                                           remote_read_retry_count);
 
 #else
 #error "Unsupported storage read configuration"

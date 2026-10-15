@@ -9,12 +9,17 @@
 
 #include "util.h"
 #include <cassert>
+#include <vector>
 
 #include "io.h"
 #include "io_adv.h"
 
 #include "url.h"
 #include "yezzey_meta.h"
+
+#ifndef SMGR_AO_SEGMENT_SKIPPED
+#define SMGR_AO_SEGMENT_SKIPPED (-2)
+#endif
 
 typedef struct YVirtFD {
   int y_vfd; /* Either YEZZEY_* preserved fd or pg internal fd >= 9 */
@@ -68,6 +73,42 @@ typedef struct YVirtFD {
 
 // be unordered map
 std::unordered_map<SMGRFile, YVirtFD> YVirtFD_cache;
+
+/*
+ * Read a remote AO file in full before returning it to GPDB.  This makes a
+ * later read failure visible while the scan can still skip the whole segment.
+ */
+static bool prefetch_remote_file(YVirtFD &yfd) {
+  File local_file = OpenTemporaryFile(false, "yezzey-read");
+  if (local_file < 0) {
+    return false;
+  }
+
+  std::vector<char> buffer(kYezzeyIoBufferSize);
+  while (!yfd.handler->reader_empty()) {
+    size_t amount = buffer.size();
+    if (!yfd.handler->io_read(buffer.data(), &amount) || amount == 0) {
+      FileClose(local_file);
+      return false;
+    }
+
+    size_t written = 0;
+    while (written < amount) {
+      int rc = FileWrite(local_file, buffer.data() + written,
+                         static_cast<int>(amount - written));
+      if (rc <= 0) {
+        FileClose(local_file);
+        return false;
+      }
+      written += rc;
+    }
+  }
+
+  yfd.localTmpVfd = local_file;
+  yfd.y_vfd = local_file;
+  yfd.handler.reset();
+  return true;
+}
 
 /* lazy allocate external storage connections */
 int readprepare(std::shared_ptr<IOadv> ioadv, SMGRFile yezzey_fd) {
@@ -210,6 +251,15 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
             if (readprepare(ioadv, yezzey_fd) == -1) {
               YVirtFD_cache.erase(yezzey_fd);
               return -1;
+            }
+            if (skip_unreadable_ao_segments && !prefetch_remote_file(yfd)) {
+              elog(WARNING,
+                   "yezzey: could not read remote file '%s' for relation "
+                   "\"%s\".\"%s\"; skipping append-only segment",
+                   yfd.filepath.c_str(), yfd.nspname.c_str(),
+                   yfd.relname.c_str());
+              YVirtFD_cache.erase(yezzey_fd);
+              return SMGR_AO_SEGMENT_SKIPPED;
             }
           } else {
             /* allocate handle struct */

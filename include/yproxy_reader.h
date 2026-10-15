@@ -12,7 +12,7 @@ public:
   using YProxyConnector::prepareYproxyConnection;
   friend class ExternalWriter;
   explicit YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
-                        std::vector<ChunkInfo> order);
+                        std::vector<ChunkInfo> order, int retry_limit);
   ~YProxyReader();
 
 public:
@@ -34,5 +34,5 @@ private:
   int64_t current_chunk_offset_{0};
 
   int current_retry{0};
-  int retry_limit{1};
+  const int retry_limit;
 };

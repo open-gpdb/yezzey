@@ -143,7 +143,7 @@ int64_t yezzey_calc_virtual_relation_size(std::shared_ptr<IOadv> adv,
   try {
     auto ioh = YIO(adv, segindx, modcount, storage_path);
     int64_t sz = 0;
-    auto buf = std::vector<char>(1 << 20);
+    auto buf = std::vector<char>(kYezzeyIoBufferSize);
     /* fix this */
     for (;;) {
       auto rc = buf.size();
