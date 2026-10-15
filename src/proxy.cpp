@@ -401,6 +401,14 @@ EXTERNC int yezzey_FileTruncate(File yezzey_fd, int64 offset,
       /* if truncatetoeof, do nothing */
       /* we need addintinal checks that offset == virtual_size */
       if (offset) {
+        elog(yezzey_ao_log_level,
+             "yezzey_FileTruncate: skipping nonzero truncate for offloaded "
+             "file without changing virtual index: xid %u, yezzey_fd %d, "
+             "reloid %u, filenode %u, blkno " INT64_FORMAT
+             ", offset " INT64_FORMAT,
+             GetTopTransactionIdIfAny(), yezzey_fd, (Oid)yfd.reloid,
+             yfd.handler->adv_->coords_.filenode,
+             yfd.handler->adv_->coords_.blkno, offset);
         return 0;
       }
 
