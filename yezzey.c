@@ -87,6 +87,8 @@ bool use_otm_feature = false;
 
 bool skip_unreadable_ao_segments = false;
 
+int remote_read_retry_count = 30;
+
 /* YPROXY */
 
 char *yproxy_socket = NULL;
@@ -1364,6 +1366,12 @@ static void yezzey_define_gucs() {
       "yezzey.skip_unreadable_ao_segments",
       "skip an append-only segment when its remote file cannot be read", NULL,
       &skip_unreadable_ao_segments, false, PGC_SUSET, 0, NULL, NULL, NULL);
+
+  DefineCustomIntVariable(
+      "yezzey.remote_read_retry_count",
+      "number of retries after a remote read request fails", NULL,
+      &remote_read_retry_count, 30, 0, INT_MAX, PGC_SUSET, 0, NULL, NULL,
+      NULL);
 
   DefineCustomBoolVariable(
       "yezzey.autooffload", "enable auto-offloading worker", NULL,
