@@ -115,12 +115,15 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *fileName,
   yfd.filepath = std::string(fileName);
 
   Relation aorel;
-  char *nspname = NULL;
-  char *relname = NULL;
+  char *nspname;
+  char *relname;
   if (OidIsValid(reloid)) {
     aorel = relation_open(reloid, NoLock);
-    nspname = get_namespace_name(aorel->rd_rel->relnamespace);
     relname = RelationGetRelationName(aorel);
+    nspname = get_namespace_name(aorel->rd_rel->relnamespace);
+    if (nspname == NULL)
+      elog(ERROR, "cannot get namespace name for relation with oid = %u",
+           reloid);
   }
 
   bool offloaded = false;
@@ -128,15 +131,7 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *fileName,
   const char *const GPDB7YezzeyPref = "pg_tblspc/8555/";
   if (strncmp(GPDB7YezzeyPref, fileName, strlen(GPDB7YezzeyPref)) == 0) {
     offloaded = true;
-    if (relname == NULL || nspname == NULL) {
-      /* Should be possible only in recovery */
-      /* or changing tablespace */
-      /* but we forbit change tablespace to yezzey not using yezzey sql api
-       */
-      if (!RecoveryInProgress())
-        elog(ERROR,
-             "smgr ao relation open utility did not receive relation name");
-    } else {
+    if (OidIsValid(reloid)) {
       yfd.relname = resolve_temp_relname(relname);
       yfd.nspname = std::string(nspname);
     }
