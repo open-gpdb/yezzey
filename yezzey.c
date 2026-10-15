@@ -87,7 +87,9 @@ bool use_otm_feature = false;
 
 bool skip_unreadable_ao_segments = false;
 
-int remote_read_retry_count = 30;
+/* Preserve the legacy retry limit as the configurable default. */
+static const int kDefaultRetryLimit = 100;
+int remote_read_retry_count = kDefaultRetryLimit;
 
 /* YPROXY */
 
@@ -1370,8 +1372,8 @@ static void yezzey_define_gucs() {
   DefineCustomIntVariable(
       "yezzey.remote_read_retry_count",
       "number of retries after a remote read request fails", NULL,
-      &remote_read_retry_count, 30, 0, INT_MAX, PGC_SUSET, 0, NULL, NULL,
-      NULL);
+      &remote_read_retry_count, kDefaultRetryLimit, 0, INT_MAX, PGC_SUSET, 0,
+      NULL, NULL, NULL);
 
   DefineCustomBoolVariable(
       "yezzey.autooffload", "enable auto-offloading worker", NULL,
