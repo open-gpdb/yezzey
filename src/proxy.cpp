@@ -256,7 +256,8 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
             }
             if (skip_unreadable_ao_segments && !prefetch_remote_file(yfd)) {
               elog(WARNING,
-                   "yezzey: could not read remote file '%s' for relation \"%s\".\"%s\"; skipping append-only segment",
+                   "yezzey: could not read remote file '%s' for relation "
+                   "\"%s\".\"%s\"; skipping append-only segment",
                    yfd.filepath.c_str(), yfd.nspname.c_str(),
                    yfd.relname.c_str());
               YVirtFD_cache.erase(yezzey_fd);
