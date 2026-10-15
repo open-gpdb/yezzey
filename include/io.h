@@ -10,6 +10,9 @@
 
 #include "io_adv.h"
 
+/* Bounds memory used while streaming data to or from external storage. */
+constexpr size_t kYezzeyIoBufferSize = 1 << 20;
+
 struct YIO {
   std::shared_ptr<YProxyReader> reader_{nullptr};
   std::shared_ptr<YProxyWriter> writer_{nullptr};

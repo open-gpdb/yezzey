@@ -74,8 +74,6 @@ typedef struct YVirtFD {
 // be unordered map
 std::unordered_map<SMGRFile, YVirtFD> YVirtFD_cache;
 
-static constexpr size_t kPrefetchBufferSize = 1024 * 1024;
-
 /*
  * Read a remote AO file in full before returning it to GPDB.  This makes a
  * later read failure visible while the scan can still skip the whole segment.
@@ -86,7 +84,7 @@ static bool prefetch_remote_file(YVirtFD &yfd) {
     return false;
   }
 
-  std::vector<char> buffer(kPrefetchBufferSize);
+  std::vector<char> buffer(kYezzeyIoBufferSize);
   while (!yfd.handler->reader_empty()) {
     size_t amount = buffer.size();
     if (!yfd.handler->io_read(buffer.data(), &amount) || amount == 0) {

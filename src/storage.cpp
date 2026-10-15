@@ -50,11 +50,9 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   }
 
   auto rc = 0;
-  /* XXX: chunk size should normally be configurable. */
-  const size_t chunkSize = 1 << 20;
   int64 curr_read_chunk;
 
-  std::vector<char> buffer(chunkSize);
+  std::vector<char> buffer(kYezzeyIoBufferSize);
   const auto vfd = PathNameOpenFile((FileName)localPath, O_RDONLY, 0600);
   if (vfd <= 0) {
     const std::string error = std::string("failed to open ") + localPath +
@@ -168,8 +166,7 @@ void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
                                     const char *relname, int segno,
                                     const relnodeCoord &coords,
                                     const char *dest_path) {
-  const size_t chunkSize = 1 << 20;
-  std::vector<char> buffer(chunkSize);
+  std::vector<char> buffer(kYezzeyIoBufferSize);
 
   std::ofstream ostrm(dest_path, std::ios::binary);
 
