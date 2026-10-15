@@ -101,7 +101,7 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
 
   while (progress < logicalEof) {
     CHECK_FOR_INTERRUPTS();
-    curr_read_chunk = chunkSize;
+    curr_read_chunk = kYezzeyIoBufferSize;
     if (progress + curr_read_chunk > logicalEof) {
       /* should not read beyond logical eof */
       curr_read_chunk = logicalEof - progress;
@@ -196,7 +196,7 @@ void loadSegmentFromExternalStorage(Relation rel, const char *nspname,
   xlog_ao_insert(rnode, segno, 0, NULL, 0);
 
   while (!iohandler.reader_empty()) {
-    size_t amount = chunkSize;
+    size_t amount = kYezzeyIoBufferSize;
     if (!iohandler.io_read(buffer.data(), &amount)) {
       throw std::runtime_error(std::string("failed to read \"") + dest_path +
                                "\" from external storage");
