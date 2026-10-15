@@ -85,7 +85,8 @@ bool use_gpg_crypto = false;
 
 bool use_otm_feature = false;
 
-bool skip_unreadable_ao_segments = false;
+/* GUC-backed values; defaults are defined in yezzey_define_gucs(). */
+bool skip_unreadable_ao_segments;
 
 int remote_read_retry_count;
 
