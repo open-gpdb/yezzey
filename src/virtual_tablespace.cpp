@@ -4,6 +4,7 @@
  */
 
 #include "virtual_tablespace.h"
+#include "gucs.h"
 #include "yezzey_meta.h"
 
 #include "utils/relcache.h"
@@ -45,6 +46,8 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
     elog(ERROR, "cache lookup failed for relation %u", reloid);
 
   auto rd_rel = (Form_pg_class)GETSTRUCT(tuple);
+  const Oid old_filenode = rd_rel->relfilenode;
+  const Oid old_tablespace = rd_rel->reltablespace;
 
   /*
    * Since we copy the file directly without looking at the shared buffers,
@@ -86,6 +89,15 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
                                             aorel->rd_rel->relpersistence);
 #endif
   }
+
+  elog(yezzey_ao_log_level,
+       "[YEZZEY_VIRTUAL_TABLESPACE] tablespace move relfilenode mapping: "
+       "xid %u, reloid %u, "
+       "old_filenode %u, new_filenode %u, old_tablespace %u, "
+       "new_tablespace %u, destination_is_yezzey %s",
+       GetTopTransactionIdIfAny(), reloid, old_filenode, rd_rel->relfilenode,
+       old_tablespace, desttablespace_oid,
+       IsYezzeyOperateSpc(desttablespace_oid) ? "true" : "false");
 
   rd_rel->reltablespace = desttablespace_oid;
 

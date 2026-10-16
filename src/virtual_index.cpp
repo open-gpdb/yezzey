@@ -1,4 +1,5 @@
 #include "virtual_index.h"
+#include "gucs.h"
 #include "relfilelocator.h"
 #include <algorithm>
 
@@ -186,6 +187,11 @@ void emptyYezzeyIndex(Oid relfilenode) {
 void emptyYezzeyIndexBlkno(Oid relfilenode, int blkno) {
   HeapTuple tuple;
   ScanKeyData skey[YezzeyVirtualIndexScanCols];
+  /*
+   * Diagnostic only: report how many snapshot-visible metadata rows this
+   * invocation actually removed.
+   */
+  uint64 deleted = 0;
 
   auto rel = table_open(YEZZEY_VIRTUAL_INDEX_RELATION, RowExclusiveLock);
 
@@ -201,6 +207,7 @@ void emptyYezzeyIndexBlkno(Oid relfilenode, int blkno) {
 
   while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
     simple_heap_delete(rel, &tuple->t_self);
+    ++deleted;
   }
 
   table_endscan(desc);
@@ -210,6 +217,10 @@ void emptyYezzeyIndexBlkno(Oid relfilenode, int blkno) {
 
   /* Make changes visible */
   CommandCounterIncrement();
+  elog(yezzey_ao_log_level,
+       "[YEZZEY_VIRTUAL_INDEX] delete complete: xid %u, filenode %u, "
+       "blkno %d, deleted %lu",
+       GetTopTransactionIdIfAny(), relfilenode, blkno, (unsigned long)deleted);
 }
 
 void YezzeyFixupVirtualIndex(Relation relation) {
@@ -292,6 +303,14 @@ void YezzeyVirtualIndexInsert(Oid reloid, Oid relfilenodeOid, int64_t blkno,
 
   CatalogTupleInsert(yandxrel, yandxtuple);
 
+  elog(yezzey_ao_log_level,
+       "[YEZZEY_VIRTUAL_INDEX] inserted (not committed yet): xid %u, "
+       "reloid %u, filenode %u, blkno %ld, offsets [" INT64_FORMAT
+       ", " INT64_FORMAT "), modcount " INT64_FORMAT ", lsn %X/%X, path %s",
+       GetTopTransactionIdIfAny(), reloid, relfilenodeOid, (long)blkno,
+       offset_start, offset_finish, modcount, (uint32)(lsn >> 32), (uint32)lsn,
+       x_path);
+
   heap_freetuple(yandxtuple);
   table_close(yandxrel, RowExclusiveLock);
 
@@ -363,6 +382,14 @@ std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno) {
    */
   for (uint i = 0; i < res.size(); ++i) {
     if (res[i].size == 0) {
+      elog(yezzey_ao_log_level,
+           "[YEZZEY_VIRTUAL_INDEX] zero-size chunk skipped: xid %u, "
+           "filenode %u, blkno %d, offsets [" INT64_FORMAT ", " INT64_FORMAT
+           "), modcount " INT64_FORMAT ", lsn %X/%X, path %s",
+           GetTopTransactionIdIfAny(), relfilenode, blkno,
+           (int64)res[i].start_off, (int64)(res[i].start_off + res[i].size),
+           res[i].modcount, (uint32)(res[i].lsn >> 32), (uint32)res[i].lsn,
+           res[i].x_path.c_str());
       continue;
     }
     if (i + 1 < res.size() && res[i + 1].modcount == res[i].modcount) {
@@ -381,6 +408,12 @@ std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno) {
     }
     modcnt_uniqres.push_back(res[i]);
   }
+
+  elog(yezzey_ao_log_level,
+       "[YEZZEY_VIRTUAL_INDEX] read order: xid %u, filenode %u, blkno %d, "
+       "visible rows %lu, usable chunks %lu",
+       GetTopTransactionIdIfAny(), relfilenode, blkno,
+       (unsigned long)res.size(), (unsigned long)modcnt_uniqres.size());
 
   return modcnt_uniqres;
 }

@@ -331,14 +331,28 @@ int yezzey_FileRead(File file, char *buffer, int amount, off_t offset,
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
     if (yfd.handler->reader_empty()) {
       if (yfd.localTmpVfd <= 0) {
+        elog(yezzey_ao_log_level,
+             "yezzey_FileRead: returning EOF from empty reader: xid %u, "
+             "yezzey_fd %d, reloid %u, filenode %u, blkno " INT64_FORMAT ", "
+             "request_offset " INT64_FORMAT ", request_amount %lu, "
+             "local_tmp_vfd %d",
+             GetTopTransactionIdIfAny(), file, (Oid)yfd.reloid,
+             yfd.handler->adv_->coords_.filenode,
+             yfd.handler->adv_->coords_.blkno, (int64)offset,
+             (unsigned long)amount, yfd.localTmpVfd);
         return 0;
       }
     } else {
       if (!yfd.handler->io_read((char *)buffer, &curr)) {
         elog(yezzey_ao_log_level,
-             "yezzey_FileRead: problem while direct read from s3 read with %d "
-             "curr: %ld",
-             file, curr);
+             "yezzey_FileRead: io_read failed: xid %u, yezzey_fd %d, "
+             "reloid %u, filenode %u, blkno " INT64_FORMAT
+             ", request_offset " INT64_FORMAT
+             ", request_amount %lu, reader_result %ld",
+             GetTopTransactionIdIfAny(), file, (Oid)yfd.reloid,
+             yfd.handler->adv_->coords_.filenode,
+             yfd.handler->adv_->coords_.blkno, (int64)offset,
+             (unsigned long)amount, (long)curr);
         return -1;
       }
     }
@@ -356,7 +370,17 @@ int yezzey_FileRead(File file, char *buffer, int amount, off_t offset,
     return curr;
   }
 
-  return FileRead(actual_fd, buffer, amount, offset, wait_event_info);
+  const int local_rc =
+      FileRead(actual_fd, buffer, amount, offset, wait_event_info);
+  if (local_rc <= 0) {
+    elog(yezzey_ao_log_level,
+         "yezzey_FileRead: local FileRead returned %d: xid %u, "
+         "yezzey_fd %d, actual_fd %d, reloid %u, path %s, "
+         "request_offset " INT64_FORMAT ", request_amount %lu",
+         local_rc, GetTopTransactionIdIfAny(), file, actual_fd, (Oid)yfd.reloid,
+         yfd.filepath.c_str(), (int64)offset, (unsigned long)amount);
+  }
+  return local_rc;
 }
 
 EXTERNC int yezzey_FileTruncate(File yezzey_fd, int64 offset,
@@ -378,10 +402,26 @@ EXTERNC int yezzey_FileTruncate(File yezzey_fd, int64 offset,
       /* if truncatetoeof, do nothing */
       /* we need addintinal checks that offset == virtual_size */
       if (offset) {
+        elog(yezzey_ao_log_level,
+             "yezzey_FileTruncate: skipping nonzero truncate for offloaded "
+             "file without changing virtual index: xid %u, yezzey_fd %d, "
+             "reloid %u, filenode %u, blkno " INT64_FORMAT
+             ", offset " INT64_FORMAT,
+             GetTopTransactionIdIfAny(), yezzey_fd, (Oid)yfd.reloid,
+             yfd.handler->adv_->coords_.filenode,
+             yfd.handler->adv_->coords_.blkno, offset);
         return 0;
       }
 
       if (Gp_role == GP_ROLE_EXECUTE) {
+        elog(
+            yezzey_ao_log_level,
+            "yezzey_FileTruncate: removing virtual-index metadata on truncate: "
+            "xid %u, yezzey_fd %d, reloid %u, filenode %u, blkno " INT64_FORMAT
+            ", offset " INT64_FORMAT,
+            GetTopTransactionIdIfAny(), yezzey_fd, (Oid)yfd.reloid,
+            yfd.handler->adv_->coords_.filenode,
+            yfd.handler->adv_->coords_.blkno, offset);
         (void)emptyYezzeyIndexBlkno(yfd.handler->adv_->coords_.filenode,
                                     yfd.handler->adv_->coords_.blkno);
       }

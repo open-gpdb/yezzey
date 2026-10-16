@@ -1,5 +1,6 @@
 #include "yproxy_reader.h"
 
+#include "gucs.h"
 #include "msgproto.h"
 
 const int kDefaultRetryLimit = 100;
@@ -76,6 +77,15 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
     if (current_chunk_remaining_bytes_ == 0) {
       // no more data to read
       if (order_ptr_ == order_.size()) {
+        elog(yezzey_ao_log_level,
+             "[YEZZEY_READER] read reached end of chunk order: xid %u, "
+             "reloid %u, filenode %u, blkno " INT64_FORMAT
+             ", chunks_consumed %lu, "
+             "chunks_total %lu, last_chunk_offset " INT64_FORMAT,
+             GetTopTransactionIdIfAny(), (Oid)adv_->reloid,
+             adv_->coords_.filenode, adv_->coords_.blkno,
+             (unsigned long)order_ptr_, (unsigned long)order_.size(),
+             current_chunk_offset_);
         *amount = 0;
         return false;
       }
@@ -132,5 +142,20 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
 }
 
 bool YProxyReader::empty() {
-  return order_ptr_ == order_.size() && current_chunk_remaining_bytes_ <= 0;
+  const bool empty =
+      order_ptr_ == order_.size() && current_chunk_remaining_bytes_ <= 0;
+
+  if (empty) {
+    elog(yezzey_ao_log_level,
+         "[YEZZEY_READER] reader is empty: xid %u, reloid %u, "
+         "filenode %u, blkno " INT64_FORMAT ", reason %s, chunks_consumed %lu, "
+         "chunks_total %lu, last_chunk_offset " INT64_FORMAT,
+         GetTopTransactionIdIfAny(), (Oid)adv_->reloid, adv_->coords_.filenode,
+         adv_->coords_.blkno,
+         order_.empty() ? "no chunks in order" : "all chunks consumed",
+         (unsigned long)order_ptr_, (unsigned long)order_.size(),
+         current_chunk_offset_);
+  }
+
+  return empty;
 };
