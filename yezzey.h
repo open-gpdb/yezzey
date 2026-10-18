@@ -98,4 +98,6 @@ extern Datum yezzey_stat_get_external_storage_usage(PG_FUNCTION_ARGS);
 
 void _PG_init(void);
 
+bool check_is_offloaded(Oid reloid);
+
 #endif /* YEZZEY_H */

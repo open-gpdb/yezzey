@@ -15,6 +15,9 @@
 
 #include "url.h"
 #include "yezzey_meta.h"
+extern "C" {
+#include "yezzey.h"
+}
 
 typedef struct YVirtFD {
   int y_vfd; /* Either YEZZEY_* preserved fd or pg internal fd >= 9 */
@@ -113,34 +116,19 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *fileName,
   YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
 
   yfd.filepath = std::string(fileName);
-
-  Relation aorel;
-  char *nspname;
-  char *relname;
-  if (OidIsValid(reloid)) {
-    aorel = relation_open(reloid, NoLock);
-    relname = RelationGetRelationName(aorel);
-    nspname = get_namespace_name(aorel->rd_rel->relnamespace);
+  yfd.offloaded = check_is_offloaded(reloid);
+  if (yfd.offloaded && OidIsValid(reloid)) {
+    Relation aorel = relation_open(reloid, NoLock);
+    char *relname = RelationGetRelationName(aorel);
+    char *nspname = get_namespace_name(aorel->rd_rel->relnamespace);
     if (nspname == NULL)
       elog(ERROR, "cannot get namespace name for relation with oid = %u",
            reloid);
-  }
 
-  bool offloaded = false;
+    yfd.relname = resolve_temp_relname(relname);
+    yfd.nspname = std::string(nspname);
 
-  const char *const GPDB7YezzeyPref = "pg_tblspc/8555/";
-  if (strncmp(GPDB7YezzeyPref, fileName, strlen(GPDB7YezzeyPref)) == 0) {
-    offloaded = true;
-    if (OidIsValid(reloid)) {
-      yfd.relname = resolve_temp_relname(relname);
-      yfd.nspname = std::string(nspname);
-    }
-  }
-
-  if (OidIsValid(reloid)) {
-    if (nspname != NULL)
-      pfree(nspname);
-
+    pfree(nspname);
     relation_close(aorel, NoLock);
   }
 
@@ -148,11 +136,10 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *fileName,
   yfd.op_start_offset = -1;
   yfd.modcount = OidIsValid(reloid) ? modCountIfReloidValid : -1;
   yfd.reloid = reloid;
-  yfd.offloaded = offloaded;
 
   /* we dont need to interact with s3 while in recovery*/
 
-  if (offloaded) {
+  if (yfd.offloaded) {
     yfd.y_vfd = YEZZEY_OFFLOADED_FD;
     if (!RecoveryInProgress()) {
       auto spcNode = YezzeyGetRelationOriginTablespaceOid(

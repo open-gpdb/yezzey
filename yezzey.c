@@ -162,6 +162,42 @@ Datum yezzey_define_relation_offload_policy_internal_seg(PG_FUNCTION_ARGS) {
   return yezzey_define_relation_offload_policy_internal(fcinfo);
 }
 
+bool check_is_offloaded(Oid reloid) {
+  HeapTuple tuple = SearchSysCache1(RELOID, ObjectIdGetDatum(reloid));
+  if (!HeapTupleIsValid(tuple))
+    elog(ERROR, "cache lookup failed for relation %u", reloid);
+
+  bool isNull;
+  Datum options =
+      SysCacheGetAttr(RELOID, tuple, Anum_pg_class_reloptions, &isNull);
+
+  bool ret = false;
+  if (!isNull) {
+    ArrayType *array = DatumGetArrayTypeP(options);
+
+    Datum *optiondatums;
+    int noptions;
+    deconstruct_array(array, TEXTOID, -1, false, TYPALIGN_INT, &optiondatums,
+                      NULL, &noptions);
+    for (int i = 0; i < noptions; i++) {
+      char *text_str = VARDATA(optiondatums[i]);
+      int text_len = VARSIZE(optiondatums[i]) - VARHDRSZ;
+      if (text_len == strlen("yezzey_offloaded=true") &&
+          strcmp(text_str, "yezzey_offloaded=true") == 0) {
+        ret = true;
+        break;
+      }
+    }
+
+    pfree(optiondatums);
+    if (((void *)array) != DatumGetPointer(options))
+      pfree(array);
+  }
+
+  ReleaseSysCache(tuple);
+  return ret;
+}
+
 void yezzey_load_relation_internal(Oid reloid) {
   Relation aorel;
   int i;
@@ -195,7 +231,7 @@ void yezzey_load_relation_internal(Oid reloid) {
   /* acquire snapshot for aoseg table lookup */
   appendOnlyMetaDataSnapshot = SnapshotSelf;
   /*sanity check */
-  if (!IsYezzeyOperateSpc(YezzeyGetRelSpcOid(YezzeyGetRelFileLocator(aorel)))) {
+  if (!check_is_offloaded(reloid)) {
     /* shoulde never happen*/
     elog(ERROR, "attempted to load non-offloaded relation");
   }
@@ -251,9 +287,6 @@ void yezzey_load_relation_internal(Oid reloid) {
   } else {
     elog(ERROR, "not an AO/AOCS relation, no action performed");
   }
-
-  /* record that relation on its current reloid is expired */
-  YezzeyFixupVirtualIndex(aorel);
 
   /*
    * Update relation status row in yezzet.offload_metadat
