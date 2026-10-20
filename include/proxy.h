@@ -44,4 +44,6 @@ EXTERNC off_t yezzey_FileDiskSize(File file);
 
 EXTERNC off_t yezzey_FileSize(File file);
 
+EXTERNC bool yezzey_is_current_rel_offloaded(void);
+
 #endif /* YEZZEY_PROXY_H */

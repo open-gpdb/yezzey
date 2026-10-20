@@ -6,9 +6,12 @@
 
 /* access */
 #include "access/aocssegfiles.h"
+#include "access/aomd.h"
 #include "access/aosegfiles.h"
 #include "access/xact.h"
 #include "access/xlog.h"
+#include "access/xloginsert.h"
+#include "access/xlogutils.h"
 
 /* catalog */
 #include "catalog/catalog.h"
@@ -57,6 +60,7 @@
 #include "offload.h"
 #include "offload_policy.h"
 #include "offload_tablespace_map.h"
+#include "proxy.h"
 #include "relfilelocator.h"
 #include "storage.h"
 #include "util.h"
@@ -118,6 +122,7 @@ PG_FUNCTION_INFO_V1(yezzey_collect_obsolete);
 static ExecutorStart_hook_type prev_ExecutorStart_hook = NULL;
 static object_access_hook_type prev_object_access_hook = NULL;
 static ProcessUtility_hook_type prev_ProcessUtility_hook = NULL;
+static XLogInsert_hook_type prev_XLogInsert_hook = NULL;
 
 /* Create yezzey metadata tables */
 Datum yezzey_init_metadata(PG_FUNCTION_ARGS) {
@@ -1296,6 +1301,42 @@ static void yezzey_define_gucs() {
                              NULL, NULL, NULL);
 }
 
+static XLogRecPtr
+yezzey_XLogInsert_hook(RmgrId rmid, uint8 info, TransactionId headerXid,
+                       uint8 curinsert_flags,
+                       RecordAssembleFunc recordAssembleFunc) {
+  XLogRecPtr EndPos;
+
+  if (rmid == RM_APPEND_ONLY_ID && yezzey_is_current_rel_offloaded()) {
+    rmid = RM_XLOG_ID;
+    info = XLOG_NOOP;
+  }
+
+  do {
+    XLogRecPtr RedoRecPtr;
+    bool doPageWrites;
+    XLogRecPtr fpw_lsn;
+    XLogRecData *rdt;
+    int num_fpi = 0;
+
+    /*
+     * Get values needed to decide whether to do full-page writes. Since
+     * we don't yet have an insertion lock, these could change under us,
+     * but XLogInsertRecord will recheck them once it has a lock.
+     */
+    GetFullPageWriteInfo(&RedoRecPtr, &doPageWrites);
+
+    rdt = recordAssembleFunc(rmid, info, RedoRecPtr, doPageWrites, &fpw_lsn,
+                             headerXid, &num_fpi);
+
+    EndPos = XLogInsertRecord(rdt, fpw_lsn, curinsert_flags, num_fpi);
+  } while (EndPos == InvalidXLogRecPtr);
+
+  XLogResetInsertion();
+
+  return EndPos;
+}
+
 void _PG_init(void) {
   if (!process_shared_preload_libraries_in_progress)
     ereport(ERROR,
@@ -1317,12 +1358,14 @@ void _PG_init(void) {
   prev_ExecutorStart_hook =
       ExecutorStart_hook ? ExecutorStart_hook : standard_ExecutorStart;
   prev_object_access_hook = object_access_hook;
+  prev_XLogInsert_hook = XLogInsert_hook;
 
   /* set drop hook  */
   ProcessUtility_hook = yezzey_ProcessUtility_hook;
   object_access_hook = yezzey_object_access_hook;
 
   ExecutorStart_hook = yezzey_ExecuterStartHook;
+  XLogInsert_hook = yezzey_XLogInsert_hook;
 }
 
 Datum yezzey_delete_obsolete(PG_FUNCTION_ARGS) {
