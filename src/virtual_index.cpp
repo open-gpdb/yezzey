@@ -316,18 +316,8 @@ std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno) {
   ScanKeyInit(&skey[1], Anum_yezzey_virtual_index_blkno, BTEqualStrategyNumber,
               F_INT4EQ, Int32GetDatum(blkno));
 
-  auto use_y_index = false;
-
-  auto tmprel = try_relation_open(YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
-                                  AccessShareLock, false);
-
-  if (tmprel != NULL) {
-    use_y_index = true;
-    relation_close(tmprel, AccessShareLock);
-  }
-
-  auto desc = systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION,
-                                 use_y_index, snap, 2, skey);
+  auto desc = systable_beginscan(rel, YEZZEY_VIRTUAL_INDEX_IDX_RELATION, true,
+                                 snap, 2, skey);
 
   while (HeapTupleIsValid(tuple = systable_getnext(desc))) {
     auto ytup = ((FormData_yezzey_virtual_index *)GETSTRUCT(tuple));
