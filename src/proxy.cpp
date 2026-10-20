@@ -95,9 +95,7 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
 
 static bool offloaded = false;
 
-EXTERNC bool yezzey_is_current_rel_offloaded(void) {
-	return offloaded;
-}
+EXTERNC bool yezzey_is_current_rel_offloaded(void) { return offloaded; }
 
 EXTERNC int yezzey_FileSync(File file, uint32 wait_event_info) {
   File actual_fd = YVirtFD_cache[file].y_vfd;
@@ -124,6 +122,10 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
   YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
 
   yfd.filepath = std::string(fileName);
+  yfd.fileFlags = fileFlags;
+  yfd.op_start_offset = -1;
+  yfd.modcount = modCount;
+  yfd.reloid = reloid;
   yfd.offloaded = offloaded = check_is_offloaded(reloid);
   if (yfd.offloaded) {
     Relation aorel = relation_open(reloid, NoLock);
@@ -138,14 +140,7 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
 
     pfree(nspname);
     relation_close(aorel, NoLock);
-  }
 
-  yfd.fileFlags = fileFlags;
-  yfd.op_start_offset = -1;
-  yfd.modcount = modCount;
-  yfd.reloid = reloid;
-
-  if (yfd.offloaded) {
     yfd.y_vfd = YEZZEY_OFFLOADED_FD;
 
     auto spcNode = YezzeyGetRelationOriginTablespaceOid(
@@ -154,8 +149,8 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
     auto ioadv = std::make_shared<IOadv>(
         yfd.nspname, yfd.relname,
         std::string(storage_class /* storage_class */), multipart_chunksize,
-        spcNode, yfd.filepath /* coords */, reloid /* reloid */,
-        use_gpg_crypto, yproxy_socket);
+        spcNode, yfd.filepath /* coords */, reloid /* reloid */, use_gpg_crypto,
+        yproxy_socket);
 
     yfd.coord = ioadv->coords_;
 
@@ -176,7 +171,7 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
   return yezzey_fd;
 }
 
-/* 
+/*
  * Offloaded AO files are not processed because their WAL records are skipped in
  * yezzey_XLogInsert_hook. This function processes not offloaded files only.
  * We don't need to interact with S3 while in recovery.
@@ -184,7 +179,7 @@ EXTERNC File yezzey_AORelOpenSegFile(Oid reloid, const char *fileName,
 EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
                                          int32 segmentFileNum, int fileFlags) {
   char path[MAXPGPATH];
-  auto dbPath =
+  char *dbPath =
       GetDatabasePath(YezzeyGetRelDbOid(node), YezzeyGetRelSpcOid(node));
 
   if (segmentFileNum == 0)
@@ -192,6 +187,11 @@ EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
   else
     snprintf(path, MAXPGPATH, "%s/%u.%u", dbPath, YezzeyGetRelNode(node),
              segmentFileNum);
+  pfree(dbPath);
+
+  File y_vfd = PathNameOpenFile(path, fileFlags);
+  if (y_vfd == -1)
+    return -1;
 
   File yezzey_fd = YEZZEY_NOT_OPENED + 1;
   while (YVirtFD_cache.count(yezzey_fd))
@@ -200,19 +200,12 @@ EXTERNC File yezzey_AORelOpenSegFileXlog(YezzeyLocator node,
   YVirtFD_cache[yezzey_fd] = YVirtFD();
 
   YVirtFD &yfd = YVirtFD_cache[yezzey_fd];
-
   yfd.filepath = std::string(path);
   yfd.fileFlags = fileFlags;
   yfd.op_start_offset = -1;
   yfd.modcount = -1;
-  yfd.reloid = InvalidOid;
-  yfd.y_vfd = PathNameOpenFile(yfd.filepath.c_str(), yfd.fileFlags);
-  if (yfd.y_vfd == -1) {
-    YVirtFD_cache.erase(yezzey_fd);
-    yezzey_fd = -1;
-  }
+  yfd.y_vfd = y_vfd;
 
-  pfree(dbPath);
   return yezzey_fd;
 }
 
