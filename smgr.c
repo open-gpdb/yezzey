@@ -76,7 +76,7 @@ static void yezzeyRevertCheatRelfilenode(YezzeyLocatorBackend *rnode) {
 }
 
 void yezzey_init(void) {
-  elog(yezzey_log_level, "[YEZZEY_SMGR] init called");
+  elog(DEBUG2, "[YEZZEY_SMGR] init called");
   mdinit();
 }
 
