@@ -23,9 +23,6 @@
 #include "yezzey_meta.h"
 #include "yproxy.h"
 
-int yezzey_log_level = DEBUG1;
-int yezzey_ao_log_level = DEBUG1;
-
 /*
  * This function used by AO-related relation functions
  */
@@ -234,7 +231,7 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   local_rnode.spcNode = loadSpcOid;
   char *path = getlocalpath(local_rnode, segno);
 
-  elog(yezzey_ao_log_level, "constructed path %s", path);
+  elog(DEBUG2, "yezzey: constructed path %s", path);
   if (ensureFilepathLocal(path)) {
     pfree(path);
     return;
@@ -261,8 +258,8 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
 
 int removeLocalFile(const char *localPath) {
   const auto res = std::remove(localPath);
-  elog(yezzey_ao_log_level,
-       "[YEZZEY_SMGR_BG] remove local file \"%s\", result: %d", localPath, res);
+  elog(DEBUG1, "[YEZZEY_SMGR_BG] remove local file \"%s\", result: %d",
+       localPath, res);
   return res;
 }
 
