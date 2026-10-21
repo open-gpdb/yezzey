@@ -23,9 +23,6 @@
 #include "yezzey_meta.h"
 #include "yproxy.h"
 
-int yezzey_log_level = DEBUG1;
-int yezzey_ao_log_level = DEBUG1;
-
 /*
  * This function used by AO-related relation functions
  */
@@ -233,7 +230,7 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   YezzeyGetRelSpcOid(local_rnode) = loadSpcOid;
   char *path = getlocalpath(local_rnode, segno);
 
-  elog(yezzey_ao_log_level, "constructed path %s", path);
+  elog(DEBUG2, "yezzey: constructed path %s", path);
   if (ensureFilepathLocal(path)) {
     pfree(path);
     return;

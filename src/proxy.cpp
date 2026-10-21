@@ -84,8 +84,7 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
     return -1;
   }
 
-  elog(yezzey_ao_log_level, "prepared writer handle for modcount %ld",
-       modcount);
+  elog(DEBUG1, "yezzey: prepared writer handle for modcount %ld", modcount);
 
   return 0;
 }
@@ -95,7 +94,7 @@ EXTERNC int yezzey_FileSync(File file, uint32 wait_event_info) {
   if (actual_fd == YEZZEY_OFFLOADED_FD) {
     return 0;
   }
-  elog(yezzey_ao_log_level, "file sync with fd %d actual %d", file, actual_fd);
+  elog(DEBUG2, "yezzey: file sync with fd %d actual %d", file, actual_fd);
 
   return FileSync(actual_fd, wait_event_info);
 }
@@ -224,7 +223,7 @@ void yezzey_FileClose(File file) {
   }
   YVirtFD &yfd = YVirtFD_cache[file];
   if (yfd.y_vfd != -1 && yfd.y_vfd != YEZZEY_OFFLOADED_FD) {
-    elog(yezzey_ao_log_level, "file close with %d actual %d", file, yfd.y_vfd);
+    elog(DEBUG2, "yezzey: file close with %d actual %d", file, yfd.y_vfd);
 
     FileClose(yfd.y_vfd);
     yfd.y_vfd = -1;
@@ -292,7 +291,7 @@ int yezzey_FileWrite(File file, char *buffer, int amount, off_t offset,
       elog(WARNING, "failed to write to external storage");
       return -1;
     }
-    elog(yezzey_ao_log_level,
+    elog(DEBUG2,
 #if PG_VERSION_NUM >= 160000
          "yezzey_FileWrite: write %ld bytes, %ld transferred, yezzey fd %d",
          (long)amount, (long)rc, file);
@@ -335,7 +334,7 @@ int yezzey_FileRead(File file, char *buffer, int amount, off_t offset,
       }
     } else {
       if (!yfd.handler->io_read((char *)buffer, &curr)) {
-        elog(yezzey_ao_log_level,
+        elog(WARNING,
              "yezzey_FileRead: problem while direct read from s3 read with %d "
              "curr: %ld",
              file, curr);
@@ -345,7 +344,7 @@ int yezzey_FileRead(File file, char *buffer, int amount, off_t offset,
 
     yfd.offset += curr;
 
-    elog(yezzey_ao_log_level,
+    elog(DEBUG2,
 #if PG_VERSION_NUM >= 160000
          "yezzey_FileRead: file read with %d, actual %d, amount %ld real %ld",
          file, actual_fd, (long)amount, (long)curr);

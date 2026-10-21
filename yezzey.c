@@ -64,16 +64,6 @@
 #include "virtual_tablespace.h"
 #include "xvacuum.h"
 
-// options for yezzey logging
-static const struct config_enum_entry loglevel_options[] = {
-    {"debug5", DEBUG5, false},   {"debug4", DEBUG4, false},
-    {"debug3", DEBUG3, false},   {"debug2", DEBUG2, false},
-    {"debug1", DEBUG1, false},   {"debug", DEBUG2, true},
-    {"info", INFO, false},       {"notice", NOTICE, false},
-    {"warning", WARNING, false}, {"error", ERROR, false},
-    {"log", LOG, false},         {"fatal", FATAL, false},
-    {"panic", PANIC, false},     {NULL, 0, false}};
-
 #define GET_STR(textp)                                                         \
   DatumGetCString(DirectFunctionCall1(textout, PointerGetDatum(textp)))
 
@@ -186,7 +176,7 @@ void yezzey_load_relation_internal(Oid reloid) {
    * Relation segments named base/DBOID/aorel->rd_node.*
    */
 
-  elog(yezzey_log_level, "loading relnode %u",
+  elog(DEBUG1, "yezzey: loading relnode %u",
        YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
   /* for now, we locked relation */
 
@@ -216,7 +206,7 @@ void yezzey_load_relation_internal(Oid reloid) {
 
     for (i = 0; i < total_segfiles; i++) {
       segno = segfile_array[i]->segno;
-      elog(yezzey_log_level, "loading segment no %d", segno);
+      elog(DEBUG1, "yezzey: loading segment no %d", segno);
 
       loadRelationSegment(aorel, loadSpcOid, origrelfilenode, segno);
       /* segment if loaded */
@@ -236,7 +226,7 @@ void yezzey_load_relation_internal(Oid reloid) {
       for (i = 0; i < total_segfiles; i++) {
         segno = segfile_array_cs[i]->segno;
         pseudosegno = (inat * AOTupleId_MultiplierSegmentFileNum) + segno;
-        elog(yezzey_log_level, "loading cs segment no %d pseudosegno %d", segno,
+        elog(DEBUG1, "yezzey: loading cs segment no %d pseudosegno %d", segno,
              pseudosegno);
 
         loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno);
@@ -617,9 +607,9 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
     modcount = segfile_array[i]->modcount;
     logicalEof = segfile_array[i]->eof;
 
-    elog(yezzey_log_level,
-         "stat segment no %d, modcount %ld up to logical eof %ld", segno,
-         modcount, logicalEof);
+    elog(DEBUG2,
+         "yezzey: stat segment no %d, modcount %ld up to logical eof %ld",
+         segno, modcount, logicalEof);
     size_t curr_local_bytes = 0;
     size_t curr_external_used_bytes = 0;
     size_t curr_local_commited_bytes = 0;
@@ -651,9 +641,9 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
     modcount = segfile_array_cs[i]->modcount;
     logicalEof = segfile_array_cs[i]->vpinfo.entry[inat].eof;
 
-    elog(yezzey_log_level,
-         "stat segment no %d, modcount %ld up to logical eof %ld", segno,
-         modcount, logicalEof);
+    elog(DEBUG2,
+         "yezzey: stat segment no %d, modcount %ld up to logical eof %ld",
+         segno, modcount, logicalEof);
     size_t curr_local_bytes = 0;
     size_t curr_external_used_bytes = 0;
     size_t curr_local_commited_bytes = 0;
@@ -959,7 +949,7 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
       modcount = segfile_array[i]->modcount;
       logicalEof = segfile_array[i]->eof;
 
-      elog(yezzey_log_level,
+      elog(DEBUG2,
            "yezzey: stat segment no %d, modcount %ld up to logical eof %ld",
            segno, modcount, logicalEof);
       size_t curr_local_bytes = 0;
@@ -995,8 +985,8 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
         modcount = segfile_array_cs[i]->modcount;
         logicalEof = segfile_array_cs[i]->vpinfo.entry[inat].eof;
 
-        elog(yezzey_log_level,
-             "yezzey: stat segment no %d, pseudosegno %d, modcount %ld with to "
+        elog(DEBUG2,
+             "yezzey: stat segment no %d, pseudosegno %d, modcount %ld up to "
              "logical eof %ld",
              segno, pseudosegno, modcount, logicalEof);
         size_t curr_local_bytes = 0;
@@ -1248,16 +1238,6 @@ static void yezzey_define_gucs() {
                            &use_otm_feature, false, PGC_BACKEND, 0, NULL, NULL,
                            NULL);
 
-  DefineCustomEnumVariable("yezzey.log_level",
-                           "Log level for yezzey functions.", NULL,
-                           &yezzey_log_level, DEBUG1, loglevel_options,
-                           PGC_SUSET, 0, NULL, NULL, NULL);
-
-  DefineCustomEnumVariable("yezzey.ao_log_level",
-                           "Log level for yezzey functions.", NULL,
-                           &yezzey_ao_log_level, DEBUG1, loglevel_options,
-                           PGC_SUSET, 0, NULL, NULL, NULL);
-
   DefineCustomStringVariable("yezzey.yproxy_socket", "wal-g config path", NULL,
                              &yproxy_socket, "/tmp/yproxy.sock", PGC_SUSET, 0,
                              NULL, NULL, NULL);
@@ -1273,7 +1253,7 @@ void _PG_init(void) {
 
   (void)yezzey_define_gucs();
 
-  elog(yezzey_log_level, "[YEZZEY_SMGR] set hook");
+  elog(DEBUG1, "[YEZZEY_SMGR] set hook");
 
   smgr_hook = smgr_yezzey;
   smgr_init_hook = smgr_init_yezzey;

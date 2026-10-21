@@ -26,7 +26,7 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
    * Relation segments named base/DBOID/YezzeyGetRelFileLocator(aorel).*
    */
 
-  elog(yezzey_log_level, "offloading relation %s, relnode %u",
+  elog(DEBUG1, "yezzey: offloading relation %s, relnode %u",
        RelationGetRelationName(aorel),
        YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
 
@@ -48,8 +48,9 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
       auto modcount = segfile_array[i]->modcount;
       auto logicalEof = segfile_array[i]->eof;
 
-      elog(yezzey_log_level,
-           "offloading segment no %d, modcount %ld up to logical eof %ld",
+      elog(DEBUG1,
+           "yezzey: offloading segment no %d, modcount %ld up to logical eof "
+           "%ld",
            segno, modcount, logicalEof);
 
       offloadRelationSegment(aorel, segno, modcount, logicalEof,
@@ -77,9 +78,9 @@ void yezzey_offload_relation_internal_rel(Relation aorel, bool remove_locally,
         auto pseudosegno = (inat * AOTupleId_MultiplierSegmentFileNum) + segno;
         auto modcount = segfile_array_cs[i]->modcount;
         auto logicalEof = segfile_array_cs[i]->vpinfo.entry[inat].eof;
-        elog(yezzey_ao_log_level,
-             "offloading cs segment no %d, pseudosegno %d, modcount %ld, up to "
-             "eof %ld",
+        elog(DEBUG1,
+             "yezzey: offloading cs segment no %d, pseudosegno %d, modcount "
+             "%ld up to logical eof %ld",
              segno, pseudosegno, modcount, logicalEof);
 
         offloadRelationSegment(aorel, pseudosegno, modcount, logicalEof,
