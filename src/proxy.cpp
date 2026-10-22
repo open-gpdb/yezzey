@@ -89,21 +89,20 @@ int writeprepare(std::shared_ptr<IOadv> ioadv, int64_t modcount,
     return -1;
   }
 
-  elog(yezzey_ao_log_level, "prepared writer handle for modcount %ld",
-       modcount);
+  elog(DEBUG1, "yezzey: prepared writer handle for modcount %ld", modcount);
 
   return 0;
 }
 
 int64 yezzey_NonVirtualCurSeek(SMGRFile file) {
   if (YVirtFD_cache[file].y_vfd == YEZZEY_OFFLOADED_FD) {
-    elog(yezzey_ao_log_level,
+    elog(DEBUG2,
          "yezzey_NonVirtualCurSeek: non virt file seek with yezzey fd %d and "
          "actual file in external storage, responding %ld",
          file, YVirtFD_cache[file].offset);
     return YVirtFD_cache[file].offset;
   }
-  elog(yezzey_ao_log_level,
+  elog(DEBUG2,
        "yezzey_NonVirtualCurSeek: non virt file seek with yezzey fd %d and "
        "actual %d",
        file, YVirtFD_cache[file].y_vfd);
@@ -119,7 +118,7 @@ int64 yezzey_FileSeek(SMGRFile file, int64 offset, int whence) {
     YVirtFD_cache[file].op_start_offset = offset;
     return offset;
   }
-  elog(yezzey_ao_log_level,
+  elog(DEBUG2,
        "yezzey_FileSeek: file seek with yezzey fd %d offset %ld actual %d",
        file, offset, actual_fd);
   return FileSeek(actual_fd, offset, whence);
@@ -132,7 +131,7 @@ EXTERNC int yezzey_FileSync(SMGRFile file) {
     /* sync tmp buf file here */
     return 0;
   }
-  elog(yezzey_ao_log_level, "file sync with fd %d actual %d", file, actual_fd);
+  elog(DEBUG2, "yezzey: file sync with fd %d actual %d", file, actual_fd);
 
   return FileSync(actual_fd);
 }
@@ -250,7 +249,7 @@ void yezzey_FileClose(SMGRFile file) {
   }
   YVirtFD &yfd = YVirtFD_cache[file];
   if (yfd.y_vfd != -1 && yfd.y_vfd != YEZZEY_OFFLOADED_FD) {
-    elog(yezzey_ao_log_level, "file close with %d actual %d", file, yfd.y_vfd);
+    elog(DEBUG2, "yezzey: file close with %d actual %d", file, yfd.y_vfd);
 
     FileClose(yfd.y_vfd);
     yfd.y_vfd = -1;
@@ -312,7 +311,7 @@ int yezzey_FileWrite(SMGRFile file, char *buffer, int amount) {
       elog(WARNING, "failed to write to external storage");
       return -1;
     }
-    elog(yezzey_ao_log_level,
+    elog(DEBUG2,
          "yezzey_FileWrite: write %d bytes, %ld transfered, yezzey fd %d",
          amount, rc, file);
     yfd.offset += rc;
@@ -341,7 +340,7 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
       }
     } else {
       if (!yfd.handler->io_read((char *)buffer, &curr)) {
-        elog(yezzey_ao_log_level,
+        elog(WARNING,
              "yezzey_FileRead: problem while direct read from s3 read with %d "
              "curr: %ld",
              file, curr);
@@ -351,7 +350,7 @@ int yezzey_FileRead(SMGRFile file, char *buffer, int amount) {
 
     yfd.offset += curr;
 
-    elog(yezzey_ao_log_level,
+    elog(DEBUG2,
          "yezzey_FileRead: file read with %d, actual %d, amount %d real %ld",
          file, actual_fd, amount, curr);
     return curr;
