@@ -1,3 +1,7 @@
+DROP FUNCTION yezzey_define_relation_offload_policy_internal_prepare_master(OID);
+
+DROP FUNCTION yezzey_define_relation_offload_policy_internal_prepare(OID);
+
 -- Add loader overloads without the destination-path parameter.
 
 CREATE FUNCTION yezzey_load_relation(reloid OID)
@@ -52,9 +56,6 @@ BEGIN
     ) THEN
         RETURN QUERY SELECT 'relation ' || i_offload_relname || ' already offloaded';
     END IF;
-
-    PERFORM yezzey_define_relation_offload_policy_internal_prepare(v_reloid);
-    PERFORM yezzey_define_relation_offload_policy_internal_prepare_master(v_reloid);
 
     PERFORM yezzey_define_relation_offload_policy_internal_seg(v_reloid);
     PERFORM yezzey_define_relation_offload_policy_internal(v_reloid);

@@ -16,7 +16,6 @@
 #include "cdb/cdbvars.h"
 #include "gucs.h"
 #include "io.h"
-#include "offload_tablespace_map.h"
 #include "url.h"
 #include "virtual_index.h"
 #include "yezzey_heap_api.h"
@@ -231,12 +230,6 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   local_rnode.spcNode = loadSpcOid;
   char *path = getlocalpath(local_rnode, segno);
 
-  elog(DEBUG2, "yezzey: constructed path %s", path);
-  if (ensureFilepathLocal(path)) {
-    pfree(path);
-    return;
-  }
-
   const char *relname = RelationGetRelationName(aorel);
   char *nspname = get_namespace_name(RelationGetNamespace(aorel));
   if (nspname == nullptr) {
@@ -342,20 +335,11 @@ Oid resolveTablespaceOidByName(const std::string &tablespacename) {
   return resOid;
 }
 
-/*
- * Relations in Yezzey tablespace have YEZZEYTABLESPACE_OID in their relnode.
- * Resolve their original tablespace from the metadata table instead.
- */
-static Oid getRelationOriginTablespaceOid(Relation rel) {
-  return resolveTablespaceOidByName(
-      YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(rel)));
-}
-
 static std::shared_ptr<IOadv>
 makeIOadvForOriginRelation(Relation rel, const std::string &nspname,
                            int segno) {
   const auto rnode = rel->rd_node;
-  const auto coords = relnodeCoord(getRelationOriginTablespaceOid(rel),
+  const auto coords = relnodeCoord(rnode.spcNode,
                                    rnode.dbNode, rnode.relNode, segno);
 
   return std::make_shared<IOadv>(
@@ -421,7 +405,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
 
   *local_bytes = 0;
 
-  if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
+  if (!RelationIsOffloaded(aorel)) {
 
     const auto f =
         PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);
@@ -485,7 +469,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
   char *local_path = getlocalpath(local_rnode, 0);
   *local_bytes = 0;
 
-  if (rnode.spcNode != YEZZEYTABLESPACE_OID) {
+  if (!RelationIsOffloaded(aorel)) {
 
     const auto f =
         PathNameOpenFile((FileName)local_path, O_RDONLY | PG_BINARY, S_IRUSR);

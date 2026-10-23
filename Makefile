@@ -22,7 +22,6 @@ OBJS = \
 	src/url.o \
 	src/io.o \
 	src/io_adv.o \
-	src/offload_tablespace_map.o \
 	src/offload_policy.o \
 	src/offload.o \
 	src/virtual_tablespace.o \

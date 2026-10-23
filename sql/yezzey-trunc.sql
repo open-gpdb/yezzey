@@ -7,7 +7,7 @@ CREATE TABLE trunc_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO trunc_regaoty SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('trunc_regaoty');
 
-SELECT reltablespace FROM pg_class where oid = 'trunc_regaoty'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'trunc_regaoty'::regclass::oid;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaoty');
@@ -48,7 +48,7 @@ CREATE TABLE trunc_regaocsty(i INT) WITH (appendonly=true, orientation=column);
 INSERT INTO trunc_regaocsty SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('trunc_regaocsty');
 
-SELECT reltablespace FROM pg_class where oid = 'trunc_regaocsty'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'trunc_regaocsty'::regclass::oid;
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('trunc_regaocsty');

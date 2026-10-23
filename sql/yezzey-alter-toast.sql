@@ -20,7 +20,7 @@ ALTER TABLE y_a_toast_t ADD COLUMN z5 text, DROP column z2, add column z4 TEXT, 
 
 INSERT INTO y_a_toast_t (z3) VALUES (repeat('a', 2323323));
 
-SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='y_a_toast_t');
+SELECT reloptions FROM pg_class where oid = 'y_a_toast_t'::regclass::oid;
 
 DROP TABLE y_a_toast_t;
 

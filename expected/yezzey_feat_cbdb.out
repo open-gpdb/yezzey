@@ -10,10 +10,10 @@ SELECT * FROM yezzey_define_offload_policy('regaotylol187');
  offloaded relation public.regaotylol187 to external storage
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'regaotylol187'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT yezzey_load_relation('regaotylol187');
@@ -22,10 +22,10 @@ SELECT yezzey_load_relation('regaotylol187');
  loaded relation regaotylol187 to local storage
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
- reltablespace 
----------------
-          1663
+SELECT reloptions FROM pg_class where oid = 'regaotylol187'::regclass::oid;
+    reloptions     
+-------------------
+ {appendonly=true}
 (1 row)
 
 SELECT * FROM yezzey_define_offload_policy('regaotylol187');
@@ -34,10 +34,10 @@ SELECT * FROM yezzey_define_offload_policy('regaotylol187');
  offloaded relation public.regaotylol187 to external storage
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaotylol187'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'regaotylol187'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT count(1) FROM regaotylol187;

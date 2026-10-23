@@ -3,7 +3,6 @@
 #include "proxy.h"
 
 #include "meta.h"
-#include "offload_tablespace_map.h"
 #include "unordered_map"
 #include "virtual_index.h"
 
@@ -136,6 +135,44 @@ EXTERNC int yezzey_FileSync(SMGRFile file) {
   return FileSync(actual_fd);
 }
 
+bool check_is_offloaded(Oid reloid) {
+  if (reloid == InvalidOid)
+    return false;
+
+  HeapTuple tuple = SearchSysCache1(RELOID, ObjectIdGetDatum(reloid));
+  if (!HeapTupleIsValid(tuple))
+    elog(ERROR, "cache lookup failed for relation %u", reloid);
+
+  bool isNull;
+  Datum options =
+      SysCacheGetAttr(RELOID, tuple, Anum_pg_class_reloptions, &isNull);
+
+  bool ret = false;
+  if (!isNull) {
+    ArrayType *array = DatumGetArrayTypeP(options);
+
+    Datum *optiondatums;
+    int noptions;
+	deconstruct_array(array, TEXTOID, -1, false, 'i', &optiondatums, NULL, &noptions);
+    for (int i = 0; i < noptions; i++) {
+      char *text_str = VARDATA(optiondatums[i]);
+      int text_len = VARSIZE(optiondatums[i]) - VARHDRSZ;
+      if (text_len == strlen("offloaded=true") &&
+          strcmp(text_str, "offloaded=true") == 0) {
+        ret = true;
+        break;
+      }
+    }
+
+    pfree(optiondatums);
+    if (((void *)array) != DatumGetPointer(options))
+      pfree(array);
+  }
+
+  ReleaseSysCache(tuple);
+  return ret;
+}
+
 static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
                                              const char *relname,
                                              const char *fileName,
@@ -159,7 +196,8 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
 #define GPDB6YEZZEYPREF "yezzey"
 #define GPDB7YEZZEYPREF "pg_tblspc/8555/"
 
-      if (strncmp(GPDB6YEZZEYPREF, fileName, strlen(GPDB6YEZZEYPREF)) == 0 ||
+      if (check_is_offloaded(reloid) ||
+          strncmp(GPDB6YEZZEYPREF, fileName, strlen(GPDB6YEZZEYPREF)) == 0 ||
           strncmp(GPDB7YEZZEYPREF, fileName, strlen(GPDB7YEZZEYPREF)) == 0) {
         offloaded = true;
         if (relname == NULL || nspname == NULL) {
@@ -189,8 +227,9 @@ static File yezzey_AORelOpenSegFile_internal(Oid reloid, const char *nspname,
       if (offloaded) {
         yfd.y_vfd = YEZZEY_OFFLOADED_FD;
         if (!RecoveryInProgress()) {
-          auto spcNode = YezzeyGetRelationOriginTablespaceOid(
-              yfd.nspname.c_str(), yfd.relname.c_str(), reloid);
+          Oid spcNode = get_rel_tablespace(reloid);
+          if (!OidIsValid(spcNode))
+            spcNode = DEFAULTTABLESPACE_OID;
 
           auto ioadv = std::make_shared<IOadv>(
               yfd.nspname, yfd.relname,

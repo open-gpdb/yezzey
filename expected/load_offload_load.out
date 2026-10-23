@@ -9,10 +9,10 @@ SELECT * FROM yezzey_define_offload_policy('regaotylol');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'regaotylol'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT count(1) FROM regaotylol;
@@ -37,10 +37,10 @@ SELECT count(1) FROM regaotylol;
  100000
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'regaotylol'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT yezzey_load_relation('regaotylol');
@@ -55,10 +55,10 @@ PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
- reltablespace 
----------------
-          1663
+SELECT reloptions FROM pg_class where oid = 'regaotylol'::regclass::oid;
+    reloptions     
+-------------------
+ {appendonly=true}
 (1 row)
 
 SELECT count(1) FROM regaotylol;
@@ -80,10 +80,10 @@ SELECT * FROM yezzey_define_offload_policy('regaotylol');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaotylol'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'regaotylol'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT count(1) FROM regaotylol;

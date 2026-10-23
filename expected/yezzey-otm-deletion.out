@@ -22,10 +22,10 @@ SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 INSERT INTO yezzey_otm_regaoty_1 SELECT * FROM generate_series(1, 100000);
@@ -66,10 +66,10 @@ SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 INSERT INTO yezzey_otm_regaoty_2 SELECT * FROM generate_series(1, 100000);

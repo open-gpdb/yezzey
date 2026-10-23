@@ -6,7 +6,7 @@ CREATE TABLE alter_regaoty(i INT) WITH (appendonly=true);
 INSERT INTO alter_regaoty SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('alter_regaoty');
 
-SELECT reltablespace FROM pg_class where oid = 'alter_regaoty'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'alter_regaoty'::regclass::oid;
 
 SELECT count() FROM yezzey_offload_relation_status('alter_regaoty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaoty');
@@ -43,7 +43,7 @@ CREATE TABLE alter_regaocsty(i INT) WITH (appendonly=true, orientation=column);
 INSERT INTO alter_regaocsty SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('alter_regaocsty');
 
-SELECT reltablespace FROM pg_class where oid = 'alter_regaocsty'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'alter_regaocsty'::regclass::oid;
 
 SELECT count() FROM yezzey_offload_relation_status('alter_regaocsty');
 SELECT count() FROM yezzey_offload_relation_status_per_filesegment('alter_regaocsty');

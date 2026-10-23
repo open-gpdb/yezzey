@@ -11,7 +11,7 @@ INSERT INTO vac_relation_regaotyvi SELECT * FROM generate_series(1, 100000);
 
 SELECT * FROM yezzey_define_offload_policy('vac_relation_regaotyvi');
 
-SELECT reltablespace FROM pg_class where oid = 'vac_relation_regaotyvi'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'vac_relation_regaotyvi'::regclass::oid;
 
 SELECT count(1) FROM yezzey_dump_virtual_index('vac_relation_regaotyvi');
 
