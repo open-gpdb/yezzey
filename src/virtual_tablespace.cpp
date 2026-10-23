@@ -6,6 +6,10 @@
 #include "virtual_tablespace.h"
 #include "yezzey_meta.h"
 
+extern "C" {
+#include "access/reloptions.h"
+#include "nodes/makefuncs.h"
+}
 #include "utils/relcache.h"
 
 /*
@@ -44,8 +48,6 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
   if (!HeapTupleIsValid(tuple))
     elog(ERROR, "cache lookup failed for relation %u", reloid);
 
-  auto rd_rel = (Form_pg_class)GETSTRUCT(tuple);
-
   /*
    * Since we copy the file directly without looking at the shared buffers,
    * we'd better first flush out any pages of the source relation that are
@@ -72,26 +74,66 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
    * over all forks. AO tables, so far, do not have visimap or fsm forks.
    */
 
-  /* drop old relation, and close new one */
-  if (IsYezzeyOperateSpc(desttablespace_oid))
+  if (IsYezzeyOperateSpc(desttablespace_oid)) {
+    /* drop old relation, and close new one */
     RelationDropStorage(aorel);
 
-  /* update the pg_class row */
-  if (!IsYezzeyOperateSpc(desttablespace_oid)) {
-#if PG_VERSION_NUM >= 160000
-    rd_rel->relfilenode = GetNewRelFileNumber(desttablespace_oid, NULL,
-                                              aorel->rd_rel->relpersistence);
-#else
-    rd_rel->relfilenode = GetNewRelFileNode(desttablespace_oid, NULL,
-                                            aorel->rd_rel->relpersistence);
-#endif
+    bool isnull;
+    Datum datum =
+        SysCacheGetAttr(RELOID, tuple, Anum_pg_class_reloptions, &isnull);
+    List *defs = list_make1(makeDefElem(pstrdup("yezzey_offloaded"), NULL, -1));
+    Datum newOptions = transformRelOptions(isnull ? (Datum)0 : datum, defs,
+                                           NULL, NULL, false, false);
+
+    Datum repl_val[Natts_pg_class];
+    bool repl_null[Natts_pg_class];
+    bool repl_repl[Natts_pg_class];
+    memset(repl_val, 0, sizeof(repl_val));
+    memset(repl_null, false, sizeof(repl_null));
+    memset(repl_repl, false, sizeof(repl_repl));
+
+    if (newOptions != (Datum)0)
+      repl_val[Anum_pg_class_reloptions - 1] = newOptions;
+    else
+      repl_null[Anum_pg_class_reloptions - 1] = true;
+    repl_repl[Anum_pg_class_reloptions - 1] = true;
+
+    HeapTuple newtuple = heap_modify_tuple(tuple, RelationGetDescr(pg_class),
+                                           repl_val, repl_null, repl_repl);
+
+    CatalogTupleUpdate(pg_class, &newtuple->t_self, newtuple);
+
+    InvokeObjectPostAlterHook(RelationRelationId, RelationGetRelid(aorel), 0);
+    heap_freetuple(newtuple);
+  } else {
+    bool isnull;
+    Datum datum =
+        SysCacheGetAttr(RELOID, tuple, Anum_pg_class_reloptions, &isnull);
+    List *defs = list_make1(makeDefElem(pstrdup("yezzey_offloaded"), NULL, -1));
+    Datum newOptions = transformRelOptions(isnull ? (Datum)0 : datum, defs,
+                                           NULL, NULL, false, true);
+
+    Datum repl_val[Natts_pg_class];
+    bool repl_null[Natts_pg_class];
+    bool repl_repl[Natts_pg_class];
+    memset(repl_val, 0, sizeof(repl_val));
+    memset(repl_null, false, sizeof(repl_null));
+    memset(repl_repl, false, sizeof(repl_repl));
+
+    if (newOptions != (Datum)0)
+      repl_val[Anum_pg_class_reloptions - 1] = newOptions;
+    else
+      repl_null[Anum_pg_class_reloptions - 1] = true;
+    repl_repl[Anum_pg_class_reloptions - 1] = true;
+
+    HeapTuple newtuple = heap_modify_tuple(tuple, RelationGetDescr(pg_class),
+                                           repl_val, repl_null, repl_repl);
+
+    CatalogTupleUpdate(pg_class, &newtuple->t_self, newtuple);
+
+    InvokeObjectPostAlterHook(RelationRelationId, RelationGetRelid(aorel), 0);
+    heap_freetuple(newtuple);
   }
-
-  rd_rel->reltablespace = desttablespace_oid;
-
-  CatalogTupleUpdate(pg_class, &tuple->t_self, tuple);
-
-  InvokeObjectPostAlterHook(RelationRelationId, RelationGetRelid(aorel), 0);
 
   heap_freetuple(tuple);
 
