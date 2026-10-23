@@ -19,8 +19,6 @@
 
 #include "relpath_parse.h"
 
-#define DEFAULTTABLESPACE_OID 1663 /* FIXME */
-
 const char *baseYezzeyPath = "/basebackups_005/yezzey/";
 
 std::string storage_url_add_options(const std::string &s3path,
@@ -121,9 +119,7 @@ int64_t yezzey_virtual_relation_size(std::shared_ptr<IOadv> adv,
 }
 
 int64_t yezzey_relation_metadata_size(std::shared_ptr<IOadv> adv) {
-  auto order =
-      YezzeyVirtualGetOrder(YezzeyFindAuxIndex(adv->reloid), adv->reloid,
-                            adv->coords_.filenode, adv->coords_.blkno);
+  auto order = YezzeyVirtualGetOrder(adv->coords_.filenode, adv->coords_.blkno);
 
   int64_t sz = 0;
 
@@ -163,7 +159,6 @@ int64_t yezzey_calc_virtual_relation_size(std::shared_ptr<IOadv> adv,
   return 0;
 #endif
 }
-/*XXX: fix cleanup*/
 
 XLogRecPtr yezzeyGetXStorageInsertLsn(void) {
   if (RecoveryInProgress())

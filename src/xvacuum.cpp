@@ -8,7 +8,6 @@
 #include "pg.h"
 #include "relfilelocator.h"
 #include "storage.h"
-#include "yezzey_heap_api.h"
 #include "yproxy.h"
 #include <string>
 #include <url.h>
@@ -36,7 +35,7 @@ void yezzey_delete_chunk_internal(const char *external_chunk_path) {
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    elog(ERROR, "failed to prepare x-storage deleter for chunk");
   }
 }
 
@@ -60,7 +59,7 @@ void yezzey_vacuum_garbage_tablespace_internal(Oid tablespaceOid, int segindx,
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    elog(ERROR, "failed to prepare x-storage deleter for chunk");
   }
 }
 
@@ -76,31 +75,27 @@ void yezzey_vacuum_garbage_internal(int segindx, bool confirm, bool crazyDrop) {
   HeapTuple tablespace_tuple;
 
   try {
-    rel = yezzey_relation_open(TableSpaceRelationId, AccessShareLock);
-    scan = yezzey_systable_beginscan(rel, InvalidOid, false, NULL, 0, NULL);
+    rel = table_open(TableSpaceRelationId, AccessShareLock);
+    scan = systable_beginscan(rel, InvalidOid, false, NULL, 0, NULL);
 
-    while ((tablespace_tuple = yezzey_systable_getnext(scan)) != NULL) {
-#if PG_VERSION_NUM >= 120000
+    while ((tablespace_tuple = systable_getnext(scan)) != NULL) {
       const Oid tablespace =
           ((Form_pg_tablespace)GETSTRUCT(tablespace_tuple))->oid;
-#else
-      const Oid tablespace = HeapTupleGetOid(tablespace_tuple);
-#endif
 
       yezzey_vacuum_garbage_tablespace_internal(tablespace, segindx, confirm,
                                                 crazyDrop);
     }
 
-    yezzey_systable_endscan(scan);
+    systable_endscan(scan);
     scan = NULL;
-    yezzey_relation_close(rel, AccessShareLock);
+    table_close(rel, AccessShareLock);
     rel = NULL;
   } catch (...) {
     if (scan != NULL) {
-      yezzey_systable_endscan(scan);
+      systable_endscan(scan);
     }
     if (rel != NULL) {
-      yezzey_relation_close(rel, AccessShareLock);
+      table_close(rel, AccessShareLock);
     }
     elog(ERROR, "failed to vacuum garbage in all tablespaces");
   }
@@ -115,7 +110,7 @@ void yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
                               ObjectIdGetDatum(RelationGetNamespace(aorel)));
 
     if (!HeapTupleIsValid(tp)) {
-      elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+      elog(ERROR, "yezzey: failed to get namespace name of relation %s",
            RelationGetRelationName(aorel));
     }
 
@@ -159,7 +154,7 @@ void yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage reader for chunk");
+    elog(ERROR, "failed to prepare x-storage deleter for chunk");
   }
 }
 
@@ -190,7 +185,7 @@ void yezzey_delele_obsolete_internal(int segindx, bool crazy_drop,
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage delete");
+    elog(ERROR, "failed to prepare x-storage deleter");
   }
 }
 
@@ -213,6 +208,6 @@ void yezzey_collect_obsolete_internal(int segindx, const char *dbname,
     }
 
   } catch (...) {
-    elog(ERROR, "failed to prepare x-storage obsolete");
+    elog(ERROR, "failed to prepare x-storage deleter");
   }
 }

@@ -20,12 +20,8 @@
 #include "relfilelocator.h"
 #include "url.h"
 #include "virtual_index.h"
-#include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
 #include "yproxy.h"
-
-int yezzey_log_level = DEBUG1;
-int yezzey_ao_log_level = DEBUG1;
 
 /*
  * This function used by AO-related relation functions
@@ -86,22 +82,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   auto progress = virtual_size;
   const auto offset_start = progress;
 
-#if PG_VERSION_NUM < 120000
-  const auto fLen = FileSeek(vfd, 0L, SEEK_END);
-
-  if (fLen < logicalEof) {
-    const std::string error =
-        std::string("failed to offload corrupt relation, partial data file ") +
-        localPath + ": " + std::to_string(fLen) + " < " +
-        std::to_string(logicalEof);
-    FileClose(vfd);
-    pfree(localPath);
-    throw std::runtime_error(error);
-  }
-
-  FileSeek(vfd, progress, SEEK_SET);
-
-#else
   const auto fLen = FileSize(vfd);
 
   if (fLen < logicalEof) {
@@ -113,7 +93,6 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
     pfree(localPath);
     throw std::runtime_error(error);
   }
-#endif
 
   ioadv->multipart_upload = fLen > multipart_threshold;
 
@@ -159,8 +138,8 @@ int offloadRelationSegmentPath(Relation aorel, std::shared_ptr<IOadv> ioadv,
   /* data persisted in external storage, we can update out metadata relations */
   /* insert chunk metadata in virtual index  */
   YezzeyUpdateMetadataRelations(
-      YezzeyFindAuxIndex(aorel->rd_id), ioadv->reloid, ioadv->coords_.filenode,
-      ioadv->coords_.blkno /* blkno*/, offset_start, offset_finish,
+      ioadv->reloid, ioadv->coords_.filenode, ioadv->coords_.blkno /* blkno*/,
+      offset_start, offset_finish,
       iohandler.adv_->use_gpg_crypto /* encrypted */, iohandler.use_kek(),
       0 /* reused */, modcount, iohandler.writer_->getInsertionStorageLsn(),
       iohandler.writer_->getExternalStoragePath().c_str() /* path */,
@@ -251,7 +230,7 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   YezzeyGetRelSpcOid(local_rnode) = loadSpcOid;
   char *path = getlocalpath(local_rnode, segno);
 
-  elog(yezzey_ao_log_level, "constructed path %s", path);
+  elog(DEBUG2, "yezzey: constructed path %s", path);
   if (ensureFilepathLocal(path)) {
     pfree(path);
     return;
@@ -276,13 +255,6 @@ void loadRelationSegment(Relation aorel, Oid loadSpcOid, Oid orig_relnode,
   pfree(nspname);
 }
 
-int removeLocalFile(const char *localPath) {
-  const auto res = std::remove(localPath);
-  elog(yezzey_ao_log_level,
-       "[YEZZEY_SMGR_BG] remove local file \"%s\", result: %d", localPath, res);
-  return res;
-}
-
 void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                             int64 logicalEof,
                             const char *external_storage_path) {
@@ -296,7 +268,7 @@ void offloadRelationSegment(Relation aorel, int segno, int64 modcount,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
   if (!HeapTupleIsValid(tp)) {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 
@@ -338,15 +310,15 @@ Oid resolveTablespaceOidByName(const std::string &tablespacename) {
   /*
    * Find the target tuple
    */
-  rel = yezzey_relation_open(TableSpaceRelationId, RowExclusiveLock);
+  rel = table_open(TableSpaceRelationId, RowExclusiveLock);
 
   const auto snap = RegisterSnapshot(GetTransactionSnapshot());
 
   ScanKeyInit(&entry[0], Anum_pg_tablespace_spcname, BTEqualStrategyNumber,
               F_NAMEEQ, CStringGetDatum(tablespacename.c_str()));
-  scan = yezzey_systable_beginscan(rel, InvalidOid, false, snap, 1, entry);
+  scan = systable_beginscan(rel, InvalidOid, false, snap, 1, entry);
 
-  tuple = yezzey_systable_getnext(scan);
+  tuple = systable_getnext(scan);
 
   if (!HeapTupleIsValid(tuple)) {
     ereport(ERROR, (errcode(ERRCODE_UNDEFINED_OBJECT),
@@ -354,15 +326,11 @@ Oid resolveTablespaceOidByName(const std::string &tablespacename) {
                            tablespacename.c_str())));
   }
 
-#if PG_VERSION_NUM >= 120000
   resOid = ((Form_pg_class)GETSTRUCT(tuple))->oid;
-#else
-  resOid = HeapTupleGetOid(tuple);
-#endif
 
-  yezzey_systable_endscan(scan);
+  systable_endscan(scan);
   UnregisterSnapshot(snap);
-  yezzey_relation_close(rel, RowExclusiveLock);
+  table_close(rel, RowExclusiveLock);
 
   return resOid;
 }
@@ -395,7 +363,7 @@ int statExternalTotal(Relation aorel, int segindx) {
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
   if (!HeapTupleIsValid(tp)) {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 
@@ -419,7 +387,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
   if (!HeapTupleIsValid(tp)) {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 
@@ -454,11 +422,7 @@ int statRelationSpaceUsage(Relation aorel, int segno, int64 modcount,
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path);
 
-#if PG_VERSION_NUM < 120000
-    *local_bytes = FileSeek(f, 0L, SEEK_END);
-#else
     *local_bytes = FileSize(f);
-#endif
 
     FileClose(f);
   }
@@ -478,7 +442,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
                             ObjectIdGetDatum(aorel->rd_rel->relnamespace));
 
   if (!HeapTupleIsValid(tp)) {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 
@@ -521,11 +485,7 @@ int statRelationChunksSpaceUsage(Relation aorel, size_t *local_bytes,
     if (f < 0)
       elog(ERROR, "could not open file \"%s\": %m", local_path);
 
-#if PG_VERSION_NUM < 120000
-    *local_bytes = FileSeek(f, 0L, SEEK_END);
-#else
     *local_bytes = FileSize(f);
-#endif
 
     FileClose(f);
   }

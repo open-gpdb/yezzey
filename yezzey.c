@@ -46,10 +46,6 @@
 #include "utils/guc.h"
 #include "utils/syscache.h"
 
-#if PG_VERSION_NUM < 10000
-#include "utils/tqual.h"
-#endif
-
 #include "fmgr.h"
 #include "funcapi.h"
 #include "pgstat.h"
@@ -67,16 +63,6 @@
 #include "virtual_index.h"
 #include "virtual_tablespace.h"
 #include "xvacuum.h"
-
-// options for yezzey logging
-static const struct config_enum_entry loglevel_options[] = {
-    {"debug5", DEBUG5, false},   {"debug4", DEBUG4, false},
-    {"debug3", DEBUG3, false},   {"debug2", DEBUG2, false},
-    {"debug1", DEBUG1, false},   {"debug", DEBUG2, true},
-    {"info", INFO, false},       {"notice", NOTICE, false},
-    {"warning", WARNING, false}, {"error", ERROR, false},
-    {"log", LOG, false},         {"fatal", FATAL, false},
-    {"panic", PANIC, false},     {NULL, 0, false}};
 
 #define GET_STR(textp)                                                         \
   DatumGetCString(DirectFunctionCall1(textout, PointerGetDatum(textp)))
@@ -96,9 +82,7 @@ char *yproxy_socket = NULL;
 
 PG_MODULE_MAGIC;
 
-PG_FUNCTION_INFO_V1(yezzey_offload_relation);
 PG_FUNCTION_INFO_V1(yezzey_load_relation);
-PG_FUNCTION_INFO_V1(yezzey_force_segment_offload);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_internal);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_modern);
 PG_FUNCTION_INFO_V1(yezzey_offload_relation_status_per_filesegment);
@@ -112,18 +96,16 @@ PG_FUNCTION_INFO_V1(yezzey_offload_relation_to_external_path);
 PG_FUNCTION_INFO_V1(yezzey_show_relation_external_path);
 PG_FUNCTION_INFO_V1(yezzey_init_metadata);
 PG_FUNCTION_INFO_V1(yezzey_set_relation_expirity_seg);
-PG_FUNCTION_INFO_V1(yezzey_check_part_exr);
 
 PG_FUNCTION_INFO_V1(yezzey_delete_chunk);
-PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage);
-PG_FUNCTION_INFO_V1(yezzey_vacuum_garbage_tablespace);
+PG_FUNCTION_INFO_V1(yezzey_vacuum);
+PG_FUNCTION_INFO_V1(yezzey_vacuum_tablespace);
 PG_FUNCTION_INFO_V1(yezzey_vacuum_relation);
 
 PG_FUNCTION_INFO_V1(yezzey_delete_obsolete);
 PG_FUNCTION_INFO_V1(yezzey_collect_obsolete);
 
 static ExecutorStart_hook_type prev_ExecutorStart_hook = NULL;
-static ExecutorEnd_hook_type prev_ExecutorEnd_hook = NULL;
 static object_access_hook_type prev_object_access_hook = NULL;
 static ProcessUtility_hook_type prev_ProcessUtility_hook = NULL;
 
@@ -170,11 +152,6 @@ Datum yezzey_define_relation_offload_policy_internal_seg(PG_FUNCTION_ARGS) {
   return yezzey_define_relation_offload_policy_internal(fcinfo);
 }
 
-/*
- * yezzey_load_relation_internal:
- * TBD: doc the logic
- */
-
 void yezzey_load_relation_internal(Oid reloid) {
   Relation aorel;
   int i;
@@ -187,8 +164,6 @@ void yezzey_load_relation_internal(Oid reloid) {
   AOCSFileSegInfo **segfile_array_cs;
   Snapshot appendOnlyMetaDataSnapshot;
   Oid origrelfilenode;
-  /* yezzey aux index oid */
-  Oid yandexoid;
 
   /*  XXX: maybe fix lock here to take more granular lock
    */
@@ -201,7 +176,7 @@ void yezzey_load_relation_internal(Oid reloid) {
    * Relation segments named base/DBOID/aorel->rd_node.*
    */
 
-  elog(yezzey_log_level, "loading relnode %u",
+  elog(DEBUG1, "yezzey: loading relnode %u",
        YezzeyGetRelNode(YezzeyGetRelFileLocator(aorel)));
   /* for now, we locked relation */
 
@@ -231,7 +206,7 @@ void yezzey_load_relation_internal(Oid reloid) {
 
     for (i = 0; i < total_segfiles; i++) {
       segno = segfile_array[i]->segno;
-      elog(yezzey_log_level, "loading segment no %d", segno);
+      elog(DEBUG1, "yezzey: loading segment no %d", segno);
 
       loadRelationSegment(aorel, loadSpcOid, origrelfilenode, segno);
       /* segment if loaded */
@@ -251,7 +226,7 @@ void yezzey_load_relation_internal(Oid reloid) {
       for (i = 0; i < total_segfiles; i++) {
         segno = segfile_array_cs[i]->segno;
         pseudosegno = (inat * AOTupleId_MultiplierSegmentFileNum) + segno;
-        elog(yezzey_log_level, "loading cs segment no %d pseudosegno %d", segno,
+        elog(DEBUG1, "yezzey: loading cs segment no %d pseudosegno %d", segno,
              pseudosegno);
 
         loadRelationSegment(aorel, loadSpcOid, origrelfilenode, pseudosegno);
@@ -275,13 +250,11 @@ void yezzey_load_relation_internal(Oid reloid) {
    * State that relation is local, but used to be offloaded
    */
 
-  /* yezzey aux index oid */
-  yandexoid = YezzeyFindAuxIndex(reloid);
-
   /* firstly, delete dependency from pg_depend
    * This is needed for next deletion operation to work
    */
-  deleteDependencyRecordsForClass(RelationRelationId, yandexoid,
+  deleteDependencyRecordsForClass(RelationRelationId,
+                                  YEZZEY_VIRTUAL_INDEX_RELATION,
                                   RelationRelationId, DEPENDENCY_INTERNAL);
 
   deleteDependencyRecordsForClass(RelationRelationId, reloid,
@@ -289,15 +262,6 @@ void yezzey_load_relation_internal(Oid reloid) {
 
   /* make changes visible */
   CommandCounterIncrement();
-
-  /* Check if relation hash dedicated vitr index and drop */
-  if (yandexoid != YEZZEY_VIRTUAL_INDEX_RELATION) {
-    ObjectAddress object;
-    object.classId = RelationRelationId;
-    object.objectId = yandexoid;
-    object.objectSubId = 0;
-    performDeletion(&object, DROP_CASCADE, PERFORM_DELETION_INTERNAL);
-  }
 
   /* update metadata relations */
   YezzeyLoadRelation(reloid);
@@ -309,7 +273,7 @@ void yezzey_load_relation_internal(Oid reloid) {
    * empty all track info
    */
 
-  (void)emptyYezzeyIndex(yandexoid, origrelfilenode);
+  (void)emptyYezzeyIndex(origrelfilenode);
   /* cleanup */
 
   relation_close(aorel, NoLock);
@@ -327,28 +291,6 @@ Datum yezzey_load_relation(PG_FUNCTION_ARGS) {
 
   PG_RETURN_VOID();
 }
-
-Datum yezzey_offload_relation(PG_FUNCTION_ARGS) {
-  /*
-   * Force table offloading to external storage
-   * In order:
-   * 1) lock table in IN EXCLUSIVE MODE
-   * 2) check pg_aoseg.pg_aoseg_XXX table for all segments
-   * 3) go and offload each segment (XXX: enhancement: do offloading in
-   * parallel)
-   */
-  Oid reloid;
-  bool remove_locally;
-
-  reloid = PG_GETARG_OID(0);
-  remove_locally = PG_GETARG_BOOL(1);
-
-  yezzey_offload_relation_internal(reloid, remove_locally, NULL);
-
-  PG_RETURN_VOID();
-}
-
-Datum yezzey_force_segment_offload(PG_FUNCTION_ARGS) { PG_RETURN_VOID(); }
 
 Datum yezzey_offload_relation_to_external_path(PG_FUNCTION_ARGS) {
   /*
@@ -388,7 +330,7 @@ Datum yezzey_delete_chunk(PG_FUNCTION_ARGS) {
 }
 
 /* Given external yezzey chunk path, remove it from external storage */
-Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
+Datum yezzey_vacuum(PG_FUNCTION_ARGS) {
   bool confirm;
   bool crazyDrop;
 
@@ -413,7 +355,7 @@ Datum yezzey_vacuum_garbage(PG_FUNCTION_ARGS) {
   PG_RETURN_BOOL(true);
 }
 
-Datum yezzey_vacuum_garbage_tablespace(PG_FUNCTION_ARGS) {
+Datum yezzey_vacuum_tablespace(PG_FUNCTION_ARGS) {
   Oid tablespace;
   bool confirm;
   bool crazyDrop;
@@ -493,7 +435,7 @@ Datum yezzey_show_relation_external_path(PG_FUNCTION_ARGS) {
     nspname = pstrdup(NameStr(nsptup->nspname));
     ReleaseSysCache(tp);
   } else {
-    elog(ERROR, "yezzey: failed to get namescape name of relation %s",
+    elog(ERROR, "yezzey: failed to get namespace name of relation %s",
          RelationGetRelationName(aorel));
   }
 
@@ -665,9 +607,9 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
     modcount = segfile_array[i]->modcount;
     logicalEof = segfile_array[i]->eof;
 
-    elog(yezzey_log_level,
-         "stat segment no %d, modcount %ld with to logial eof %ld", segno,
-         modcount, logicalEof);
+    elog(DEBUG2,
+         "yezzey: stat segment no %d, modcount %ld up to logical eof %ld",
+         segno, modcount, logicalEof);
     size_t curr_local_bytes = 0;
     size_t curr_external_used_bytes = 0;
     size_t curr_local_commited_bytes = 0;
@@ -699,9 +641,9 @@ static Datum yezzey_ofr_per_fs_worker(PG_FUNCTION_ARGS, bool ext) {
     modcount = segfile_array_cs[i]->modcount;
     logicalEof = segfile_array_cs[i]->vpinfo.entry[inat].eof;
 
-    elog(yezzey_log_level,
-         "stat segment no %d, modcount %ld with to logial eof %ld", segno,
-         modcount, logicalEof);
+    elog(DEBUG2,
+         "yezzey: stat segment no %d, modcount %ld up to logical eof %ld",
+         segno, modcount, logicalEof);
     size_t curr_local_bytes = 0;
     size_t curr_external_used_bytes = 0;
     size_t curr_local_commited_bytes = 0;
@@ -1007,8 +949,8 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
       modcount = segfile_array[i]->modcount;
       logicalEof = segfile_array[i]->eof;
 
-      elog(yezzey_log_level,
-           "yezzey: stat segment no %d, modcount %ld with to logial eof %ld",
+      elog(DEBUG2,
+           "yezzey: stat segment no %d, modcount %ld up to logical eof %ld",
            segno, modcount, logicalEof);
       size_t curr_local_bytes = 0;
       size_t curr_external_bytes = 0;
@@ -1043,9 +985,9 @@ static Datum yezzey_ofr_worker(PG_FUNCTION_ARGS, bool ext) {
         modcount = segfile_array_cs[i]->modcount;
         logicalEof = segfile_array_cs[i]->vpinfo.entry[inat].eof;
 
-        elog(yezzey_log_level,
-             "yezzey: stat segment no %d, pseudosegno %d, modcount %ld with to "
-             "logial eof %ld",
+        elog(DEBUG2,
+             "yezzey: stat segment no %d, pseudosegno %d, modcount %ld up to "
+             "logical eof %ld",
              segno, pseudosegno, modcount, logicalEof);
         size_t curr_local_bytes = 0;
         size_t curr_external_used_bytes = 0;
@@ -1155,16 +1097,6 @@ Datum yezzey_set_relation_expirity_seg(PG_FUNCTION_ARGS) {
   PG_RETURN_VOID();
 }
 
-/* partition - related worker routines */
-
-/*
- * yezzey_check_part_exr
- */
-Datum yezzey_check_part_exr(PG_FUNCTION_ARGS) {
-  /* TODO: drop */
-  PG_RETURN_NULL();
-}
-
 /* Plugin provides a hook function matching this signature. */
 void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
                                Oid objectId, int subId, void *arg) {
@@ -1180,7 +1112,7 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
     /* open the relation, we already hold a lock on it */
     offRel = relation_open(objectId, AccessShareLock);
 
-    emptyYezzeyIndex(YezzeyFindAuxIndex(objectId), offRel->rd_rel->relfilenode);
+    emptyYezzeyIndex(offRel->rd_rel->relfilenode);
 
     relation_close(offRel, AccessShareLock);
   }
@@ -1193,8 +1125,7 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
       return;
     }
 
-    (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(offRel)),
-                           YezzeyGetRelNode(YezzeyGetRelFileLocator(offRel)));
+    (void)emptyYezzeyIndex(YezzeyGetRelNode(YezzeyGetRelFileLocator(offRel)));
     (void)FixupOffloadMetadata(RelationGetRelid(offRel));
 
     relation_close(offRel, AccessShareLock);
@@ -1209,15 +1140,6 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
  * Hook ProcessUtility to do external storage vacuum
  */
 
-/*
-* For Modern yezzey
-* (PlannedStmt *pstmt, const char *queryString,
-                                                                        bool
-readOnlyTree, ProcessUtilityContext context, ParamListInfo params,
-                                                                        QueryEnvironment
-*queryEnv, DestReceiver *dest, QueryCompletion *qc);
-*/
-
 #define YEZZEYTABLESPACE_NAME "yezzey(cloud-storage)"
 
 static void
@@ -1231,7 +1153,6 @@ yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
   if (pstmt->utilityStmt) {
     parsetree = pstmt->utilityStmt;
   } else {
-    /*  when?  */
     return prev_ProcessUtility_hook(pstmt, queryString, readOnlyTree, context,
                                     params, queryEnv, dest, qc);
   }
@@ -1260,12 +1181,6 @@ yezzey_ProcessUtility_hook(PlannedStmt *pstmt, const char *queryString,
     YezzeyDefineOffloadPolicy(RelationGetRelid(rel));
     relation_close(rel, NoLock);
   }
-}
-
-static void yezzey_ExecuterEndHook(QueryDesc *queryDesc) {
-  (void)prev_ExecutorEnd_hook(queryDesc);
-
-  YezzeyTruncateOTMHint();
 }
 
 static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
@@ -1299,9 +1214,6 @@ static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
   }
 }
 
-/* GUC variables. */
-static bool yezzey_autooffload = false; /* start yezzey worker? */
-
 static void yezzey_define_gucs() {
 
   DefineCustomStringVariable(
@@ -1326,28 +1238,12 @@ static void yezzey_define_gucs() {
                            &use_otm_feature, false, PGC_BACKEND, 0, NULL, NULL,
                            NULL);
 
-  DefineCustomBoolVariable(
-      "yezzey.autooffload", "enable auto-offloading worker", NULL,
-      &yezzey_autooffload, false, PGC_USERSET, 0, NULL, NULL, NULL);
-
-  DefineCustomEnumVariable("yezzey.log_level",
-                           "Log level for yezzey functions.", NULL,
-                           &yezzey_log_level, DEBUG1, loglevel_options,
-                           PGC_SUSET, 0, NULL, NULL, NULL);
-
-  DefineCustomEnumVariable("yezzey.ao_log_level",
-                           "Log level for yezzey functions.", NULL,
-                           &yezzey_ao_log_level, DEBUG1, loglevel_options,
-                           PGC_SUSET, 0, NULL, NULL, NULL);
-
   DefineCustomStringVariable("yezzey.yproxy_socket", "wal-g config path", NULL,
                              &yproxy_socket, "/tmp/yproxy.sock", PGC_SUSET, 0,
                              NULL, NULL, NULL);
 }
 
 void _PG_init(void) {
-  /* Allocate shared memory for yezzey workers */
-
   if (!process_shared_preload_libraries_in_progress)
     ereport(ERROR,
             (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
@@ -1355,10 +1251,9 @@ void _PG_init(void) {
 
   allow_in_place_tablespaces = true;
 
-  /* Yezzey GUCS define */
   (void)yezzey_define_gucs();
 
-  elog(yezzey_log_level, "[YEZZEY_SMGR] set hook");
+  elog(DEBUG1, "[YEZZEY_SMGR] set hook");
 
   smgr_hook = smgr_yezzey;
   smgr_init_hook = smgr_init_yezzey;
@@ -1368,8 +1263,6 @@ void _PG_init(void) {
       ProcessUtility_hook ? ProcessUtility_hook : standard_ProcessUtility;
   prev_ExecutorStart_hook =
       ExecutorStart_hook ? ExecutorStart_hook : standard_ExecutorStart;
-  prev_ExecutorEnd_hook =
-      ExecutorEnd_hook ? ExecutorEnd_hook : standard_ExecutorEnd;
   prev_object_access_hook = object_access_hook;
 
   /* set drop hook  */
@@ -1377,7 +1270,6 @@ void _PG_init(void) {
   object_access_hook = yezzey_object_access_hook;
 
   ExecutorStart_hook = yezzey_ExecuterStartHook;
-  ExecutorEnd_hook = yezzey_ExecuterEndHook;
 }
 
 Datum yezzey_delete_obsolete(PG_FUNCTION_ARGS) {

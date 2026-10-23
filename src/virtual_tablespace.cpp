@@ -6,9 +6,7 @@
 #include "virtual_tablespace.h"
 #include "yezzey_meta.h"
 
-#if IsCloudBerry
 #include "utils/relcache.h"
-#endif
 
 /*
  * Execute ALTER TABLE SET TABLESPACE for cases where there is no tuple
@@ -40,7 +38,7 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
   /* We do not take care of TOAST relations here */
 
   /* Get a modifiable copy of the relation's pg_class row */
-  auto pg_class = heap_open(RelationRelationId, RowExclusiveLock);
+  auto pg_class = table_open(RelationRelationId, RowExclusiveLock);
 
   auto tuple = SearchSysCacheCopy1(RELOID, ObjectIdGetDatum(reloid));
   if (!HeapTupleIsValid(tuple))
@@ -97,9 +95,8 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
 
   heap_freetuple(tuple);
 
-  heap_close(pg_class, RowExclusiveLock);
+  table_close(pg_class, RowExclusiveLock);
 
-#if IsCloudBerry
   /*
    * Record the tablespace transition as a new relfilenode before making the
    * pg_class change visible, as required by the Cloudberry relcache.
@@ -108,7 +105,6 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
   RelationAssumeNewRelfilelocator(aorel);
 #else
   RelationAssumeNewRelfilenode(aorel);
-#endif
 #endif
   /* Make sure the reltablespace change is visible */
   CommandCounterIncrement();

@@ -20,12 +20,12 @@ std::string yezzey_fqrelname_md5(const std::string &nspname,
   const char *errstr = NULL;
   /* compute AO/AOCS relation name, just like WAL-G does*/
   if (!pg_md5_hash(full_name.c_str(), full_name.size(), md, &errstr)) {
-    elog(ERROR, "failed to calculated RFQN md5 hash");
+    elog(ERROR, "failed to calculate RFQN MD5 hash");
   }
 #else
   /* compute AO/AOCS relation name, just like WAL-G does*/
   if (!pg_md5_hash(full_name.c_str(), full_name.size(), md)) {
-    elog(ERROR, "failed to calculated RFQN md5 hash");
+    elog(ERROR, "failed to calculate RFQN MD5 hash");
   }
 #endif
 

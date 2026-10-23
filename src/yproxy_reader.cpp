@@ -1,5 +1,7 @@
 #include "yproxy_reader.h"
 
+#include "msgproto.h"
+
 const int kDefaultRetryLimit = 100;
 
 YProxyReader::YProxyReader(std::shared_ptr<IOadv> adv, ssize_t segindx,
@@ -80,7 +82,6 @@ bool YProxyReader::read(char *buffer, size_t *amount) {
 
       // close previous read socket, if any
       if (!this->close()) {
-        // wtf?
         return false;
       }
       auto rc = this->prepareYproxyConnection(order_[order_ptr_], 0);

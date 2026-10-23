@@ -60,13 +60,8 @@ void yezzey_extend(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 void yezzey_zeroextend(SMgrRelation reln, ForkNumber forkNum,
                        BlockNumber blockNum, int nBlocks, bool skipFsync);
 #endif
-#if PG_VERSION_NUM >= 130000
 bool yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum,
                      BlockNumber blockNum);
-#else
-void yezzey_prefetch(SMgrRelation reln, ForkNumber forkNum,
-                     BlockNumber blockNum);
-#endif
 void yezzey_read(SMgrRelation reln, ForkNumber forkNum, BlockNumber blockNum,
 #if PG_VERSION_NUM >= 160000
                  void *buffer);

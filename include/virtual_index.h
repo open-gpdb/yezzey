@@ -56,27 +56,21 @@ typedef FormData_yezzey_virtual_index *Form_yezzey_virtual_index;
 /* variable-len params should go last */
 #define Anum_yezzey_virtual_x_path 10
 
-EXTERNC Oid YezzeyFindAuxIndex(Oid reloid);
+EXTERNC void emptyYezzeyIndex(Oid relfilenode);
 
-EXTERNC void emptyYezzeyIndex(Oid yezzey_index_oid, Oid relfilenode);
-
-EXTERNC void emptyYezzeyIndexBlkno(Oid yezzey_index_oid, Oid relation,
-                                   Oid relfilenode, int blkno);
+EXTERNC void emptyYezzeyIndexBlkno(Oid relfilenode, int blkno);
 
 /* fixup virtual index entry for relation's relfilenode. */
 EXTERNC void YezzeyFixupVirtualIndex(Relation rel);
 
 #ifdef __cplusplus
-void YezzeyVirtualIndexInsert(Oid yandexoid /*yezzey auxiliary index oid*/,
-                              Oid reloid, Oid relfilenodeOid, int64_t blkno,
+void YezzeyVirtualIndexInsert(Oid reloid, Oid relfilenodeOid, int64_t blkno,
                               int64_t offset_start, int64_t offset_finish,
                               int32_t encrypted, int32_t reused,
                               int64_t modcount, XLogRecPtr lsn,
                               const char *x_path /* external path */);
 
-std::vector<ChunkInfo>
-YezzeyVirtualGetOrder(Oid yandexoid /*yezzey auxiliary index oid*/, Oid reloid,
-                      Oid relfilenode, int blkno);
+std::vector<ChunkInfo> YezzeyVirtualGetOrder(Oid relfilenode, int blkno);
 
 void YezzeyCreateVirtualIndex();
 

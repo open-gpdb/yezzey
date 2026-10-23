@@ -8,20 +8,12 @@ extern "C" {
 #include "c.h"
 #include "postgres.h"
 
-#if PG_VERSION_NUM >= 130000
 #include "postmaster/interrupt.h"
-#endif
 
-#if PG_VERSION_NUM >= 100000
 #include "common/md5.h"
-#else
-#include "libpq/md5.h"
-#endif
 
-#include "utils/timestamp.h"
-#if PG_VERSION_NUM >= 100000
 #include "common/file_perm.h"
-#endif
+#include "utils/timestamp.h"
 
 #include "access/relation.h"
 
@@ -59,10 +51,6 @@ extern "C" {
 #include "storage/bufmgr.h"
 #include "storage/fd.h"
 #include "storage/lmgr.h"
-
-#if PG_VERSION_NUM < 100000
-#include "utils/tqual.h"
-#endif
 
 #include "utils/fmgroids.h"
 #include "utils/snapmgr.h"

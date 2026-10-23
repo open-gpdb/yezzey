@@ -1,0 +1,76 @@
+CREATE EXTENSION yezzey;
+SET client_min_messages TO WARNING;
+
+-- AO
+
+CREATE TABLE regaostat(i INT) WITH (appendonly=true);
+INSERT INTO regaostat SELECT * FROM generate_series(1, 100000);
+
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
+
+SELECT yezzey.offload_relation('regaostat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
+
+SELECT reltablespace FROM pg_class where oid = 'regaostat'::regclass::oid;
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
+
+DELETE FROM regaostat;
+INSERT INTO regaostat SELECT * FROM generate_series(1, 100000);
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
+VACUUM regaostat;
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
+
+
+SELECT yezzey.load_relation('regaostat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaostat');
+
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaostat');
+
+
+SELECT yezzey.offload_relation('regaostat');
+
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaostat');
+
+VACUUM (YEZZEY);
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaostat');
+
+DROP TABLE regaostat;
+
+
+-- AOCS
+
+CREATE TABLE regaocsstat(i INT, j INT, k INT, r INT) WITH (appendonly=true, orientation=column);
+INSERT INTO regaocsstat SELECT i,i,i,i FROM generate_series(1, 100000) i;
+
+SELECT yezzey.offload_relation('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
+
+SELECT reltablespace FROM pg_class where oid = 'regaocsstat'::regclass::oid;
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
+
+DELETE FROM regaocsstat;
+INSERT INTO regaocsstat SELECT i,i,i,i FROM generate_series(1, 100000)i;
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
+VACUUM regaocsstat;
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
+
+
+SELECT yezzey.load_relation('regaocsstat');
+SELECT sum(local_bytes), sum(external_bytes) FROM yezzey.offload_relation_status('regaocsstat');
+
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaocsstat');
+
+
+SELECT yezzey.offload_relation('regaocsstat');
+
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaocsstat');
+
+VACUUM (YEZZEY);
+SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey.offload_relation_status('regaocsstat');
+
+
+DROP TABLE regaocsstat;
+
+
+DROP EXTENSION yezzey;
+CHECKPOINT;

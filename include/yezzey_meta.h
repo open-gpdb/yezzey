@@ -13,8 +13,7 @@
 #define IsYezzeyOperateSpc(spc) ((spc) == YEZZEYTABLESPACE_OID)
 
 EXTERNC void YezzeyUpdateMetadataRelations(
-    Oid yandexoid /*yezzey auxiliary index oid*/, Oid reloid,
-    Oid relfilenodeOid, int64_t blkno, int64_t offset_start,
+    Oid reloid, Oid relfilenodeOid, int64_t blkno, int64_t offset_start,
     int64_t offset_finish, bool encrypted, bool kek, int32_t reused,
     int64_t modcount, XLogRecPtr lsn, const char *x_path /* external path */,
     const char *md5);

@@ -5,9 +5,7 @@
 #include "c.h"
 #include "cdb/cdbvars.h"
 
-#if PG_VERSION_NUM >= 130000
 #include "postmaster/interrupt.h"
-#endif
 
 #include "catalog/pg_tablespace.h"
 
@@ -19,11 +17,7 @@
 #include "storage/shmem.h"
 #include "storage/smgr.h"
 
-#if PG_VERSION_NUM >= 100000
 #include "common/file_perm.h"
-#else
-#include "access/xact.h"
-#endif
 
 #include "utils/elog.h"
 #include "utils/snapmgr.h"
@@ -82,7 +76,7 @@ static void yezzeyRevertCheatRelfilenode(YezzeyLocatorBackend *rnode) {
 }
 
 void yezzey_init(void) {
-  elog(yezzey_log_level, "[YEZZEY_SMGR] init called");
+  elog(DEBUG2, "[YEZZEY_SMGR] init called");
   mdinit();
 }
 
@@ -579,7 +573,7 @@ static const struct f_smgr_ao yezzey_smgr_ao = {
 void smgr_yezzey(SMgrRelation reln, BackendId backend, SMgrImpl which,
                  Relation rel) {
   if (which >= MAX_YEZZEY_SMGR_ID) {
-    elog(ERROR, "corrutped smgr which ID: %d", which);
+    elog(ERROR, "corrupted smgr with ID: %d", which);
   }
   reln->smgr_ao = &yezzey_smgr_ao;
   /* This is basically only PAX case for now, do not overwrite */

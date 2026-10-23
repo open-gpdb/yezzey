@@ -8,7 +8,7 @@ CREATE EXTENSION yezzey;
 
 CREATE TABLE regaoty(i INT) WITH (appendonly=true);
 INSERT INTO regaoty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaoty');
+SELECT * FROM yezzey_offload_relation('regaoty');
 
 SELECT * FROM yezzey_offload_relation_status('regaoty');
 SELECT * FROM yezzey_offload_relation_status_per_filesegment('regaoty');
@@ -40,7 +40,7 @@ SELECT * FROM yezzey_relation_describe_external_storage_structure('regaoty');
 
 CREATE TABLE regaocsty(i INT) WITH (appendonly=true, orientation=column);
 INSERT INTO regaocsty SELECT * FROM generate_series(1, 100000);
-SELECT * FROM yezzey_define_offload_policy('regaocsty');
+SELECT * FROM yezzey_offload_relation('regaocsty');
 
 SELECT * FROM yezzey_offload_relation_status('regaocsty');
 SELECT * FROM yezzey_offload_relation_status_per_filesegment('regaocsty');
