@@ -59,7 +59,6 @@ REGRESS = \
           yezzey_feat_last \
           yezzey-reorg \
           yezzey-vac-relation \
-          yezzey-vac-relation-187 \
           yezzey-vi-eh-unique \
           yezzey-offload-errors
 # Temporarily disabled: their scenarios require Cloudberry 2.x compatibility
