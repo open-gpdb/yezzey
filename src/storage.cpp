@@ -28,7 +28,13 @@
  */
 bool ensureFilepathLocal(const char *filepath) {
   struct stat buffer;
-  return (stat(filepath, &buffer) == 0);
+  if (stat(filepath, &buffer) != 0) {
+    if (errno == ENOENT) {
+      return false;
+    }
+    elog(ERROR, "could not stat \"%s\" (%m)", filepath);
+  }
+  return true;
 }
 
 static char *getlocalpath(const YezzeyLocator &rnode, int segno) {
