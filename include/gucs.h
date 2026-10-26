@@ -2,7 +2,6 @@
 #define YEZZEY_GUCS_H
 
 extern bool use_gpg_crypto;
-extern bool use_otm_feature;
 
 /* ----- STORAGE -----  */
 extern char *storage_class;
