@@ -29,7 +29,7 @@ DROP TABLE expand_regaoty;
 
 -- AOCS
 
-CREATE TABLE expand_regaocsty(i INT) WITH (appendonly=true);
+CREATE TABLE expand_regaocsty(i INT) WITH (appendonly=true, orientation=column);
 set allow_system_table_mods TO on;
 
 update gp_distribution_policy set numsegments = 2 where localoid = 'expand_regaocsty'::regclass::oid;
