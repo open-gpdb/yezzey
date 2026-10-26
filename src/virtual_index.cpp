@@ -288,7 +288,7 @@ void YezzeyFixupVirtualIndex_internal(Oid yezzey_index_oid, Relation relation) {
               BTEqualStrategyNumber, F_OIDEQ,
               ObjectIdGetDatum(relation->rd_node.relNode));
 
-  auto desc = yezzey_beginscan(rel, snap, YezzeyVirtualIndexScanCols, skey);
+  auto desc = yezzey_beginscan(rel, snap, 1, skey);
 
   while (HeapTupleIsValid(tuple = heap_getnext(desc, ForwardScanDirection))) {
     // update
