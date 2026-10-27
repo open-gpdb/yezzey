@@ -264,5 +264,3 @@ void YezzeyPreassignOTM(Oid targRelationOid, Oid sourceRelationOid) {
   }
   relation_close(r, NoLock);
 }
-
-void YezzeyTruncateOTMHint(void) { /*yezzey_otm_hint.clear();*/ }
