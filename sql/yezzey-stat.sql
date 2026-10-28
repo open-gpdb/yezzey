@@ -1,4 +1,4 @@
-CREATE EXTENSION yezzey;
+CREATE EXTENSION yezzey VERSION '1.0';
 SET client_min_messages TO WARNING;
 
 -- AO
@@ -24,6 +24,7 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
 SELECT yezzey_load_relation('regaostat');
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
 
+ALTER EXTENSION yezzey UPDATE TO '1.8.7';
 SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
 
 
@@ -61,6 +62,7 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
 SELECT yezzey_load_relation('regaocsstat');
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
 
+ALTER EXTENSION yezzey UPDATE TO '1.8.7';
 SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaocsstat');
 
 

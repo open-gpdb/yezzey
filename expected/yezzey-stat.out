@@ -1,4 +1,4 @@
-CREATE EXTENSION yezzey;
+CREATE EXTENSION yezzey VERSION '1.0';
 SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE regaostat(i INT) WITH (appendonly=true);
@@ -10,9 +10,9 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
 (1 row)
 
 SELECT * FROM yezzey_define_offload_policy('regaostat');
-                         status                          
----------------------------------------------------------
- offloaded relation public.regaostat to external storage
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
@@ -49,9 +49,15 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
 (1 row)
 
 SELECT yezzey_load_relation('regaostat');
-            yezzey_load_relation            
---------------------------------------------
- loaded relation regaostat to local storage
+INFO:  loaded relation regaostats to local storage
+CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+        'public',
+        load_relname
+    )"
+PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
+ yezzey_load_relation 
+----------------------
+ 
 (1 row)
 
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
@@ -60,6 +66,7 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
  1001640 | 3004920
 (1 row)
 
+ALTER EXTENSION yezzey UPDATE TO '1.8.7';
 SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
    sum   |   sum   |   sum   
 ---------+---------+---------
@@ -67,9 +74,9 @@ SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yez
 (1 row)
 
 SELECT * FROM yezzey_define_offload_policy('regaostat');
-                         status                          
----------------------------------------------------------
- offloaded relation public.regaostat to external storage
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaostat');
@@ -92,9 +99,9 @@ INSERT INTO regaocsstat SELECT i,i,i,i FROM generate_series(1, 100000) i;
 -- TODO: fix
 -- SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
 SELECT * FROM yezzey_define_offload_policy('regaocsstat');
-                          status                           
------------------------------------------------------------
- offloaded relation public.regaocsstat to external storage
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
@@ -131,9 +138,15 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
 (1 row)
 
 SELECT yezzey_load_relation('regaocsstat');
-             yezzey_load_relation             
-----------------------------------------------
- loaded relation regaocsstat to local storage
+INFO:  loaded relation regaocsstats to local storage
+CONTEXT:  SQL statement "SELECT yezzey_load_relation(
+        'public',
+        load_relname
+    )"
+PL/pgSQL function yezzey_load_relation(text) line 5 at PERFORM
+ yezzey_load_relation 
+----------------------
+ 
 (1 row)
 
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
@@ -142,6 +155,7 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
  1602624 | 4807872
 (1 row)
 
+ALTER EXTENSION yezzey UPDATE TO '1.8.7';
 SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaocsstat');
    sum   |   sum   |   sum   
 ---------+---------+---------
@@ -149,9 +163,9 @@ SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yez
 (1 row)
 
 SELECT * FROM yezzey_define_offload_policy('regaocsstat');
-                          status                           
------------------------------------------------------------
- offloaded relation public.regaocsstat to external storage
+ yezzey_define_offload_policy 
+------------------------------
+ 
 (1 row)
 
 SELECT sum(local_bytes), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('regaocsstat');
