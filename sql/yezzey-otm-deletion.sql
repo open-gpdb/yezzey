@@ -1,9 +1,4 @@
 CREATE EXTENSION yezzey;
--- start_ignore
-\! gpconfig -c yezzey.use_otm_feature -v on
-\! gpstop -arf
-\c
--- end_ignore
 
 -- check that load result of is correct
 SET client_min_messages TO WARNING;
@@ -91,7 +86,3 @@ DROP TABLESPACE tab2;
 
 DROP EXTENSION yezzey;
 CHECKPOINT;
--- start_ignore
-\! gpconfig -r yezzey.use_otm_feature
-\! gpstop -arf
--- end_ignore
