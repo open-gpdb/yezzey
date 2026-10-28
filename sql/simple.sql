@@ -9,7 +9,7 @@ INSERT INTO simple_regaoty SELECT * FROM generate_series(1, 100000);
 
 SELECT * FROM yezzey_define_offload_policy('simple_regaoty');
 
-SELECT reltablespace FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
 
 SELECT count(1) FROM yezzey_dump_virtual_index('simple_regaoty');
 

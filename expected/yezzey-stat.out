@@ -21,10 +21,10 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
    0 | 1001640
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaostat'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'regaostat'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
@@ -110,10 +110,10 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
    0 | 1602624
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'regaocsstat'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'regaocsstat'::regclass::oid;
+                     reloptions                      
+-----------------------------------------------------
+ {appendonly=true,orientation=column,offloaded=true}
 (1 row)
 
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');

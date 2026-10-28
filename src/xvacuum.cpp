@@ -4,7 +4,6 @@
 
 #include "xvacuum.h"
 #include "gucs.h"
-#include "offload_tablespace_map.h"
 #include "pg.h"
 #include "storage.h"
 #include "yezzey_heap_api.h"
@@ -116,10 +115,7 @@ void yezzey_vacuum_garbage_relation_internal(Relation aorel, int segindx,
     auto nsptup = (Form_pg_namespace)GETSTRUCT(tp);
     auto nspname = std::string(NameStr(nsptup->nspname));
 
-    auto spcNode = resolveTablespaceOidByName(
-        YezzeyGetRelationOriginTablespace(NULL, NULL, RelationGetRelid(aorel)));
-
-    relnodeCoord coords{spcNode, rnode.dbNode, rnode.relNode, segindx};
+    relnodeCoord coords{rnode.spcNode, rnode.dbNode, rnode.relNode, segindx};
     relnodeCoord coords_old{DEFAULTTABLESPACE_OID, rnode.dbNode, rnode.relNode,
                             segindx};
     ReleaseSysCache(tp);

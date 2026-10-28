@@ -11,7 +11,7 @@ SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status
 SELECT * FROM yezzey_define_offload_policy('regaostat');
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
 
-SELECT reltablespace FROM pg_class where oid = 'regaostat'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'regaostat'::regclass::oid;
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaostat');
 
 DELETE FROM regaostat;
@@ -49,7 +49,7 @@ INSERT INTO regaocsstat SELECT i,i,i,i FROM generate_series(1, 100000) i;
 SELECT * FROM yezzey_define_offload_policy('regaocsstat');
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
 
-SELECT reltablespace FROM pg_class where oid = 'regaocsstat'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'regaocsstat'::regclass::oid;
 SELECT sum(local_bytes), sum(external_bytes) FROM yezzey_offload_relation_status('regaocsstat');
 
 DELETE FROM regaocsstat;

@@ -28,6 +28,7 @@
 #include "cdb/cdbvars.h"
 
 /* commands / executor / tcop */
+#include "commands/defrem.h"
 #include "commands/extension.h"
 #include "executor/spi.h"
 #include "tcop/utility.h"
@@ -56,7 +57,6 @@
 #include "binary_upgrade.h"
 #include "offload.h"
 #include "offload_policy.h"
-#include "offload_tablespace_map.h"
 #include "storage.h"
 #include "util.h"
 #include "virtual_index.h"
@@ -73,13 +73,9 @@ int multipart_chunksize = 0;
 
 bool use_gpg_crypto = false;
 
-bool use_otm_feature = false;
-
 /* YPROXY */
 
 char *yproxy_socket = NULL;
-
-Oid runningRewriteSpcOidHint = InvalidOid;
 
 PG_MODULE_MAGIC;
 
@@ -156,7 +152,6 @@ Datum yezzey_define_relation_offload_policy_internal(PG_FUNCTION_ARGS) {
 }
 
 Datum yezzey_define_relation_offload_policy_internal_prepare(PG_FUNCTION_ARGS) {
-  (void)YezzeyDefineOffloadPolicyPrepare(PG_GETARG_OID(0));
   PG_RETURN_VOID();
 }
 
@@ -207,14 +202,14 @@ void yezzey_load_relation_internal(Oid reloid) {
   /* acquire snapshot for aoseg table lookup */
   appendOnlyMetaDataSnapshot = SnapshotSelf;
   /*sanity check */
-  if (aorel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
+  if (!RelationIsOffloaded(aorel)) {
     /* shoulde never happen*/
     elog(ERROR, "attempted to load non-offloaded relation");
   }
 
-  Oid loadSpcOid = YezzeyGetRelationOriginTablespaceOid(
-      get_namespace_name(aorel->rd_rel->relnamespace),
-      RelationGetRelationName(aorel), RelationGetRelid(aorel));
+  Oid loadSpcOid = aorel->rd_rel->reltablespace;
+  if (!OidIsValid(loadSpcOid))
+    loadSpcOid = DEFAULTTABLESPACE_OID;
 
   /* Perform actual deletion of yezzey virtual index and metadata changes */
   (void)YezzeyATExecSetTableSpace(aorel, reloid, loadSpcOid);
@@ -1177,7 +1172,7 @@ void yezzey_object_access_hook(ObjectAccessType access, Oid classId,
 
   if (access == OAT_DROP && subId == 0) {
     offRel = relation_open(objectId, AccessShareLock);
-    if (offRel->rd_node.spcNode != YEZZEYTABLESPACE_OID) {
+    if (!RelationIsOffloaded(offRel)) {
       relation_close(offRel, AccessShareLock);
       return;
     }
@@ -1203,8 +1198,6 @@ readOnlyTree, ProcessUtilityContext context, ParamListInfo params,
 *queryEnv, DestReceiver *dest, QueryCompletion *qc);
 */
 
-#define YEZZEYTABLESPACE_NAME "yezzey(cloud-storage)"
-
 static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
                                        ProcessUtilityContext context,
                                        ParamListInfo params, DestReceiver *dest,
@@ -1212,17 +1205,21 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
   RangeVar *post_alter_offload_rel;
   ListCell *lcmd;
 
-  newTOASTTableSpace = InvalidOid;
-
   post_alter_offload_rel = NULL;
 
   switch (nodeTag(parsetree)) {
   case T_CreateStmt: {
     CreateStmt *stmt = (CreateStmt *)parsetree;
-    if (stmt->tablespacename != NULL &&
-        strcmp(stmt->tablespacename, YEZZEYTABLESPACE_NAME) == 0) {
-      /* save range var for latter. */
-      post_alter_offload_rel = stmt->relation;
+
+    ListCell   *cell;
+    foreach(cell, stmt->options) {
+      DefElem    *def = (DefElem *) lfirst(cell);
+      if (pg_strcasecmp(def->defname, "offloaded") == 0) {
+        if (def->arg == NULL || pg_strcasecmp(defGetString(def), "true") == 0)
+          post_alter_offload_rel = stmt->relation;
+
+        break;
+      }
     }
   } break;
   case T_AlterTableStmt: {
@@ -1230,7 +1227,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
 
     Relation rel = relation_openrv(stmt->relation, NoLock);
 
-    if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID) {
+    if (RelationIsOffloaded(rel)) {
       foreach (lcmd, stmt->cmds) {
         AlterTableCmd *cmd = (AlterTableCmd *)lfirst(lcmd);
         if (cmd->subtype == AT_SetTableSpace) {
@@ -1238,9 +1235,6 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
                   (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
                    errmsg("altering YEZZEY relation TABLESPACE is forbidden")));
         }
-        newTOASTTableSpace = YezzeyGetRelationOriginTablespaceOid(
-            get_namespace_name(rel->rd_rel->relnamespace),
-            RelationGetRelationName(rel), RelationGetRelid(rel));
       }
     }
 
@@ -1252,8 +1246,7 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
       break;
     }
     Relation rel = relation_openrv(stmt->relation, NoLock);
-    if (stmt->options & VACOPT_YEZZEY &&
-        (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID)) {
+    if (stmt->options & VACOPT_YEZZEY && RelationIsOffloaded(rel)) {
       if (Gp_role == GP_ROLE_EXECUTE) {
         Assert(GpIdentity.segindex != -1);
         yezzey_vacuum_garbage_relation_internal(rel, GpIdentity.segindex, true,
@@ -1266,8 +1259,6 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
     break;
   }
 
-  runningRewriteSpcOidHint = newTOASTTableSpace;
-
   prev_ProcessUtility_hook(parsetree, queryString, context, params, dest,
                            completionTag);
 
@@ -1277,39 +1268,19 @@ static void yezzey_ProcessUtility_hook(Node *parsetree, const char *queryString,
     YezzeyDefineOffloadPolicy(RelationGetRelid(rel));
     relation_close(rel, NoLock);
   }
-
-  /* Reset it */
-  newTOASTTableSpace = InvalidOid;
-  runningRewriteSpcOidHint = InvalidOid;
 }
 
 static void yezzey_ExecuterStartHook(QueryDesc *queryDesc, int eflags) {
   (void)prev_ExecutorStart_hook(queryDesc, eflags);
 
-  IntoClause *iclause;
-  Oid sourceOid;
-  Oid targOid;
-
-  if (IsA(queryDesc->plannedstmt->planTree, ModifyTable) &&
-      list_length(queryDesc->plannedstmt->relationOids) == 2) {
-
-    targOid = lfirst_oid(queryDesc->plannedstmt->relationOids->head);
-    sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids->tail);
-
-    YezzeyPreassignOTM(targOid, sourceOid);
-
-  } else if (queryDesc->plannedstmt->intoClause != NULL) {
-    iclause = queryDesc->plannedstmt->intoClause;
+  if (queryDesc->plannedstmt->intoClause != NULL) {
+    IntoClause *iclause = queryDesc->plannedstmt->intoClause;
     if (iclause->tableSpaceName &&
-        strcmp(iclause->tableSpaceName, "yezzey(cloud-storage)") == 0) {
+        strcmp(iclause->tableSpaceName, "yezzey(cloud-storage)") == 0) { //!!!! Offloaded
       if (queryDesc->plannedstmt->relationOids->length != 1) {
         elog(ERROR, "unexpected plan relation size for yezzey alter: %d",
              queryDesc->plannedstmt->relationOids->length);
       }
-      sourceOid = lfirst_oid(queryDesc->plannedstmt->relationOids->head);
-      /* so, target relation is yezzey. This should be expand or alter table
-       * reorg; */
-      YezzeyCopyOTM(iclause->rel, sourceOid);
     }
   }
 }
@@ -1337,10 +1308,6 @@ static void yezzey_define_gucs() {
                            &use_gpg_crypto, true, PGC_SUSET, 0, NULL, NULL,
                            NULL);
 
-  DefineCustomBoolVariable("yezzey.use_otm_feature", "use OTM feature", NULL,
-                           &use_otm_feature, false, PGC_POSTMASTER, 0, NULL,
-                           NULL, NULL);
-
   DefineCustomBoolVariable(
       "yezzey.autooffload", "enable auto-offloading worker", NULL,
       &yezzey_autooffload, false, PGC_USERSET, 0, NULL, NULL, NULL);
@@ -1351,7 +1318,7 @@ static void yezzey_define_gucs() {
 }
 
 void yezzey_TrackObjDrop(Relation rel) {
-  if (rel->rd_node.spcNode == YEZZEYTABLESPACE_OID)
+  if (RelationIsOffloaded(rel))
     (void)emptyYezzeyIndex(YezzeyFindAuxIndex(RelationGetRelid(rel)),
                            rel->rd_node.relNode);
 }
@@ -1369,9 +1336,7 @@ void _PG_init(void) {
 
   elog(DEBUG1, "[YEZZEY_SMGR] set hook");
 
-  smgr_hook = smgr_yezzey;
   smgrao_hook = smgrao_yezzey;
-  smgr_init_hook = smgr_init_yezzey;
 
   /* save old hooks  */
   prev_ProcessUtility_hook =

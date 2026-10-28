@@ -9,10 +9,10 @@ SELECT * FROM yezzey_define_offload_policy('reorg_regaoty');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'reorg_regaoty'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'reorg_regaoty'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT count() FROM yezzey_offload_relation_status('reorg_regaoty');
@@ -64,10 +64,10 @@ SELECT count(1) FROM reorg_regaoty;
 (1 row)
 
 ALTER TABLE reorg_regaoty SET WITH (REORGANIZE=true);
-SELECT reltablespace FROM pg_class where oid = 'reorg_regaoty'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'reorg_regaoty'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT count(1) FROM reorg_regaoty;
@@ -101,10 +101,10 @@ SELECT * FROM yezzey_define_offload_policy('reorg_regaocsty');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'reorg_regaocsty'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'reorg_regaocsty'::regclass::oid;
+                     reloptions                      
+-----------------------------------------------------
+ {appendonly=true,orientation=column,offloaded=true}
 (1 row)
 
 SELECT count() FROM yezzey_offload_relation_status('reorg_regaocsty');
@@ -162,10 +162,10 @@ SELECT count(1) FROM reorg_regaocsty;
  200000
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'reorg_regaocsty'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'reorg_regaocsty'::regclass::oid;
+                     reloptions                      
+-----------------------------------------------------
+ {appendonly=true,orientation=column,offloaded=true}
 (1 row)
 
 SELECT count() FROM yezzey_offload_relation_status('reorg_regaocsty');

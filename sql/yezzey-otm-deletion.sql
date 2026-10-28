@@ -27,7 +27,7 @@ INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
 
 SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
 
-SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
 
 INSERT INTO yezzey_otm_regaoty_1 SELECT * FROM generate_series(1, 100000);
 UPDATE yezzey_otm_regaoty_1 SET i = i + 1;
@@ -47,7 +47,7 @@ GROUP BY segindex ORDER BY segindex;
 
 SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
 
-SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
+SELECT reloptions FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
 
 INSERT INTO yezzey_otm_regaoty_2 SELECT * FROM generate_series(1, 100000);
 UPDATE yezzey_otm_regaoty_2 SET i = i + 1;

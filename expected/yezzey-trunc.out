@@ -9,10 +9,10 @@ SELECT * FROM yezzey_define_offload_policy('trunc_regaoty');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'trunc_regaoty'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'trunc_regaoty'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaoty');
@@ -124,10 +124,10 @@ SELECT * FROM yezzey_define_offload_policy('trunc_regaocsty');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'trunc_regaocsty'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'trunc_regaocsty'::regclass::oid;
+                     reloptions                      
+-----------------------------------------------------
+ {appendonly=true,orientation=column,offloaded=true}
 (1 row)
 
 SELECT count() FROM yezzey_offload_relation_status('trunc_regaocsty');

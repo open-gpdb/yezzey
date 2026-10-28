@@ -59,8 +59,6 @@ YezzeySetRelationExpiritySeg(Oid i_reloid /* offload relation oid */,
 
 EXTERNC void YezzeyDefineOffloadPolicy(Oid reloid);
 
-EXTERNC void YezzeyDefineOffloadPolicyPrepare(Oid reloid);
-
 EXTERNC void FixupOffloadMetadata(Oid reloid);
 
 /* Mark an offloaded relation as local in the offload metadata. */

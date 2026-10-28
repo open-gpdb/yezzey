@@ -7,8 +7,6 @@
 #include "yezzey_heap_api.h"
 #include "yezzey_meta.h"
 
-#include "offload_tablespace_map.h"
-
 /*
 
 CREATE TABLE yezzey.offload_metadata(
@@ -212,14 +210,6 @@ bool YezzeySetRelationExpiritySeg(Oid i_reloid, int i_relpolicy,
   /* make changes visible */
   CommandCounterIncrement();
   return true;
-}
-
-void YezzeyDefineOffloadPolicyPrepare(Oid reloid) {
-  auto aorel = relation_open(reloid, AccessExclusiveLock);
-
-  YezzeyRegisterRelationOriginTablespace(reloid, aorel->rd_node.spcNode);
-
-  relation_close(aorel, NoLock);
 }
 
 /*

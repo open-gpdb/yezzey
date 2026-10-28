@@ -9,10 +9,10 @@ SELECT * FROM yezzey_define_offload_policy('simple_regaoty');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'simple_regaoty'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT count(1) FROM yezzey_dump_virtual_index('simple_regaoty');

@@ -5,7 +5,10 @@
 
 #include "virtual_tablespace.h"
 #include "yezzey_meta.h"
-
+extern "C" {
+#include "access/reloptions.h"
+#include "nodes/makefuncs.h"
+}
 /*
  * Execute ALTER TABLE SET TABLESPACE for cases where there is no tuple
  * rewriting to be done, so we just want to copy the data as fast as possible.
@@ -70,22 +73,68 @@ void YezzeyATExecSetTableSpace(Relation aorel, Oid reloid,
    * over all forks. AO tables, so far, do not have visimap or fsm forks.
    */
 
+  if (desttablespace_oid == YEZZEYTABLESPACE_OID) {
   /* drop old relation, and close new one */
-  if (desttablespace_oid == YEZZEYTABLESPACE_OID)
     RelationDropStorage(aorel);
 
-  /* update the pg_class row */
-  if (desttablespace_oid != YEZZEYTABLESPACE_OID) {
-    rd_rel->relfilenode = GetNewRelFileNode(desttablespace_oid, NULL,
-                                            aorel->rd_rel->relpersistence);
+    bool isnull;
+    Datum datum =
+        SysCacheGetAttr(RELOID, tuple, Anum_pg_class_reloptions, &isnull);
+    List *defs = list_make1(makeDefElem(pstrdup("offloaded"), NULL));
+    Datum newOptions = transformRelOptions(isnull ? (Datum)0 : datum, defs,
+                                           NULL, NULL, false, false);
+
+    Datum repl_val[Natts_pg_class];
+    bool repl_null[Natts_pg_class];
+    bool repl_repl[Natts_pg_class];
+    memset(repl_val, 0, sizeof(repl_val));
+    memset(repl_null, false, sizeof(repl_null));
+    memset(repl_repl, false, sizeof(repl_repl));
+
+    if (newOptions != (Datum)0)
+      repl_val[Anum_pg_class_reloptions - 1] = newOptions;
+    else
+      repl_null[Anum_pg_class_reloptions - 1] = true;
+    repl_repl[Anum_pg_class_reloptions - 1] = true;
+
+    HeapTuple newtuple = heap_modify_tuple(tuple, RelationGetDescr(pg_class),
+                                           repl_val, repl_null, repl_repl);
+
+    simple_heap_update(pg_class,  &newtuple->t_self, newtuple);
+    CatalogUpdateIndexes(pg_class, newtuple);
+
+    InvokeObjectPostAlterHook(RelationRelationId, RelationGetRelid(aorel), 0);
+    heap_freetuple(newtuple);
+  } else {
+    bool isnull;
+    Datum datum =
+        SysCacheGetAttr(RELOID, tuple, Anum_pg_class_reloptions, &isnull);
+    List *defs = list_make1(makeDefElem(pstrdup("offloaded"), NULL));
+    Datum newOptions = transformRelOptions(isnull ? (Datum)0 : datum, defs,
+                                           NULL, NULL, false, true);
+
+    Datum repl_val[Natts_pg_class];
+    bool repl_null[Natts_pg_class];
+    bool repl_repl[Natts_pg_class];
+    memset(repl_val, 0, sizeof(repl_val));
+    memset(repl_null, false, sizeof(repl_null));
+    memset(repl_repl, false, sizeof(repl_repl));
+
+    if (newOptions != (Datum)0)
+      repl_val[Anum_pg_class_reloptions - 1] = newOptions;
+    else
+      repl_null[Anum_pg_class_reloptions - 1] = true;
+    repl_repl[Anum_pg_class_reloptions - 1] = true;
+
+    HeapTuple newtuple = heap_modify_tuple(tuple, RelationGetDescr(pg_class),
+                                           repl_val, repl_null, repl_repl);
+
+    simple_heap_update(pg_class,  &newtuple->t_self, newtuple);
+    CatalogUpdateIndexes(pg_class, newtuple);
+
+    InvokeObjectPostAlterHook(RelationRelationId, RelationGetRelid(aorel), 0);
+    heap_freetuple(newtuple);
   }
-
-  rd_rel->reltablespace = desttablespace_oid;
-
-  simple_heap_update(pg_class, &tuple->t_self, tuple);
-  CatalogUpdateIndexes(pg_class, tuple);
-
-  InvokeObjectPostAlterHook(RelationRelationId, RelationGetRelid(aorel), 0);
 
   heap_freetuple(tuple);
 

@@ -21,10 +21,10 @@ SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_1');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT count(1) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_1');
@@ -118,10 +118,10 @@ SELECT * FROM yezzey_define_offload_policy('yezzey_otm_regaoty_2');
  
 (1 row)
 
-SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
- reltablespace 
----------------
-          8555
+SELECT reloptions FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
+            reloptions            
+----------------------------------
+ {appendonly=true,offloaded=true}
 (1 row)
 
 SELECT count(1) FROM yezzey_dump_virtual_index('yezzey_otm_regaoty_2');
@@ -208,13 +208,6 @@ SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_stora
 -------+---------
      9 | 7208176
 (1 row)
-
-select reloid::regclass, origin_tablespace_name from yezzey.offload_tablespace_map order by reloid::regclass::text;
-        reloid        | origin_tablespace_name 
-----------------------+------------------------
- yezzey_otm_regaoty_1 | tab1
- yezzey_otm_regaoty_2 | tab2
-(2 rows)
 
 SELECT yezzey_load_relation('yezzey_otm_regaoty_1');
 INFO:  loaded relation yezzey_otm_regaoty_1s to local storage
