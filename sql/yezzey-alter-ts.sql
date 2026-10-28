@@ -1,4 +1,9 @@
-CREATE EXTENSION yezzey VERSION '1.0';
+CREATE EXTENSION yezzey;
+-- start_ignore
+\! gpconfig -c yezzey.use_otm_feature -v on
+\! gpstop -arf
+\c
+-- end_ignore
 
 \! rm -fr /tmp/test_spc_tab1 && mkdir -p /tmp/test_spc_tab1
 
@@ -16,3 +21,7 @@ DROP TABLE regao_y_ats;
 DROP EXTENSION yezzey;
 DROP TABLESPACE tab1;
 CHECKPOINT;
+-- start_ignore
+\! gpconfig -r yezzey.use_otm_feature
+\! gpstop -arf
+-- end_ignore

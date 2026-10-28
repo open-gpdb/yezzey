@@ -1,13 +1,12 @@
-CREATE EXTENSION yezzey VERSION '1.0';
-ALTER EXTENSION yezzey UPDATE TO '1.8.3';
+CREATE EXTENSION yezzey;
 SET client_min_messages TO WARNING;
 -- AO
 CREATE TABLE vac_relation_regaotyvi(i INT) WITH (appendonly=true);
 INSERT INTO vac_relation_regaotyvi SELECT * FROM generate_series(1, 100000);
 SELECT * FROM yezzey_define_offload_policy('vac_relation_regaotyvi');
- yezzey_define_offload_policy 
-------------------------------
- 
+                                status                                
+----------------------------------------------------------------------
+ offloaded relation public.vac_relation_regaotyvi to external storage
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'vac_relation_regaotyvi'::regclass::oid;
@@ -66,9 +65,9 @@ SELECT count() FROM vac_relation_regaotyvi;
 SELECT yezzey_vacuum_relation('vac_relation_regaotyvi', true);
  yezzey_vacuum_relation 
 ------------------------
- 
- 
- 
+ f
+ f
+ f
 (3 rows)
 
 SELECT count(1) FROM yezzey_dump_virtual_index('vac_relation_regaotyvi');
