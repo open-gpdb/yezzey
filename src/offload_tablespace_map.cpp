@@ -17,10 +17,6 @@
 const std::string offload_tablespace_map_relname = "offload_tablespace_map";
 
 static Oid YezzeyResolveTablespaceMapOid() {
-  if (!use_otm_feature) {
-    return InvalidOid;
-  }
-
   /* SELECT FROM pg_catalog.pg_class WHERE relname = 'offload_tablespace_map'
    * and relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'yezzey');
    */
@@ -218,12 +214,20 @@ void YezzeyRegisterRelationOriginTablespace(Oid i_reloid, Oid i_reltablespace) {
             (errcode(ERRCODE_UNDEFINED_OBJECT),
              errmsg("tablespace with OID %u does not exist", i_reltablespace)));
 
-  if (!use_otm_feature && i_reltablespace != DEFAULTTABLESPACE_OID)
-    ereport(ERROR,
-            (errcode(ERRCODE_UNDEFINED_OBJECT),
-             errmsg("tablespace with OID %u is non-default, offload rejected",
-                    i_reltablespace),
-             errdetail("turn yezzey.use_otm_feature GUC on")));
+  auto yezzey_tablespace_map_oid = YezzeyResolveTablespaceMapOid();
+
+  if (yezzey_tablespace_map_oid == InvalidOid) {
+    if (i_reltablespace != DEFAULTTABLESPACE_OID) {
+      ereport(
+          ERROR,
+          (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+           errmsg("offloading to non-default tablespace requires OTM support"),
+           errhint("Create table yezzey.offload_tablespace_map to enable "
+                   "tablespace mapping.")));
+    }
+    ReleaseSysCache(spctuple);
+    return;
+  }
 
   auto spcname = &((Form_pg_tablespace)GETSTRUCT(spctuple))->spcname;
 

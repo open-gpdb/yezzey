@@ -176,6 +176,33 @@ The query result contains the following fields:
 | `external_bytes` | The size of the data uploaded to the cold storage. If all values in the column are zero, the table is placed in the cluster storage. If the column has non-zero values, the table is placed in cold storage.|
 | `external_bloat_bytes` | The size of the data uploaded to the cold storage that is no longer in use but has not yet been deleted. |
 
+## Support for Non-Default Tablespaces (OTM)
+
+By default, Yezzey supports offloading relations only from the *pg_default* tablespace. To offload relations from custom tablespaces and preserve their original location across offload/load cycles, enable the **Offload Table Mapping (OTM)** feature by calling:
+
+```Sql
+SELECT yezzey.enable_offload_tablespace_map();
+```
+
+### Behavior without the mapping table:
+
+Offloading from *pg_default* works as usual. Offloading from any other tablespace is rejected with the following error:
+
+```Sql
+ERROR:  offloading to non-default tablespace requires OTM support
+HINT:  Create table yezzey.offload_tablespace_map to enable tablespace mapping.
+```
+
+### Removing the mapping table:
+
+The mapping table is not managed by the extension lifecycle. To remove it, drop it manually:
+
+```Sql
+DROP TABLE yezzey.offload_tablespace_map;
+```
+
+**Warning:** Dropping the mapping table permanently removes all tablespace mapping records. Relations offloaded from custom tablespaces will be restored to *pg_default* on subsequent *yezzey.load_relation()* calls.
+
 
 ## Algorithms
 

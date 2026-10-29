@@ -74,8 +74,6 @@ int multipart_chunksize = 0;
 
 bool use_gpg_crypto = false;
 
-bool use_otm_feature = false;
-
 /* YPROXY */
 
 char *yproxy_socket = NULL;
@@ -1232,10 +1230,6 @@ static void yezzey_define_gucs() {
 
   DefineCustomBoolVariable("yezzey.use_gpg_crypto", "use gpg crypto", NULL,
                            &use_gpg_crypto, true, PGC_SUSET, 0, NULL, NULL,
-                           NULL);
-
-  DefineCustomBoolVariable("yezzey.use_otm_feature", "use OTM feature", NULL,
-                           &use_otm_feature, false, PGC_BACKEND, 0, NULL, NULL,
                            NULL);
 
   DefineCustomStringVariable("yezzey.yproxy_socket", "wal-g config path", NULL,

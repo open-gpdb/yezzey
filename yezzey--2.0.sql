@@ -77,10 +77,21 @@ EXECUTE ON ALL SEGMENTS
 LANGUAGE C STRICT;
 
 
-CREATE TABLE yezzey.offload_tablespace_map(
-    reloid                 OID PRIMARY KEY,
-    origin_tablespace_name NAME
-) DISTRIBUTED REPLICATED;
+-- Enable Offload Table Mapping (OTM) support.
+-- Required for offloading relations from non-default tablespaces.
+CREATE FUNCTION yezzey.enable_offload_tablespace_map()
+RETURNS TABLE (status BOOLEAN)
+AS $$
+BEGIN
+    CREATE TABLE IF NOT EXISTS yezzey.offload_tablespace_map(
+        reloid                 OID PRIMARY KEY,
+        origin_tablespace_name NAME
+    ) DISTRIBUTED REPLICATED;
+    RETURN QUERY SELECT true;
+END;
+$$
+LANGUAGE PLPGSQL
+EXECUTE ON MASTER;
 
 
 CREATE FUNCTION yezzey.define_relation_offload_policy_internal(reloid OID)

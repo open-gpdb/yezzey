@@ -1,5 +1,8 @@
 CREATE EXTENSION yezzey;
 
+-- enable OTM for custom tablespace offloading
+SELECT yezzey.enable_offload_tablespace_map();
+
 \! rm -fr /tmp/test_spc_vacuum_garbage_tab1 && mkdir -p /tmp/test_spc_vacuum_garbage_tab1
 CREATE TABLESPACE vacuum_garbage_tab1 LOCATION '/tmp/test_spc_vacuum_garbage_tab1';
 
@@ -86,6 +89,9 @@ SELECT yezzey.vacuum(true, true);
 
 DROP TABLESPACE vacuum_garbage_tab1;
 DROP TABLESPACE vacuum_garbage_tab2;
+
+-- drop OTM map table manually
+DROP TABLE yezzey.offload_tablespace_map;
 
 DROP EXTENSION yezzey;
 CHECKPOINT;

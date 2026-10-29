@@ -2,6 +2,43 @@
 CREATE EXTENSION yezzey;
 
 SET client_min_messages TO WARNING;
+
+-- default behavior without offload_tablespace_map
+
+-- map table must not exist after fresh install
+SELECT to_regclass('yezzey.offload_tablespace_map') IS NULL;
+
+-- offload from default tablespace works without map table
+CREATE TABLE yezzey_otm_default_t(i INT) WITH (appendonly=true);
+INSERT INTO yezzey_otm_default_t SELECT * FROM generate_series(1, 100000) i;
+
+SELECT yezzey.offload_relation('yezzey_otm_default_t');
+SELECT count(1) FROM yezzey_otm_default_t;
+SELECT yezzey.load_relation('yezzey_otm_default_t');
+
+\! rm -fr /tmp/test_spc_no_otm && mkdir -p /tmp/test_spc_no_otm
+
+CREATE TABLESPACE no_otm_spc LOCATION '/tmp/test_spc_no_otm';
+
+CREATE TABLE yezzey_otm_custom_no_otm(i INT) WITH (appendonly=true) TABLESPACE no_otm_spc;
+INSERT INTO yezzey_otm_custom_no_otm SELECT * FROM generate_series(1, 100000) i;
+
+-- expect error: non-default tablespace offload requires OTM support
+SELECT yezzey.offload_relation('yezzey_otm_custom_no_otm');
+
+DROP TABLE yezzey_otm_default_t;
+DROP TABLE yezzey_otm_custom_no_otm;
+
+DROP TABLESPACE no_otm_spc;
+
+-- enable OTM via function
+SELECT yezzey.enable_offload_tablespace_map();
+
+-- idempotency check
+SELECT yezzey.enable_offload_tablespace_map();
+
+SELECT to_regclass('yezzey.offload_tablespace_map') IS NOT NULL;
+
 -- AO
 
 \! rm -fr /tmp/test_spc_tab1 && mkdir -p /tmp/test_spc_tab1
@@ -111,6 +148,9 @@ DROP TABLE yezzey_otm_regaoty_2;
 
 DROP TABLESPACE tab1;
 DROP TABLESPACE tab2;
+
+-- drop OTM map table manually
+DROP TABLE yezzey.offload_tablespace_map;
 
 DROP EXTENSION yezzey;
 CHECKPOINT;
