@@ -10,8 +10,6 @@
 
 #include <map>
 
-#include "cdb/cdbvars.h"
-
 #include "offload_tablespace_map.h"
 
 const std::string offload_tablespace_map_relname = "offload_tablespace_map";
@@ -115,16 +113,9 @@ std::string YezzeyGetRelationOriginTablespace(const char *nspname,
     heap_close(offload_tablespace_map_rel, RowExclusiveLock);
     UnregisterSnapshot(snap);
 
-    /* should be OK */
-    if (Gp_role == GP_ROLE_UTILITY || Gp_role == GP_ROLE_DISPATCH) {
-      return "pg_default";
-    }
-
-    /* XXX: todo - fix OTM */
-    return "pg_default";
-
-    elog(ERROR, "failed to map relation %d (%s.%s) to its origin tablespace",
+    elog(WARNING, "failed to map relation %d (%s.%s) to its origin tablespace",
          i_reloid, nspname, relname);
+    return "pg_default";
   }
 
   bool shouldFree;

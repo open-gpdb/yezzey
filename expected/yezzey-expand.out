@@ -26,6 +26,7 @@ SELECT COUNT(1) FROM expand_regaoty;
 CREATE TEMP TABLE yezzey_ao_relfilenode_before_expand AS 
 SELECT filenode FROM gp_dist_random('yezzey.yezzey_virtual_index') where relation = 'expand_regaoty'::regclass::oid DISTRIBUTED RANDOMLY;
 ALTER TABLE expand_regaoty EXPAND TABLE;
+WARNING:  failed to map relation 33538 (public.expand_regaoty) to its origin tablespace
 SELECT reltablespace FROM pg_class where oid = 'expand_regaoty'::regclass::oid;
  reltablespace 
 ---------------
@@ -71,6 +72,7 @@ SELECT COUNT(1) FROM expand_regaocsty;
 CREATE TEMP TABLE yezzey_aocs_relfilenode_before_expand AS 
 SELECT filenode FROM gp_dist_random('yezzey.yezzey_virtual_index') where relation = 'expand_regaocsty'::regclass::oid DISTRIBUTED RANDOMLY;
 ALTER TABLE expand_regaocsty EXPAND TABLE;
+WARNING:  failed to map relation 33553 (public.expand_regaocsty) to its origin tablespace
 SELECT reltablespace FROM pg_class where oid = 'expand_regaocsty'::regclass::oid;
  reltablespace 
 ---------------

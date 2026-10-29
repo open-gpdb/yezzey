@@ -64,6 +64,7 @@ SELECT count(1) FROM reorg_regaoty;
 (1 row)
 
 ALTER TABLE reorg_regaoty SET WITH (REORGANIZE=true);
+WARNING:  failed to map relation 33700 (public.reorg_regaoty) to its origin tablespace
 SELECT reltablespace FROM pg_class where oid = 'reorg_regaoty'::regclass::oid;
  reltablespace 
 ---------------
@@ -156,6 +157,7 @@ SELECT count(1) FROM reorg_regaocsty;
 (1 row)
 
 ALTER TABLE reorg_regaocsty SET WITH (REORGANIZE=true);
+WARNING:  failed to map relation 33712 (public.reorg_regaocsty) to its origin tablespace
 SELECT count(1) FROM reorg_regaocsty;
  count  
 --------
