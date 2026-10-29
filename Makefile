@@ -69,7 +69,6 @@ REGRESS = \
 	  yezzey_feat_cbdb \
 	  yezzey-reorg \
 	  yezzey-vac-relation \
-	  yezzey-vac-relation-187 \
 	  yezzey-otm-feat \
 	  yezzey-otm-deletion \
 	  yezzey-vi-eh-unique \

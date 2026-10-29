@@ -115,16 +115,16 @@ SELECT segindex,segfileindex FROM yezzey_relation_describe_external_storage_stru
         1 |            2
 (3 rows)
 
-SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('vac_relation_regaotyvi');
- count |   sum   
--------+---------
-     3 | 1001640
+SELECT count(), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('vac_relation_regaotyvi');
+ count |   sum   | sum 
+-------+---------+-----
+     3 | 1001640 |   0
 (1 row)
 
-SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('vac_relation_regaotyvi');
- count |   sum   
--------+---------
-     6 | 2003280
+SELECT count(), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status_per_filesegment('vac_relation_regaotyvi');
+ count |   sum   |   sum   
+-------+---------+---------
+     6 | 2003280 | 1001640
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('vac_relation_regaotyvi');
