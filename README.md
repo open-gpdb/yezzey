@@ -130,6 +130,32 @@ The time the download takes depends on the table size and the number of segment 
 INFO:  loaded relation ... to local storage
 ```
 
+### Handling transient remote read failures
+
+Yezzey provides two independent superuser configuration parameters for
+transient failures while reading offloaded AO files through yproxy:
+
+* `yezzey.remote_read_retry_count` controls the number of additional attempts
+  after a failed remote read request. Its default is `100`; `0` disables
+  retries. A value of `N` performs the initial request and at most `N` retries.
+  The retry counter is reset only after bytes are read successfully.
+
+* `yezzey.skip_unreadable_ao_segments` is disabled by default. When enabled,
+  Yezzey fully reads an offloaded AO file into a temporary local file before
+  returning it to GPDB. If all retries fail, Yezzey logs a warning and the
+  corresponding GPDB version skips the whole AO/AOCO segment and continues the
+  scan. Query results do not contain rows from a skipped segment.
+
+When segment skipping is disabled, exhausting the retry count preserves the
+normal read-error behavior.
+
+For example:
+
+```sql
+SET yezzey.remote_read_retry_count = 100;
+SET yezzey.skip_unreadable_ao_segments = on;
+```
+
 ### Get info about offloaded data
 
 Just query extension:

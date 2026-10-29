@@ -3,6 +3,8 @@
 
 extern bool use_gpg_crypto;
 extern bool use_otm_feature;
+extern bool skip_unreadable_ao_segments;
+extern int remote_read_retry_count;
 
 /* ----- STORAGE -----  */
 extern char *storage_class;
