@@ -51,6 +51,7 @@ BEGIN
         WHERE reloid = v_reloid AND relpolicy = 1
     ) THEN
         RETURN QUERY SELECT 'relation ' || i_offload_relname || ' already offloaded';
+        RETURN;
     END IF;
 
     PERFORM yezzey_define_relation_offload_policy_internal_prepare(v_reloid);

@@ -1,6 +1,4 @@
-CREATE EXTENSION yezzey VERSION '1.0';
-
-ALTER EXTENSION yezzey UPDATE TO '1.8.3';
+CREATE EXTENSION yezzey;
 
 INSERT INTO yezzey.yezzey_virtual_index (filenode,blkno,modcount) VALUES (1,1,1);
 

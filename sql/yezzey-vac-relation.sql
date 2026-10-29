@@ -1,7 +1,4 @@
-
-CREATE EXTENSION yezzey VERSION '1.0';
-
-ALTER EXTENSION yezzey UPDATE TO '1.8.3';
+CREATE EXTENSION yezzey;
 
 SET client_min_messages TO WARNING;
 -- AO
@@ -45,8 +42,8 @@ SELECT segindex FROM yezzey_offload_relation_status('vac_relation_regaotyvi');
 SELECT segindex,segfileindex FROM yezzey_offload_relation_status_per_filesegment('vac_relation_regaotyvi');
 SELECT segindex,segfileindex FROM yezzey_relation_describe_external_storage_structure('vac_relation_regaotyvi');
 
-SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status('vac_relation_regaotyvi');
-SELECT count(), sum(external_bytes) FROM yezzey_offload_relation_status_per_filesegment('vac_relation_regaotyvi');
+SELECT count(), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status('vac_relation_regaotyvi');
+SELECT count(), sum(external_bytes), sum(external_bloat_bytes) FROM yezzey_offload_relation_status_per_filesegment('vac_relation_regaotyvi');
 SELECT count(), sum(external_bytes) FROM yezzey_relation_describe_external_storage_structure('vac_relation_regaotyvi');
 
 DROP TABLE vac_relation_regaotyvi;
