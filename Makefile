@@ -60,10 +60,10 @@ REGRESS = \
           yezzey-reorg \
           yezzey-vac-relation \
           yezzey-vi-eh-unique \
-          yezzey-offload-errors
+          yezzey-offload-errors \
+		  yezzey-otm-feat
 # Temporarily disabled: their scenarios require Cloudberry 2.x compatibility
 # fixes before they can be added back to REGRESS.
-#          yezzey-otm-feat \
 #          yezzey-otm-deletion \
 #          yezzey-stat \
 #          yezzey-alter-ts \

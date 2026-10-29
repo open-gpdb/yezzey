@@ -13,10 +13,10 @@ CREATE TABLE yezzey_otm_regaoty_2(i INT, s TEXT) WITH (appendonly=true) TABLESPA
 INSERT INTO yezzey_otm_regaoty_2 SELECT i, 'dssd' FROM generate_series(1, 100000) i;
 ALTER TABLE yezzey_otm_regaoty_2 ALTER COLUMN s SET STORAGE EXTERNAL;
 INSERT INTO yezzey_otm_regaoty_2 VALUES (1111, repeat('a', 2323323));
-SELECT * FROM yezzey.offload_relation('yezzey_otm_regaoty_1');
-                               status                               
---------------------------------------------------------------------
- offloaded relation public.yezzey_otm_regaoty_1 to external storage
+SELECT yezzey.offload_relation('yezzey_otm_regaoty_1');
+ offload_relation 
+------------------
+ 
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_1'::regclass::oid;
@@ -65,49 +65,55 @@ SELECT i FROM yezzey_otm_regaoty_1 ORDER BY i LIMIT 5 OFFSET 7823;
 SELECT segindex,external_bytes FROM yezzey.offload_relation_status('yezzey_otm_regaoty_1') order by segindex;
  segindex | external_bytes 
 ----------+----------------
-        0 |         603000
-        1 |         600624
-        2 |         598480
+        0 |        2412000
+        1 |        2402256
+        2 |        2393920
 (3 rows)
 
 SELECT segindex,segfileindex,external_bytes FROM yezzey.offload_relation_status_per_filesegment('yezzey_otm_regaoty_1') order by segindex;
  segindex | segfileindex | external_bytes 
 ----------+--------------+----------------
-        0 |            1 |         603000
-        1 |            1 |         600624
-        2 |            1 |         598480
+        0 |            1 |        2412000
+        1 |            1 |        2402256
+        2 |            1 |        2393920
 (3 rows)
 
 SELECT segindex,segfileindex,external_bytes FROM yezzey.relation_describe_external_storage_structure('yezzey_otm_regaoty_1') order by segindex;
  segindex | segfileindex | external_bytes 
 ----------+--------------+----------------
         0 |            1 |         603000
+        0 |            1 |         603000
+        0 |            1 |        1206000
         1 |            1 |         600624
+        1 |            1 |         600568
+        1 |            1 |        1201064
         2 |            1 |         598480
-(3 rows)
+        2 |            1 |         598480
+        2 |            1 |        1196960
+(9 rows)
 
 SELECT count(), sum(external_bytes) FROM yezzey.offload_relation_status('yezzey_otm_regaoty_1');
  count |   sum   
 -------+---------
-     3 | 1802104
+     3 | 7208176
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey.offload_relation_status_per_filesegment('yezzey_otm_regaoty_1');
  count |   sum   
 -------+---------
-     3 | 1802104
+     3 | 7208176
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey.relation_describe_external_storage_structure('yezzey_otm_regaoty_1');
  count |   sum   
 -------+---------
-     3 | 1802104
+     9 | 7208176
 (1 row)
 
-SELECT * FROM yezzey.offload_relation('yezzey_otm_regaoty_2');
-                               status                               
---------------------------------------------------------------------
- offloaded relation public.yezzey_otm_regaoty_2 to external storage
+SELECT yezzey.offload_relation('yezzey_otm_regaoty_2');
+ offload_relation 
+------------------
+ 
 (1 row)
 
 SELECT reltablespace FROM pg_class where oid = 'yezzey_otm_regaoty_2'::regclass::oid;
@@ -156,43 +162,49 @@ SELECT i FROM yezzey_otm_regaoty_2 ORDER BY i LIMIT 5 OFFSET 7823;
 SELECT segindex,external_bytes FROM yezzey.offload_relation_status('yezzey_otm_regaoty_2') order by segindex;
  segindex | external_bytes 
 ----------+----------------
-        0 |         603000
-        1 |         600624
-        2 |         598480
+        0 |        2412000
+        1 |        2402256
+        2 |        2393920
 (3 rows)
 
 SELECT segindex,segfileindex,external_bytes FROM yezzey.offload_relation_status_per_filesegment('yezzey_otm_regaoty_2') order by segindex;
  segindex | segfileindex | external_bytes 
 ----------+--------------+----------------
-        0 |            1 |         603000
-        1 |            1 |         600624
-        2 |            1 |         598480
+        0 |            1 |        2412000
+        1 |            1 |        2402256
+        2 |            1 |        2393920
 (3 rows)
 
 SELECT segindex,segfileindex,external_bytes FROM yezzey.relation_describe_external_storage_structure('yezzey_otm_regaoty_2') order by segindex;
  segindex | segfileindex | external_bytes 
 ----------+--------------+----------------
         0 |            1 |         603000
+        0 |            1 |         603000
+        0 |            1 |        1206000
         1 |            1 |         600624
+        1 |            1 |         600568
+        1 |            1 |        1201064
         2 |            1 |         598480
-(3 rows)
+        2 |            1 |         598480
+        2 |            1 |        1196960
+(9 rows)
 
 SELECT count(), sum(external_bytes) FROM yezzey.offload_relation_status('yezzey_otm_regaoty_2');
  count |   sum   
 -------+---------
-     3 | 1802104
+     3 | 7208176
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey.offload_relation_status_per_filesegment('yezzey_otm_regaoty_2');
  count |   sum   
 -------+---------
-     3 | 1802104
+     3 | 7208176
 (1 row)
 
 SELECT count(), sum(external_bytes) FROM yezzey.relation_describe_external_storage_structure('yezzey_otm_regaoty_2');
  count |   sum   
 -------+---------
-     3 | 1802104
+     9 | 7208176
 (1 row)
 
 select reloid::regclass, origin_tablespace_name from yezzey.offload_tablespace_map order by reloid::regclass::text;
@@ -203,9 +215,9 @@ select reloid::regclass, origin_tablespace_name from yezzey.offload_tablespace_m
 (2 rows)
 
 SELECT yezzey.load_relation('yezzey_otm_regaoty_1');
-                     load_relation                     
--------------------------------------------------------
- loaded relation yezzey_otm_regaoty_1 to local storage
+ load_relation 
+---------------
+ 
 (1 row)
 
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_1');
@@ -215,9 +227,9 @@ SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_clas
 (1 row)
 
 SELECT yezzey.load_relation('yezzey_otm_regaoty_2');
-                     load_relation                     
--------------------------------------------------------
- loaded relation yezzey_otm_regaoty_2 to local storage
+ load_relation 
+---------------
+ 
 (1 row)
 
 SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_class where relname='yezzey_otm_regaoty_2');
@@ -228,19 +240,19 @@ SELECT spcname from pg_tablespace where oid = (select reltablespace from pg_clas
 
 CREATE TABLE yezzey_otm_regaoty_1_cs(i INT, j INT, s TEXT) WITH (appendonly=true, orientation=column) TABLESPACE tab1;
 INSERT INTO yezzey_otm_regaoty_1_cs SELECT i, i, md5(i::text) FROM generate_series(1, 100000) i;
-SELECT * FROM yezzey.offload_relation('yezzey_otm_regaoty_1_cs');
-                                status                                 
------------------------------------------------------------------------
- offloaded relation public.yezzey_otm_regaoty_1_cs to external storage
+SELECT yezzey.offload_relation('yezzey_otm_regaoty_1_cs');
+ offload_relation 
+------------------
+ 
 (1 row)
 
 SELECT yezzey.load_relation('yezzey_otm_regaoty_1_cs');
-                      load_relation                       
-----------------------------------------------------------
- loaded relation yezzey_otm_regaoty_1_cs to local storage
+ load_relation 
+---------------
+ 
 (1 row)
 
-SELECT * FROM yezzey.offload_relation('yezzey_otm_regaoty_1_cs');
+SELECT yezzey.offload_relation('yezzey_otm_regaoty_1_cs');
  offload_relation 
 ------------------
  
