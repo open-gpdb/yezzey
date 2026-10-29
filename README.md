@@ -25,6 +25,16 @@ What are our extension doing is:
 
 The result was called yezzey. The idea is to be able to offload data to S3 without a significant degradation of query performance and changes to the user interface.
 
+## Configuration (GUC Parameters)
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `yezzey.use_gpg_crypto` | bool | `on` | Enables GPG encryption for data stored in external object storage. Greenplum signals this flag to YProxy, which performs the actual encryption. If disabled, data is stored in plain text. **Note:** YProxy must be configured with a valid GPG key if this is enabled. |
+| `yezzey.storage_class` | string | `STANDARD` | The [storage class](https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html) defined by your S3 provider. This parameter is passed to YProxy, which applies it to S3 API calls during upload. **Warning:** Classes with delayed access such as *GLACIER* and *DEEP_ARCHIVE* require object restoration before reading and are not suitable for direct querying of Yezzey tables. |
+| `yezzey.multipart_chunksize` | int | `16777216` | The size of each chunk (in bytes) used for multipart uploads to S3. Default is **16 MB**. This value is sent to YProxy to configure the S3 Multipart Upload parts. |
+| `yezzey.multipart_threshold` | int | `67108864` | The file size threshold (in bytes) above which Greenplum instructs YProxy to use Multipart Upload instead of a single PUT request. Default is **64 MB**. Evaluated locally in Greenplum. |
+| `yezzey.yproxy_socket` | string | `/tmp/yproxy.sock` | The file path to the UNIX socket used for communication with the YProxy service. **Must exactly match** the `socket_path` configured in the YProxy instance. Ensure proper file permissions. |
+
 ## Development
 
 Yezzey is maintained in two implementation branches:
